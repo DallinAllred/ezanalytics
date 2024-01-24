@@ -1,7 +1,11 @@
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
+  --color-primary: #005000;
+  --color-accent: #70A070;
+
+
   --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
+  --vt-c-white-soft: #007100;
   --vt-c-white-mute: #f2f2f2;
 
   --vt-c-black: #181818;
@@ -59,28 +63,13 @@
 }
 
 body {
-  min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
-  line-height: 1.6;
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif;
-  font-size: 15px;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+ 
+}
+
+
+
+/*Fonts*/
+@font-face {
+  font-family: 'gruppo';
+  src: url('./fonts/Gruppo-Regular.ttf') format('truetype');
 }

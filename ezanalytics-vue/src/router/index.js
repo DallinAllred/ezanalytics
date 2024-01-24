@@ -6,35 +6,37 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView
-    },{
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue')
+      name: 'Home',
+      component: HomeView,
+      nav: true
     },{
       path: '/chartsHome',
-      name: 'charts',
-      component: () => import('../views/ChartsHome.vue')
+      name: 'Charts',
+      component: () => import('../views/ChartsHome.vue'),
+      nav: true
     },{
       path: '/chartBuilder',
-      name: 'chartBuilder',
+      name: 'Chart Builder',
       component: () => import('../views/ChartBuilder.vue')
     },{
       path: '/dashboards',
-      name: 'dashBoards',
-      component: () => import('../views/Dashboards.vue')
+      name: 'Dashboards',
+      component: () => import('../views/Dashboards.vue'),
+      nav: true
     },{
       path: '/dbBuilder',
-      name: 'dbBuilder',
+      name: 'DB Builder',
       component: () => import('../views/DBBuilder.vue')
     },{
+      path: '/connections',
+      name: 'Data Connections',
+      component: () => import('../views/Connections.vue'),
+      nav: true
+    },{
       path: '/users',
-      name: 'users',
-      component: () => import('../views/Users.vue')
+      name: 'User Management',
+      component: () => import('../views/Users.vue'),
+      nav: true
     }
   ]
 })
