@@ -25,7 +25,7 @@ const pages = ref(['/', '/chartsHome', '/dashboards', '/connections', '/users'])
         </ul>
       </div>
     </div>
-    <div class="col-4">
+    <div class="col-4 text-center">
       <h1 id="site-title">EZAnalytics</h1>
     </div>
     <div class="col-4 text-end">User Settings</div>
@@ -42,5 +42,6 @@ header {
 
 #site-title {
   font-family: gruppo;
+  font-weight: 600
 }
 </style>
