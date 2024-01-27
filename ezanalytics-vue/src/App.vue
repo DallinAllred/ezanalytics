@@ -31,7 +31,7 @@ const pages = ref(['/', '/chartsHome', '/dashboards', '/connections', '/users'])
     <div class="col-4 text-end">User Settings</div>
   </header>
   <main>
-    <RouterView />
+      <RouterView />
   </main>
 </template>
 
