@@ -23,3 +23,11 @@ class User():
         for row in data:
             json_data.append(dict(zip(headers, row)))
         return json_data
+    
+    @staticmethod
+    def addUser(data):
+        query = '''INSERT INTO users (first_name, last_name, username, user_email) VALUES (%s, %s, %s, %s)'''
+        result = user_conn.execute(query, data)
+        print(result)
+
+        #INSERT INTO users (first_name, last_name, username, user_email) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com');
