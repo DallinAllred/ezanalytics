@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from ..models import user_model
 
 router = APIRouter(
     prefix="/users",
@@ -7,7 +8,9 @@ router = APIRouter(
 
 @router.get("/")
 async def read_users():
-    return [{"username": "Rick"}, {"username": "Morty"}]
+    print('Getting all user data')
+    data = user_model.User.getUsers()
+    return data
 
 @router.get("/{user_id}")
 async def read_users(user_id):

@@ -1,20 +1,28 @@
 -- init.sql
 
+CREATE DATABASE ezanalytics;
+\c ezanalytics
+
 -- Create a table
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    user_id SERIAL PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(50) NOT NULL
+    username VARCHAR(20) NOT NULL,
+    user_email VARCHAR(50) NOT NULL
 );
 
 -- Insert some sample data
 
-INSERT INTO users (first_name, last_name, email)
-VALUES ('john', 'doe', 'john@email.com');
+INSERT INTO users (first_name, last_name, username, user_email) VALUES ('John', 'Doe', 'johndoe', 'john@email.com');
+INSERT INTO users (first_name, last_name, username, user_email) VALUES ('Jane', 'Doe', 'jadoe', 'jane@email.com');
+INSERT INTO users (first_name, last_name, username, user_email) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com');
 
-INSERT INTO users (first_name, last_name, email)
-VALUES ('jane', 'doe', 'jane@email.com');
+-- CREATE DATABASE user_data;
+-- \c user_data
 
-INSERT INTO users (first_name, last_name, email)
-VALUES ('jack', 'oneill', 'oneill@email.com');
+-- CREATE TABLE owners (
+--     user_id,
+--     data_table,
+--     PRIMARY KEY (user_id, data_table)
+-- )

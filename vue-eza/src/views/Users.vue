@@ -22,7 +22,7 @@ onMounted(async () => {
                 <div>
                     <h3>Username</h3>
                     <ul>
-                        <li v-for="user of users">{{ user.username }}</li>
+                        <li v-for="user of users">{{ user.first_name }}</li>
                     </ul>
                 </div>
             </div>
