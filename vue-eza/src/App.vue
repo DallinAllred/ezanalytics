@@ -14,7 +14,7 @@ const pages = ref(['/', '/chartsHome', '/dashboards', '/connections', '/users'])
 <template>
   <header class="row p-2 ">
     <div class="col-4">
-      <div class="dropdown align-middle">
+      <!-- <div class="dropdown align-middle">
         <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             {{ location.name }}
           </a>
@@ -23,12 +23,35 @@ const pages = ref(['/', '/chartsHome', '/dashboards', '/connections', '/users'])
             <RouterLink v-if="pages.includes(route.path) && route.nav === true" :to="route.path" class="dropdown-item">{{ route.name }}</RouterLink>
           </li>
         </ul>
-      </div>
+      </div> -->
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <RouterLink to="/" class="nav-link active">Home</RouterLink>
+        </li>
+        <li class="nav-item">
+          <RouterLink to="/chartsHome" class="nav-link">Charts</RouterLink>
+        </li>
+        <li class="nav-item">
+          <RouterLink to="/dashboards" class="nav-link">Dashboards</RouterLink>
+        </li>
+      </ul>
     </div>
     <div class="col-4 text-center">
       <h1 id="site-title">EZAnalytics</h1>
     </div>
-    <div class="col-4 text-end">User Settings</div>
+    <div class="col-4 text-end">
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <RouterLink to="/connections" class="nav-link">Connections</RouterLink>
+        </li>
+        <li class="nav-item">
+          <RouterLink to="/users" class="nav-link">User Manager</RouterLink>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link">Settings</a>
+        </li>
+      </ul>
+    </div>
   </header>
   <main>
       <RouterView />

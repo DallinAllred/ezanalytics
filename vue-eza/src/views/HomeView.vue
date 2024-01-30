@@ -4,12 +4,7 @@
 
 <template>
   <main>
-    <h1>Hello World!</h1>
-    <h2>This is a drill</h2>
-
-    <div>
-      <p>Hello world</p>
-    </div>
-    <!-- <TheWelcome /> -->
+    <h1>Home Page</h1>
+    <h2>Default landing page</h2>
   </main>
 </template>
