@@ -30,12 +30,16 @@ const adminPages = ref(['/connections', '/users'])
       <h1 id="site-title">EZAnalytics</h1>
     </div>
     <div class="col-4 d-flex align-items-end justify-content-end">
-          <div class="m-2"><RouterLink to="/connections" class="nav-link">Connections</RouterLink></div>
-          <div class="m-2"><RouterLink to="/users" class="nav-link">User Manager</RouterLink></div>
+      <div v-for="(route, index) in router.options.routes" :key="index" class="m-2">
+        <RouterLink v-if="adminPages.includes(route.path) && route.nav === true" :to="route.path" class="nav-link">{{ route.name }}</RouterLink>
+      </div>
+
+          <!-- <div class="m-2"><RouterLink to="/connections" class="nav-link">Connections</RouterLink></div>
+          <div class="m-2"><RouterLink to="/users" class="nav-link">User Manager</RouterLink></div> -->
           <div class="m-2"><a class="nav-link">Settings</a></div>
     </div>
   </header>
-  <main>
+  <main class="px-2">
       <RouterView />
   </main>
 </template>

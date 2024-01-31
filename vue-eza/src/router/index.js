@@ -30,12 +30,12 @@ const router = createRouter({
       component: () => import('../views/DBBuilder.vue')
     },{
       path: '/connections',
-      name: 'Data Connections',
+      name: 'Connections',
       component: () => import('../views/Connections.vue'),
       nav: true
     },{
       path: '/users',
-      name: 'User Management',
+      name: 'User Admin',
       // component: Users,
       component: () => import('../views/Users.vue'),
       nav: true
