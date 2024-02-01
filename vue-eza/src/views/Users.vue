@@ -25,7 +25,7 @@ async function loadUser(user_id) {
 <template>
     <h1>Users</h1>
     <div class="container m-0">
-        <div class="row">
+        <div class="row flex">
             <div class="col-2 d-flex flex-column justify-content-left border border-2 border-dark p-2">
                 <div class="mb-2">
                     <button class="btn btn-success">New User</button>

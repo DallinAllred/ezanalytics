@@ -1,47 +1,54 @@
 <script setup>
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
 
 import { reactive, ref } from 'vue'
 
 const location = useRoute()
 const router = useRouter()
 
-console.log(router.options.routes)
-
-
 // TODO: Get the allowed pages from the API
-const dataPages = ref(['/', '/chartsHome', '/dashboards'])
-const adminPages = ref(['/connections', '/users'])
+const pages = ref([
+    { label: 'Home', icon: 'pi pi-home', route: '/' },
+    { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome' },
+    { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
+    { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
+    { label: 'User Admin', icon: 'pi pi-users', route: '/users' },
+    { label: 'Settings', icon: 'pi pi-cog', route: '/dashboards' },
+]);
 </script>
 
 <template>
-  <header class="row p-2 ">
-    <div class="col-4 d-flex align-items-end">
-      <div v-for="(route, index) in router.options.routes" :key="index" class="m-2">
-        <RouterLink v-if="dataPages.includes(route.path) && route.nav === true" :to="route.path" class="nav-link">{{ route.name }}</RouterLink>
+  <header class="p-2">
+    <div class="flex flex-row justify-content-between pb-1">
+      <div class="flex">
+        <h1 id="site-title">EZAnalytics</h1>
       </div>
-
-          <!-- <div class="m-2"><RouterLink to="/" class="nav-link active">Home</RouterLink></div>
-          <div class="m-2"><RouterLink to="/chartsHome" class="nav-link">Charts</RouterLink></div>
-          <div class="m-2"><RouterLink to="/dashboards" class="nav-link">Dashboards</RouterLink></div> -->
-    </div>
-    <div class="col-4 text-center">
-      <h1 id="site-title">EZAnalytics</h1>
-    </div>
-    <div class="col-4 d-flex align-items-end justify-content-end">
-      <div v-for="(route, index) in router.options.routes" :key="index" class="m-2">
-        <RouterLink v-if="adminPages.includes(route.path) && route.nav === true" :to="route.path" class="nav-link">{{ route.name }}</RouterLink>
+      <div class="justify-content-end">
+        <span>Sign Out</span>
       </div>
-
-          <!-- <div class="m-2"><RouterLink to="/connections" class="nav-link">Connections</RouterLink></div>
-          <div class="m-2"><RouterLink to="/users" class="nav-link">User Manager</RouterLink></div> -->
-          <div class="m-2"><a class="nav-link">Settings</a></div>
     </div>
   </header>
-  <main class="px-2">
-      <RouterView />
-  </main>
+  <div class="flex">
+    <div>
+      <!-- <Menubar :model="pages"> -->
+        <Menu :model="pages">
+        <template #item="{ item, props }">
+            <router-link v-slot="{ href, navigate }" :to="item.route" custom>
+                <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+                    <span :class="item.icon" />
+                    <span class="ml-2">{{ item.label }}</span>
+                </a>
+            </router-link>
+        </template>
+      </Menu>
+      <!-- </Menubar> -->
+    </div>
+    <div>
+      <main class="p-2">
+        <RouterView />
+      </main>
+    </div>
+  </div>
 </template>
 
 <style>
