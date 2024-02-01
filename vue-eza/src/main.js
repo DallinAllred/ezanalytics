@@ -1,8 +1,7 @@
 import './assets/main.css'
-// import './assets/sass/style.css'
 
 import PrimeVue from 'primevue/config';
-import 'primevue/resources/themes/aura-dark-indigo/theme.css'
+import 'primevue/resources/themes/aura-dark-lime/theme.css'
 import 'primeicons/primeicons.css'
 import '/node_modules/primeflex/primeflex.css'
 

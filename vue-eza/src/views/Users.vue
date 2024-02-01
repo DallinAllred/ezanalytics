@@ -15,61 +15,52 @@ async function addUser() {
     console.log('Adding user')
 }
 
-async function loadUser(user_id) {
-    let userData = await fetch(`http://localhost:5050/users/${user_id}`)
+async function loadUser(event) {
+    let userId = event.data.user_id
+    let userData = await fetch(`http://localhost:5050/users/${userId}`)
     userData = await userData.json()
     activeUser.value = userData[0]
 }
 </script>
 
 <template>
-    <h1>Users</h1>
-    <div class="container m-0">
-        <div class="row flex">
-            <div class="col-2 d-flex flex-column justify-content-left border border-2 border-dark p-2">
+    <div class="m-0">
+        <div class="grid gap-2">
+            <div class="col-2 border-solid border-1 border-primary-200 p-2">
                 <div class="mb-2">
                     <button class="btn btn-success">New User</button>
                 </div>
                 <div>
-                    <!-- <h3>Username</h3> -->
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th scope="col">Username</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="user of users">
-                                <td @click="loadUser(user.user_id)">{{ user.username }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <DataTable :value="users" stripedRows v-model:selection="selectedUser" :selection.sync="selectedRow" selectionMode="single" @rowSelect="loadUser" rowHover>
+                        <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+                        <Column field="username" header="Username"></Column>
+                    </DataTable>
                 </div>
             </div>
-            <div class="col-3 d-flex flex-column justify-content-left border border-2 border-dark p-2">
+            <div class="col-4 border-solid border-1 border-primary-200 p-2">
                 <div>
-                    <div>
-                        <label for="first_name">First Name*</label>
-                        <input name="first_name" type="text" class="form-control" placeholder="First Name" v-model="activeUser.first_name">
+                    <div class="flex flex-column gap-2">
+                        <label for="firstName">First Name*</label>
+                        <InputText id="firstName" type="text" v-model="activeUser.first_name"></InputText>
                     </div>
-                    <div>
-                        <label for="middle_name">Middle Name</label>
-                        <input name="middle_name" type="text" class="form-control" placeholder="Middle Name" v-model="activeUser.middle_name">
+                    <div class="flex flex-column py-3">
+                        <label for="middleName">Middle Name</label>
+                        <InputText id="middleName" type="text" v-model="activeUser.middle_name"></InputText>
                     </div>
-                    <div>
-                        <label for="last_name">Last Name*</label>
-                        <input name="last_name" type="text" class="form-control" placeholder="Last Name" v-model="activeUser.last_name">
+                    <div class="flex flex-column py-3">
+                        <label for="lastName">Last Name*</label>
+                        <InputText id="lastName" type="text" v-model="activeUser.last_name"></InputText>
                     </div>
-                    <div>
+                    <div class="flex flex-column py-3">
                         <label for="email">Email*</label>
-                        <input name="email" type="email" class="form-control" placeholder="Email" v-model="activeUser.user_email">
+                        <InputText id="email" type="text" v-model="activeUser.user_email"></InputText>
                     </div>
                 </div>
                 <div>
-                    <div class="btn btn-success" @click="saveUser()">Save</div>
+                    <Button class="btn btn-success" @click="saveUser()" label="Save" />
                 </div>
             </div>
-            <div class="col-7 d-flex flex-column justify-content-left border border-2 border-dark">
+            <div class="col border-solid border-1 border-primary-200 p-2">
                 Permissions
             </div>
         </div>
@@ -78,4 +69,7 @@ async function loadUser(user_id) {
 </template>
 
 <style>
+tr[data-p-highlight="true"] {
+    background-color: var(--highlight-bg);
+}
 </style>
