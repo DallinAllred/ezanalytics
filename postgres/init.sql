@@ -16,14 +16,14 @@ CREATE TABLE users (
     viewer BOOLEAN DEFAULT false,
     chart_builder BOOLEAN DEFAULT false,
     dash_builder BOOLEAN DEFAULT false,
-    connections BOOLEAN DEFAULT false,
+    connections BOOLEAN DEFAULT false
 );
 
 -- Insert some sample data
 
-INSERT INTO users (first_name, middle_name, last_name, username, user_email) VALUES ('John', 'Adams', 'Doe', 'johndoe', 'john@email.com');
-INSERT INTO users (first_name, last_name, username, user_email) VALUES ('Jane', 'Doe', 'jadoe', 'jane@email.com');
-INSERT INTO users (first_name, last_name, username, user_email) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com');
+INSERT INTO users (first_name, middle_name, last_name, username, user_email, password) VALUES ('John', 'Adams', 'Doe', 'johndoe', 'john@email.com', 'password');
+INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jane', 'Doe', 'jadoe', 'jane@email.com', 'password');
+INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com', 'password');
 
 -- CREATE DATABASE user_data;
 -- \c user_data

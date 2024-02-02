@@ -54,7 +54,8 @@ async def read_users():
 @router.get('/{user_id}')
 async def read_user(user_id):
     data = user_model.User.get_user(user_id)
-    data = [User(**user).model_dump_json() for user in data]
+    # data = [User(**user).model_dump_json(by_alias=True) for user in data]
+    data = [User(**user) for user in data]
     return data
 
 @router.post('/')
