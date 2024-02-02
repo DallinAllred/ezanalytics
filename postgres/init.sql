@@ -9,8 +9,14 @@ CREATE TABLE users (
     first_name VARCHAR(100) NOT NULL,
     middle_name VARCHAR(100),
     last_name VARCHAR(100) NOT NULL,
-    username VARCHAR(20) NOT NULL,
-    user_email VARCHAR(50) NOT NULL
+    username VARCHAR(20) NOT NULL UNIQUE,
+    user_email VARCHAR(50) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    admin BOOLEAN DEFAULT false,
+    viewer BOOLEAN DEFAULT false,
+    chart_builder BOOLEAN DEFAULT false,
+    dash_builder BOOLEAN DEFAULT false,
+    connections BOOLEAN DEFAULT false,
 );
 
 -- Insert some sample data
