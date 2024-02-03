@@ -1,7 +1,8 @@
 <script setup>
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
+
 
 const location = useRoute()
 const router = useRouter()
@@ -13,35 +14,61 @@ const pages = ref([
     { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
     { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
     { label: 'User Admin', icon: 'pi pi-users', route: '/users' },
-    { label: 'Settings', icon: 'pi pi-cog', route: '/dashboards' },
+    { label: 'Settings', icon: 'pi pi-cog', route: '/settings' },
 ]);
+
+const activePage = computed(() => {
+  return pages.value.findIndex(page => page.route === location.path)
+})
 </script>
 
 <template>
-  <header class="m-2">
-    <div class="flex flex-row justify-content-between pb-1">
-      <div class="flex">
-        <span id="site-title" class="text-6xl">EZAnalytics</span>
-      </div>
-      <div>
-        <TabMenu :model="pages">
-          <template #item="{ item, props }">
-              <router-link v-slot="{ href, navigate }" :to="item.route" custom>
-                  <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-                      <span :class="item.icon" />
-                      <span class="ml-2">{{ item.label }}</span>
+  <div class="h-full">
+    <header class="p-2">
+      <div class="flex flex-row justify-content-between pb-1">
+        <div class="flex flex-row gap-2">
+          <div class="flex">
+            <span id="site-title" class="text-6xl">EZAnalytics</span>
+          </div>
+          <div>
+            <TabMenu :model="pages" v-model:activeIndex="activePage">
+              <template #item="{ item, props }">
+                <router-link v-slot="{ href, navigate }" :to="item.route" custom>
+                  <a :href="href" v-bind="props.action" @click="navigate">
+                    <span :class="item.icon" />
+                    <span class="ml-2">{{ item.label }}</span>
                   </a>
-              </router-link>
-          </template>
-        </TabMenu>
+                </router-link>
+              </template>
+            </TabMenu>
+          </div>
+        </div>
+        
+        <div class="justify-content-end">
+          <span>Sign Out</span>
+        </div>
       </div>
+    </header>
+    <main class="p-2 w-12">
+      <RouterView />
+    </main>
+  </div>
+</template>
 
-      <div class="justify-content-end">
-        <span>Sign Out</span>
-      </div>
-    </div>
-  </header>
-  <div class="flex">
+<style>
+header {
+  height: 4.5rem;
+}
+main {
+  height: calc(100vh - 4.5rem);
+}
+
+#site-title {
+  font-family: gruppo;
+}
+</style>
+
+  <!-- <div class="flex"> -->
     <!-- <div class="w-2"> -->
       <!-- <Menubar :model="pages"> -->
       <!-- <Menu :model="pages">
@@ -57,20 +84,8 @@ const pages = ref([
       <!-- </Menubar> -->
     <!-- </div> -->
     <!-- <div class="w-10"> -->
-      <main class="m-1 p-2 w-12">
+      <!-- <main class="m-1 p-2 w-12">
         <RouterView />
-      </main>
+      </main> -->
     <!-- </div> -->
-  </div>
-</template>
-
-<style>
-header {
-    background-color: var(--color-accent);
-}
-
-#site-title {
-  font-family: gruppo;
-  /* font-weight: 600 */
-}
-</style>
+  <!-- </div> -->

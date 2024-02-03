@@ -6,6 +6,7 @@ CREATE DATABASE ezanalytics;
 -- Create a table
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
+    active BOOLEAN DEFAULT true,
     first_name VARCHAR(100) NOT NULL,
     middle_name VARCHAR(100),
     last_name VARCHAR(100) NOT NULL,
