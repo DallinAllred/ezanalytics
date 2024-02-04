@@ -93,6 +93,7 @@ class UserOut(BaseModel):
 @router.get('/')
 async def read_users():
     data = user_model.User.get_users()
+    data = [UserOut(**user).model_dump() for user in data]
     return data
 
 @router.get('/{user_id}')

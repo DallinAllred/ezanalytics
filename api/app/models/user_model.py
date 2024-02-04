@@ -16,11 +16,16 @@ user_conn = psycopg.connect(
 class User():
     @staticmethod
     def get_users():
-        query = '''SELECT user_id, username FROM users;'''
+        # query = '''SELECT user_id, username FROM users;'''
+        headers = ['user_id', 'first_name', 'middle_name', 'last_name', 'username', 'user_email',
+                   'admin', 'viewer', 'chart_builder', 'dash_builder', 'connections']
+        query = '''SELECT user_id, first_name, middle_name, last_name, username, user_email,
+                   admin, viewer, chart_builder, dash_builder, connections
+                   FROM users;'''
         result = user_conn.execute(query)
         data = result.fetchall()
         json_data = []
-        headers = ['user_id','username']
+        # headers = ['user_id','username']
         for row in data:
             json_data.append(dict(zip(headers, row)))
         return json_data
@@ -41,6 +46,7 @@ class User():
     
     @staticmethod
     def create_user(data):
+        del data['user_id']
         columns = ','.join(data.keys())
         value_string = ', '.join([f'%s' for val in data.values()])
         query = f'''INSERT INTO users ({columns}) VALUES ({value_string});'''

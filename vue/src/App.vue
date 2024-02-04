@@ -2,6 +2,7 @@
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import { computed, reactive, ref } from 'vue'
+import Toast from 'primevue/toast'
 
 
 const location = useRoute()
@@ -9,12 +10,12 @@ const router = useRouter()
 
 // TODO: Get the allowed pages from the API
 const pages = ref([
-    { label: 'Home', icon: 'pi pi-home', route: '/' },
-    { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome' },
-    { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
-    { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
-    { label: 'User Admin', icon: 'pi pi-users', route: '/users' },
-    { label: 'Settings', icon: 'pi pi-cog', route: '/settings' },
+  // { label: 'Home', icon: 'pi pi-home', route: '/' },
+  // { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome' },
+  // { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
+  // { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
+  { label: 'User Admin', icon: 'pi pi-users', route: '/users' },
+  // { label: 'Settings', icon: 'pi pi-cog', route: '/settings' },
 ]);
 
 const activePage = computed(() => {
@@ -23,6 +24,7 @@ const activePage = computed(() => {
 </script>
 
 <template>
+  <Toast />
   <div class="h-full">
     <header class="p-2">
       <div class="flex flex-row justify-content-between pb-1">
@@ -45,7 +47,7 @@ const activePage = computed(() => {
         </div>
         
         <div class="justify-content-end">
-          <span>Sign Out</span>
+          <!-- <span>Sign Out</span> -->
         </div>
       </div>
     </header>

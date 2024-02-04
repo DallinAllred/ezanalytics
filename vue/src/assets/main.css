@@ -4,6 +4,10 @@
     background-color: var(--color-accent);
 } */
 
+body {
+    margin: 0;
+}
+
 html {
     font-size: 14px;
 }
