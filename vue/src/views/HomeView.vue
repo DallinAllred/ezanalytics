@@ -1,5 +1,9 @@
 <script setup>
-// import TheWelcome from '../components/TheWelcome.vue'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+
+const router = useRouter()
+
+router.push('/users')
 </script>
 
 <template>
