@@ -1,14 +1,10 @@
 <script setup>
-import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
-
-const router = useRouter()
-
-router.push('/users')
 </script>
 
 <template>
   <main>
-    <h1>Home Page</h1>
-    <h2>Default landing page</h2>
+    <h1>Home</h1>
+    <h3>Page is currently under construction</h3>
+    <p>See <b>User Admin</b> for an up to date example.</p>
   </main>
 </template>

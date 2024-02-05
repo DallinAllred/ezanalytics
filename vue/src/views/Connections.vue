@@ -3,8 +3,9 @@
 </script>
 
 <template>
-    <h1>Data Connectors</h1>
-    <h2>Show visible tables and external connections</h2>
+    <h1>Data Connections</h1>
+    <h3>Page is currently under construction</h3>
+    <p>See <b>User Admin</b> for an up to date example.</p>
 </template>
 
 <style>

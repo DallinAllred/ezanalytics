@@ -41,8 +41,8 @@ services:
       - ./api:/app
     depends_on:
       - postgres
-      - redis
-      - mongo
+      # - redis
+      # - mongo
     networks:
       - analytics_network
 
@@ -63,29 +63,29 @@ services:
       - analytics_network
 
   # Redis
-  redis:
-    container_name: redis_eza_container
-    image: redis:latest
-    command: redis-server
-    expose:
-      - "6379"
-    volumes:
-      - redis-data:/data
-      - redis-conf:/usr/local/etc/redis/redis.conf
-    networks:
-      - analytics_network
+  # redis:
+  #   container_name: redis_eza_container
+  #   image: redis:latest
+  #   command: redis-server
+  #   expose:
+  #     - "6379"
+  #   volumes:
+  #     - redis-data:/data
+  #     - redis-conf:/usr/local/etc/redis/redis.conf
+  #   networks:
+  #     - analytics_network
 
   # MongoDB
-  mongo:
-    container_name: mongo_eza_container
-    image: mongo:latest
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    expose:
-      - "27017"
-    networks:
-      - analytics_network
+  # mongo:
+  #   container_name: mongo_eza_container
+  #   image: mongo:latest
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: example
+  #   expose:
+  #     - "27017"
+  #   networks:
+  #     - analytics_network
 
 networks:
   analytics_network:

@@ -10,12 +10,12 @@ const router = useRouter()
 
 // TODO: Get the allowed pages from the API
 const pages = ref([
-  // { label: 'Home', icon: 'pi pi-home', route: '/' },
-  // { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome' },
-  // { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
-  // { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
+  { label: 'Home', icon: 'pi pi-home', route: '/' },
+  { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome' },
+  { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
+  { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
   { label: 'User Admin', icon: 'pi pi-users', route: '/users' },
-  // { label: 'Settings', icon: 'pi pi-cog', route: '/settings' },
+  { label: 'Settings', icon: 'pi pi-cog', route: '/settings' },
 ]);
 
 const activePage = computed(() => {

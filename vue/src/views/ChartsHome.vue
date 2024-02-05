@@ -3,8 +3,9 @@
 </script>
 
 <template>
-    <h1>Charts Page</h1>
-    <h2>Default charts page</h2>
+    <h1>Charts</h1>
+    <h3>Page is currently under construction</h3>
+    <p>See <b>User Admin</b> for an up to date example.</p>
 
 </template>
 
