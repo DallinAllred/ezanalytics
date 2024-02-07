@@ -7,12 +7,6 @@ user_conn = psycopg.connect(
     password='mypassword'
 )
 
-# from ..models import user_conn
-
-# fields = {
-#     'user_id'
-# }
-
 class User():
     @staticmethod
     def get_users():

@@ -76,23 +76,28 @@ services:
   #     - analytics_network
 
   # MongoDB
-  # mongo:
-  #   container_name: mongo_eza_container
-  #   image: mongo:latest
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: example
-  #   expose:
-  #     - "27017"
-  #   networks:
-  #     - analytics_network
+  mongo:
+    container_name: mongo_eza_container
+    # image: mongo:latest
+    build:
+      context: ./mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    expose:
+      - "27017"
+    volumes:
+      - mongo-data:/data
+    networks:
+      - analytics_network
 
 networks:
   analytics_network:
 
 volumes:
+  ezanalytics-vue:
+  fastapi:
+  mongo-data:
   postgres-data:
   redis-data:
   redis-conf:
-  ezanalytics-vue:
-  fastapi:

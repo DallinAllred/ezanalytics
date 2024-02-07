@@ -4,3 +4,4 @@ uvicorn[standard]
 fastapi-camelcase
 gunicorn==20.1.0
 psycopg
+pymongo
