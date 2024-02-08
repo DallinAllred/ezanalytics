@@ -111,7 +111,6 @@ async function deleteUser() {
                     </span>
                 </div>
             </template>
-            <!-- <Column selectionMode="multiple" style="width: 3rem"></Column> -->
             <Column field="username" header="Username" sortable></Column>
             <Column field="lastName" header="Last Name" sortable></Column>
             <Column field="firstName" header="First Name" sortable></Column>
@@ -217,96 +216,8 @@ async function deleteUser() {
                 <Button label="Yes" icon="pi pi-check" text @click="deleteUser" />
             </template>
         </Dialog>
-
-        <!-- <Dialog v-model:visible="deleteUsersDialog" :style="{width: '450px'}" header="Confirm" :modal="true">
-            <div class="confirmation-content">
-                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                <span v-if="activeUser">Are you sure you want to delete the selected users?</span>
-            </div>
-            <template #footer>
-                <Button label="No" icon="pi pi-times" text @click="deleteUsersDialog = false" />
-                <Button label="Yes" icon="pi pi-check" text @click="deleteUsers" />
-            </template>
-        </Dialog> -->
     </div>
 </template>
-
-<!-- <template>
-    <div class="grid gap-2 m-0 h-full">
-        <div class="flex flex-column col-2 border-solid border-1 border-primary-200 p-2 align-content-center">
-            <div class="flex flex-row justify-content-center mb-2">
-                <Button icon="pi pi-user-plus" iconPos="right" @click="addUser()" label="New User" />
-            </div>
-            <div>
-                <DataTable :value="users" stripedRows v-model:selection="selectedUser"
-                :selection.sync="selectedRow" :selectionMode="newUser ? '' : 'single'"
-                @rowSelect="loadUser" rowHover>
-                    <Column field="username" header="Username"></Column>
-                </DataTable>
-            </div>
-        </div>
-        <div class="flex flex-column justify-content-between col-4 border-solid border-1 border-primary-200 p-3">
-            <div class="flex flex-column gap-5">
-                <h2>User Information</h2>
-                <div class="flex flex-column">
-                    <label for="firstName">First Name*</label>
-                    <InputText id="firstName" type="text" v-model="activeUser.firstName"></InputText>
-                </div>
-                <div class="flex flex-column">
-                    <label for="middleName">Middle Name</label>
-                    <InputText id="middleName" type="text" v-model="activeUser.middleName"></InputText>
-                </div>
-                <div class="flex flex-column">
-                    <label for="lastName">Last Name*</label>
-                    <InputText id="lastName" type="text" v-model="activeUser.lastName"></InputText>
-                </div>
-                <div class="flex flex-column">
-                    <label for="email">Email*</label>
-                    <InputText id="email" type="text" v-model="activeUser.userEmail"></InputText>
-                </div>
-                <div class="flex flex-column">
-                    <label for="username">Username*</label>
-                    <InputText id="username" type="text" v-model="activeUser.username"></InputText>
-                </div>
-                <div v-if="newUser" class="flex flex-column">
-                    <label for="password">Password*</label>
-                    <InputText id="password" type="text" v-model="activeUser.password"></InputText>
-                    <small id="password-help">Enter a password or leave blank to use default: firstName_lastName</small>
-                </div>
-            </div>
-            <div class="flex flex-row gap-2 justify-content-end">
-                <Button v-if="activeUser.userId" @click="deleteUser()" label="Delete User" severity="danger" />
-                <Button v-if="newUser" @click="() => {newUser = !newUser; activeUser = {}}" label="Cancel" severity="warning" />
-                <Button @click="saveUser()" label="Save" severity="primary" />
-            </div>
-        </div>
-        <div class="flex flex-column gap-5 col border-solid border-1 border-primary-200 p-2">
-            <h2>User Permissions</h2>
-            <div class="flex flex-column gap-5">
-                <div class="flex flex-row gap-3">
-                    <Checkbox v-model="activeUser.admin" :binary="true"></Checkbox>
-                    <label for="">Administrator</label>
-                </div>
-                <div class="flex flex-row gap-3">
-                    <Checkbox v-model="activeUser.viewer" :binary="true"></Checkbox>
-                    <label for="">Viewer</label>
-                </div>
-                <div class="flex flex-row gap-3">
-                    <Checkbox v-model="activeUser.chartBuilder" :binary="true"></Checkbox>
-                    <label for="">Chart Builder</label>
-                </div>
-                <div class="flex flex-row gap-3">
-                    <Checkbox v-model="activeUser.dashBuilder" :binary="true"></Checkbox>
-                    <label for="">Dashboard Builder</label>
-                </div>
-                <div class="flex flex-row gap-3">
-                    <Checkbox v-model="activeUser.connections" :binary="true"></Checkbox>
-                    <label for="">Connections</label>
-                </div>
-            </div>
-        </div>
-    </div>
-</template> -->
 
 <style>
 tr[data-p-highlight="true"] {
