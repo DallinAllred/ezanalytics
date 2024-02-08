@@ -57,11 +57,27 @@ const chartData = ref({
         labels: ['Q1', 'Q2', 'Q3', 'Q4'],
         datasets: [
             {
+                type: 'bar',
                 label: 'Sales',
                 data: [540, 325, 702, 620],
                 backgroundColor: ['rgba(249, 115, 22, 0.2)', 'rgba(6, 182, 212, 0.2)', 'rgb(107, 114, 128, 0.2)', 'rgba(139, 92, 246 0.2)'],
                 borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
                 borderWidth: 1
+            },{
+                type: 'bar',
+                label: 'Bids',
+                data: [700, 650, 1400, 1200],
+                backgroundColor: ['rgba(50, 135, 52, 0.2)', 'rgba(255, 50, 40, 0.2)', 'rgb(50, 114, 50, 0.2)', 'rgba(139, 0, 100, 0.2)'],
+                // borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+                borderWidth: 1
+            },{
+                type: 'line',
+                label: 'Dataset 1',
+                borderColor: documentStyle.getPropertyValue('--orange-500'),
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                data: [500, 250, 120, 480, 560, 760, 420]
             }
         ]
     });
@@ -75,6 +91,7 @@ const chartOptions = ref({
         },
         scales: {
             x: {
+                // stacked: true,
                 ticks: {
                     color: documentStyle.getPropertyValue('--text-color-secondary')
                 },
@@ -83,6 +100,7 @@ const chartOptions = ref({
                 }
             },
             y: {
+                // stacked: true,
                 beginAtZero: true,
                 ticks: {
                     color: documentStyle.getPropertyValue('--text-color-secondary')
@@ -174,7 +192,7 @@ const chartOptions = ref({
                 <div>
                     Data table
                     <DataTable>
-                        
+
                     </DataTable>
                 </div>
             </div>
