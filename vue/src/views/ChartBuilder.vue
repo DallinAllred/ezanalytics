@@ -53,14 +53,38 @@ function uploadData() {
 //     chartOptions.value = setChartOptions();
 // });
 
+// CHART DATA
+// Labels
+//      Need to look into this. Is it just the x-axis?
+// Datasets
+//      Label = Column Name - Alias would be nice...
+//      Type: Need a good way to add additional types
+//      Data: Pulled from table
+//          Scatter requires data: [{x: val, y: val}, {x: val, y: val},...]
+//      
+//      Need to programatically create new chart if splitting by column
+//          Label becomes filter key, data becomes filtered array
+//          Type matches parent
+
+
+
 const chartData = ref({
-        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        labels: ['Q1', 'Q2', 'Q3', 'Q4', '5', '6', '7'],
         datasets: [
             {
-                type: 'bar',
+                type: 'scatter',
                 label: 'Sales',
-                data: [540, 325, 702, 620],
-                backgroundColor: ['rgba(249, 115, 22, 0.2)', 'rgba(6, 182, 212, 0.2)', 'rgb(107, 114, 128, 0.2)', 'rgba(139, 92, 246 0.2)'],
+                // data: [540, 325, 702, 620],
+                data:[{
+                    x: 1, y: 100
+                }, {
+                    x: 2, y: 500
+                }, {
+                    x: 3, y: 750
+                }, {
+                    x: 5, y: 1000
+                }],
+                backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
                 borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
                 borderWidth: 1
             },{
@@ -72,21 +96,29 @@ const chartData = ref({
                 borderWidth: 1
             },{
                 type: 'line',
-                label: 'Dataset 1',
+                label: 'LineChart',
                 borderColor: documentStyle.getPropertyValue('--orange-500'),
                 borderWidth: 2,
                 fill: false,
-                tension: 0.4,
+                tension: 0.5,
                 data: [500, 250, 120, 480, 560, 760, 420]
             }
         ]
     });
+
+// CHART OPTIONS
+// Plugins:
+//      title: Input field
 const chartOptions = ref({
         plugins: {
             legend: {
                 labels: {
                     color: documentStyle.getPropertyValue('--text-color')
                 }
+            },
+            title: {
+                display: true,
+                text: 'Custom Chart Title'
             }
         },
         scales: {
