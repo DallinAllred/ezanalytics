@@ -50,7 +50,7 @@ async function saveUser() {
         && activeUser.value.username?.trim()
         && activeUser.value.userEmail?.trim())) { return }
     if (newUser.value === true) {
-        let response = await fetch(`http://localhost:5050/users/`, {
+        let response = await fetch(`http://localhost:5050/api/users/`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -59,7 +59,7 @@ async function saveUser() {
         })
         toast.add({severity: 'success', summary: 'Successful', detail: 'User created', life: 3000})
     } else {
-        let response = await fetch(`http://localhost:5050/users/${activeUser.value.userId}`, {
+        let response = await fetch(`http://localhost:5050/api/users/${activeUser.value.userId}`, {
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
@@ -75,13 +75,13 @@ async function saveUser() {
 }
 
 async function loadUsers() {
-    let userData = await fetch('http://localhost:5050/users/')
+    let userData = await fetch('http://localhost:5050/api/users/')
     userData = await userData.json()
     users.value = userData
 }
 
 async function deleteUser() {
-    let response = await fetch(`http://localhost:5050/users/${activeUser.value.userId}`, {
+    let response = await fetch(`http://localhost:5050/api/users/${activeUser.value.userId}`, {
         method: 'DELETE'
     })
     deleteUserDialog.value = false

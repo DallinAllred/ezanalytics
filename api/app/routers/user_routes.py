@@ -5,7 +5,7 @@ from pydantic.alias_generators import to_snake, to_camel
 from ..models import user_model
 
 router = APIRouter(
-    prefix='/users',
+    prefix='/api/users',
     responses={404: {'description': 'Not found'}},
 )
 
@@ -45,27 +45,6 @@ class UserIn(BaseModel):
     chart_builder: bool | None = False
     dash_builder: bool | None = False
     connections: bool | None = False
-
-
-    # model_config = {
-    #     'json_schema_extra': {
-    #         'examples': [
-    #             {
-    #                 'firstName': 'John',
-    #                 'middleName': 'Smith',
-    #                 'lastName': 'Doe',
-    #                 'username': 'jsdoe',
-    #                 'userEmail': 'jdoe@mail.com',
-    #                 'password': 'Password hash or plaintext password for a new user',
-    #                 'admin': 'Boolean. Default: False',
-    #                 'viewer': 'Boolean. Default: False',
-    #                 'chartBuilder': 'Boolean. Default: False',
-    #                 'dashBuilder': 'Boolean. Default: False',
-    #                 'connections': 'Boolean. Default: False',
-    #             }
-    #         ]
-    #     }
-    # }
 
 class UserOut(BaseModel):
     model_config = ConfigDict(

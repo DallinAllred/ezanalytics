@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import axios from 'axios'
+import { ref, onMounted, watch } from "vue"
 
 
 /*
@@ -9,17 +10,12 @@ Graph needs
     options
 */
 
-const documentStyle = getComputedStyle(document.documentElement);
+const documentStyle = getComputedStyle(document.documentElement)
 
-const selectedDataSource = ref();
-const selectedGraphType = ref();
-const dataSources = ref([
-    { name: 'New York', code: 'NY' },
-    { name: 'Rome', code: 'RM' },
-    { name: 'London', code: 'LDN' },
-    { name: 'Istanbul', code: 'IST' },
-    { name: 'Paris', code: 'PRS' }
-]);
+const selectedDataSource = ref()
+const selectedGraphType = ref()
+const dataSources = ref([])
+
 const graphTypes = ref([
     {name: 'Pie', value: 'pie'},
     {name: 'Doughtnut', value: 'doughtnut'},
@@ -37,6 +33,23 @@ const columns = ref([
     {colName: 'jobs', type: 'Cont.'},
 ])
 
+async function getSources() {
+    let response = await axios.get('http://localhost:5050/api/sources/')
+    dataSources.value = response.data
+}
+
+async function getData() {
+    let response = await axios.get(`http://localhost:5050/api/sources/${selectedDataSource.value.sourceId}`)
+    console.log(response.data[0])
+    let data = response.data
+    columns.value = []
+    for (let col of Object.keys(data[0])) {
+        columns.value.push({colName: col, type: 'Cont.'})
+    }
+    // console.log(Object.keys(data[0]))
+    // columns.value = Object.keys(data[0])
+}
+
 function saveChart() {
     console.log('Saving chart')
     toast.add({severity: 'info', summary: 'Successful', detail: 'Chart save requested', life: 3000})
@@ -48,10 +61,11 @@ function uploadData() {
 }
 
 // Chart Setup for Demo Chart
-// onMounted(() => {
-//     chartData.value = setChartData();
-//     chartOptions.value = setChartOptions();
-// });
+onMounted(() => {
+    getSources()
+    // chartData.value = setChartData()
+    // chartOptions.value = setChartOptions()
+})
 
 // CHART DATA
 // Labels
@@ -104,11 +118,12 @@ const chartData = ref({
                 data: [500, 250, 120, 480, 560, 760, 420]
             }
         ]
-    });
+    })
 
 // CHART OPTIONS
 // Plugins:
 //      title: Input field
+//      legend
 const chartOptions = ref({
         plugins: {
             legend: {
@@ -142,7 +157,7 @@ const chartOptions = ref({
                 }
             }
         }
-    });
+    })
 
 // const setChartData = () => {
 //     return {
@@ -156,13 +171,13 @@ const chartOptions = ref({
 //                 borderWidth: 1
 //             }
 //         ]
-//     };
-// };
+//     }
+// }
 // const setChartOptions = () => {
-//     const documentStyle = getComputedStyle(document.documentElement);
-//     const textColor = documentStyle.getPropertyValue('--text-color');
-//     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
-//     const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
+//     const documentStyle = getComputedStyle(document.documentElement)
+//     const textColor = documentStyle.getPropertyValue('--text-color')
+//     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary')
+//     const surfaceBorder = documentStyle.getPropertyValue('--surface-border')
 
 //     return {
 //         plugins: {
@@ -191,15 +206,20 @@ const chartOptions = ref({
 //                 }
 //             }
 //         }
-//     };
+//     }
 // }
+
+watch(selectedDataSource, async () => {
+    console.log(selectedDataSource.value)
+    getData()
+})
 
 </script>
 
 <template>
     <div class="grid h-full">
         <div class="col-12 flex flex-row gap-2">
-            <div><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="name" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
+            <div><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
             <div><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
             <div><Dropdown v-model="selectedGraphType" :options="graphTypes" optionLabel="name" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
             <div><Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" /></div>
