@@ -20,8 +20,9 @@ CREATE TABLE users (
     connections BOOLEAN DEFAULT false
 );
 
--- Insert some sample data
+
 -- DUMMY DATA
+-- DUMMY USERS
 INSERT INTO users (first_name, middle_name, last_name, username, user_email, password) VALUES ('John', 'Adams', 'Doe', 'johndoe', 'john@email.com', 'password');
 INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jane', 'Doe', 'jadoe', 'jane@email.com', 'password');
 INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com', 'password');
@@ -46,6 +47,7 @@ CREATE TABLE connections (
 );
 
 -- DUMMY DATA
+-- DUMMY Table references
 INSERT INTO data_sources(source_type, source_label, source_access_id) VALUES ('upload', 'Mill Data', 'mill_data');
 INSERT INTO data_sources(source_type, source_label, source_access_id) VALUES ('upload', 'Mill Data 2', 'mill_data2');
 INSERT INTO data_sources(source_type, source_label, source_access_id) VALUES ('upload', 'Mill Data 3', 'mill_data3');

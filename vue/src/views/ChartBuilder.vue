@@ -1,7 +1,9 @@
 <script setup>
 import axios from 'axios'
 import { ref, onMounted, watch } from "vue"
+import { useToast } from 'primevue/usetoast'
 
+const toast = useToast()
 
 /*
 Graph needs
@@ -12,25 +14,21 @@ Graph needs
 
 const documentStyle = getComputedStyle(document.documentElement)
 
+const chartTitle = ref()
+const columns = ref([])
+const dataSources = ref([])
+const rawData = ref()
 const selectedDataSource = ref()
 const selectedGraphType = ref()
-const dataSources = ref([])
 
 const graphTypes = ref([
+    {name: 'Scatter', value: 'scatter'},
     {name: 'Pie', value: 'pie'},
     {name: 'Doughtnut', value: 'doughtnut'},
     {name: 'Line', value: 'line'},
     {name: 'Bar', value: 'bar'},
     {name: 'Radar', value: 'radar'},
     {name: 'Polar Area', value: 'polarArea'}
-])
-
-const columns = ref([
-    {colName: 'id', type: 'Cont.'},
-    {colName: 'bit', type: 'Cat.'},
-    {colName: 'defects', type: 'Cont.'},
-    {colName: 'vendor', type: 'Cat.'},
-    {colName: 'jobs', type: 'Cont.'},
 ])
 
 async function getSources() {
@@ -40,14 +38,12 @@ async function getSources() {
 
 async function getData() {
     let response = await axios.get(`http://localhost:5050/api/sources/${selectedDataSource.value.sourceId}`)
-    console.log(response.data[0])
     let data = response.data
     columns.value = []
     for (let col of Object.keys(data[0])) {
         columns.value.push({colName: col, type: 'Cont.'})
     }
-    // console.log(Object.keys(data[0]))
-    // columns.value = Object.keys(data[0])
+    rawData.value = data
 }
 
 function saveChart() {
@@ -210,7 +206,6 @@ const chartOptions = ref({
 // }
 
 watch(selectedDataSource, async () => {
-    console.log(selectedDataSource.value)
     getData()
 })
 
@@ -221,7 +216,7 @@ watch(selectedDataSource, async () => {
         <div class="col-12 flex flex-row gap-2">
             <div><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
             <div><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
-            <div><Dropdown v-model="selectedGraphType" :options="graphTypes" optionLabel="name" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
+            <div><Dropdown v-model="selectedGraphType" :options="graphTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" /></div>
             <div><Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" /></div>
         </div>
         <div class="col-12 grid h-full">
@@ -234,7 +229,9 @@ watch(selectedDataSource, async () => {
             <div class="col-10">
                 <div class="grid">
                     <div class="col-10">
-                        Chart Builder
+                        <div class="flex justify-content-center">
+                            <InputText type="text" v-model="chartTitle" placeholder="Title" />
+                        </div>
                         <Chart type="bar" :data="chartData" :options="chartOptions" />
                     </div>
                     <div class="col-2">

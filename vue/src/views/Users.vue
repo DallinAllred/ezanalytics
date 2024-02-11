@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { FilterMatchMode } from 'primevue/api'
 import { useToast } from 'primevue/usetoast'
 
+const toast = useToast()
 
 const users = ref()
 const activeUser = ref({})
@@ -10,8 +11,6 @@ const newUser = ref(false)
 const userDialog = ref(false)
 const deleteUserDialog = ref(false)
 const submitted = ref(false)
-
-const toast = useToast()
 
 const filters = ref({
     'global': {value: null, matchMode: FilterMatchMode.CONTAINS}
