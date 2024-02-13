@@ -63,6 +63,19 @@ onMounted(() => {
     // chartOptions.value = setChartOptions()
 })
 
+
+// CHART MODEL
+/*
+    {
+        _id: MongoID,
+        name: Display Name,
+        user: User creating chart,
+        datasource: Access_id,
+        data: {},
+        options: {}
+    }
+*/
+
 // CHART DATA
 // Labels
 //      Need to look into this. Is it just the x-axis?
