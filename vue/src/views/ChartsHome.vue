@@ -3,18 +3,27 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-function openChartBuilder() {
+function newChart() {
+    router.push('/chartBuilder')
+}
+
+// TODO: Update this to use a query string to load the desired chart
+function loadChart() {
     router.push('/chartBuilder')
 }
 
 </script>
 
 <template>
-    <h1>Charts</h1>
-    <h3>Page is currently under construction</h3>
-    <p>See <b>User Admin</b> for an up to date example.</p>
-    <Button label="Chart Builder" @click="openChartBuilder" />
-
+    <div class="grid h-full">
+        <div class="col-2 flex flex-column gap-2">
+            <Skeleton height="100%"></Skeleton>
+            <Button label="New Chart" @click="newChart" />
+        </div>
+        <div class="col-10 flex flex-column gap-2">
+            <Skeleton height="100%"></Skeleton>
+        </div>
+    </div>
 </template>
 
 <style>
