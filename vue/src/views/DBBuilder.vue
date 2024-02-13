@@ -1,46 +1,41 @@
 <script setup>
-import { useToast } from  'primevue/usetoast';
+import { ref } from 'vue'
+import { useToast } from  'primevue/usetoast'
 const toast = useToast()
 
 function saveDashboard() {
     toast.add({severity: 'info', summary: 'Successful', detail: 'Save Dashboard clicked', life: 3000})
 }
-function deleteConnection() {
-    toast.add({severity: 'warn', summary: 'Warning', detail: 'Delete Connection clicked', life: 3000})
+function addRow() {
+    toast.add({severity: 'info', summary: 'Warning', detail: 'Add Row clicked', life: 3000})
 }
-function newConnection() {
-    toast.add({severity: 'info', summary: 'Successful', detail: 'New Connection clicked', life: 3000})
+function addChart(row) {
+    toast.add({severity: 'info', summary: 'Successful', detail: 'Add Chart clicked', life: 3000})
 }
 
+const layout = ref([['Table 1_1', 'Table 1_2'], ['Table 2_1', 'Table 2_2']])
 </script>
 
 <template>
 
-    <div class="grid h-full align-content-start">
-        <div class="col-12 flex-none flex flex-row justify-content-end h-5rem">
+    <div class="grid">
+        <div class="col-12 flex flex-row justify-content-end">
             <div><Button label="Save Dashboard" @click="saveDashboard" /></div>
         </div>
-        <div class="col-12 grid flex-grow-1 h-full">
-            <div class="col-6 flex flex-column gap-2">
-                <h2>Charts</h2>
-                <Skeleton height="80%"></Skeleton>
-                <div class="flex flex-row justify-content-between">
-                    <div><Button label="Delete Data Source" @click="deleteConnection" /></div>
-                    <div><Button label="Upload Data" @click="newConnection" /></div>
+            <div v-for="row of layout" class="col-12 grid h-full align-items-stretch">
+                <div v-for="chart of row" :class="`col-${12 / row.length - 1}`">
+                    <h4>{{ chart }}</h4>
+                    <Skeleton height="10rem"></Skeleton>
                 </div>
-            </div>
-            <div class="col-6 flex flex-column gap-2">
-                <h2>Dashboards</h2>
-                <Skeleton height="10rem"></Skeleton>
-                <div class="flex flex-row justify-content-between">
-                    <div><Button label="Delete Connection" @click="deleteConnection" /></div>
-                    <div><Button label="New Connection" @click="newConnection" /></div>
+                <div>
+                    <Button icon="pi pi-plus" outlined rounded class="mr-2" @click="addChart(row)" />
                 </div>
-            </div>
-        </div>
 
+            </div>
+            <div>
+                <Button icon="pi pi-plus" outlined rounded class="mr-2" @click="addRow()" />
+            </div>
     </div>
-
 </template>
 
 <style>

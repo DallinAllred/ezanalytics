@@ -53,14 +53,56 @@ class Source():
         return json_data
     
     @staticmethod
-    def create_user(data):
-        del data['user_id']
-        columns = ','.join(data.keys())
-        value_string = ', '.join([f'%s' for val in data.values()])
-        query = f'''INSERT INTO users ({columns}) VALUES ({value_string});'''
-        result = source_conn.execute(query, list(data.values()))
-        source_conn.commit()
+    def create_datatable(table_name, columns):
+        # Validate table does not exist
+        query = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
+        result = source_conn.execute(query)
+        tables = result.fetchall()
+        tables = [t[0] for t in tables]
+        if table_name in tables:
+            raise Exception('Invalid table name')
+        print(tables)
+        params = []
+        query = 'CREATE TABLE %s (id SERIAL INT PRIMARY KEY'
+        params.append(table_name)
+        for col in columns:
+            query += ', %s %s DEFAULT NULL'
+            params.append(col.name)
+            params.append(col.type)
+        query += ');'
+        result = upload_conn.execute(query, params)
+        upload_conn.commit()
         print(result)
+
+    @staticmethod
+    def upload_data(table_name, data):
+
+        # BETTER WAY: SAVE CSV TO POSTGRES AND INGEST
+        # COPY zip_codes FROM '/path/to/csv/ZIP_CODES.txt' DELIMITER ',' CSV HEADER;
+
+
+        query = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
+        result = source_conn.execute(query)
+        tables = result.fetchall()
+        tables = [t[0] for t in tables]
+        if table_name not in tables:
+            raise Exception('Invalid table name')
+        
+        col_list = ','.join(data[0].keys())
+        query = ''
+        params = []
+        for row in data:
+            query += f'INSERT INTO {table_name} ('
+            cols = ['%s' for key in row.keys()]
+            query += ','.join(cols)
+            params += row.keys()
+            query += ') VALUES ('
+            query += ','.join(cols)
+            params += row.values()
+            query += ');'
+
+
+
 
     @staticmethod
     def update_user(data):
@@ -72,14 +114,14 @@ class Source():
             pass
         value_string = ', '.join([f'{key}=%s' for key in data.keys()])
         query = f'''UPDATE users SET {value_string} WHERE user_id=%s;'''
-        result = source_conn.execute(query, list(data.values()) + [user_id])
-        source_conn.commit()
+        result = upload_conn.execute(query, list(data.values()) + [user_id])
+        upload_conn.commit()
         print(result)
 
     @staticmethod
     def delete_user(user_id):
         print(user_id)
         query = '''DELETE FROM users WHERE user_id=%s;'''
-        result = source_conn.execute(query, [user_id])
-        source_conn.commit()
+        result = upload_conn.execute(query, [user_id])
+        upload_conn.commit()
         print(result)

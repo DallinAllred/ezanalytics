@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Body, Response, status
 from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
+from typing import Annotated, Any, List
 
 from ..models import source_model
 
@@ -36,6 +37,15 @@ class SourceOut(BaseModel):
     sourceLabel: str
     sourceAccessId: str
 
+class Column(BaseModel):
+    name: str
+    type: str
+
+class Upload(BaseModel):
+    name: str
+    columns: List[Column]
+    data: List[Any]
+
 @router.get("/")
 async def read_sources():
     data = source_model.Source.get_sources()
@@ -54,8 +64,18 @@ async def read_sources(source_id, limit: int | None = None):
         pass
     return [{"source_id": source_id}]
 
-@router.post("/")
-async def create_source():
+@router.post("/upload")
+async def create_source(data: Annotated[dict, Body()]):
+    table_name = data['name']
+    columns = data['columns']
+    if len(columns) < 1:
+        return [{'Error': 'Invalid number of columns supplied'}]
+    try:
+        table_created = source_model.Source.create_datatable(table_name, columns)
+    except Exception as e:
+        return
+    # print(table_created)
+    # result = source_model.Source.upload_data(data)
     return [{"action": "Adding conn"}]
 
 @router.put("/{source_id}")
