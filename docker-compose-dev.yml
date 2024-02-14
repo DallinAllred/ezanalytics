@@ -42,7 +42,7 @@ services:
     depends_on:
       - postgres
       # - redis
-      # - mongo
+      - mongo
     networks:
       - analytics_network
 

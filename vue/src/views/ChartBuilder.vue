@@ -16,10 +16,18 @@ const documentStyle = getComputedStyle(document.documentElement)
 
 const chartTitle = ref()
 const columns = ref([])
+const columnList = ref()
 const dataSources = ref([])
 const rawData = ref()
 const selectedDataSource = ref()
 const selectedGraphType = ref()
+
+const xAxis = ref()
+const yAxis1 = ref()
+const yAxis2 = ref()
+const split = ref()
+
+const chartDialog = ref(false)
 
 const graphTypes = ref([
     {name: 'Scatter', value: 'scatter'},
@@ -40,10 +48,13 @@ async function getData() {
     let response = await axios.get(`http://localhost:5050/api/sources/${selectedDataSource.value.sourceId}`)
     let data = response.data
     columns.value = []
+    columnList.value = []
     for (let col of Object.keys(data[0])) {
         columns.value.push({colName: col, type: 'Cont.'})
+        columnList.value.push(col)
     }
     rawData.value = data
+    console.log(data)
 }
 
 function saveChart() {
@@ -54,6 +65,10 @@ function saveChart() {
 function uploadData() {
     console.log('Uploading data')
     toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
+}
+
+function updateChart() {
+
 }
 
 // Chart Setup for Demo Chart
@@ -221,6 +236,15 @@ const chartOptions = ref({
 watch(selectedDataSource, async () => {
     getData()
 })
+watch(xAxis, () => {
+    
+})
+watch(yAxis1, () => {
+
+})
+watch(yAxis2, () => {
+    
+})
 
 </script>
 
@@ -236,16 +260,31 @@ watch(selectedDataSource, async () => {
             <div class="col-2 h-full">
                 <DataTable :value="columns">
                     <Column field="colName" header="Column" sortable></Column>
-                    <Column field="type" header="Type"></Column>
+                    <!-- <Column field="type" header="Type"></Column> -->
                 </DataTable>
             </div>
             <div class="col-10">
                 <div class="grid">
                     <div class="col-10">
+                        <!-- <Chart type="bar" :data="chartData" :options="chartOptions" /> -->
+
                         <div class="flex justify-content-center">
                             <InputText type="text" v-model="chartTitle" placeholder="Title" />
+                            <Button label="Edit" icon="pi pi-pencil" severity="info" @click="chartDialog = true" />
                         </div>
-                        <Chart type="bar" :data="chartData" :options="chartOptions" />
+                        <div class="flex flex-row">
+                            <div>
+                                <MultiSelect v-model="yAxis1" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="1" />
+                            </div>
+                            <div class="flex flex-column align-content-center w-full h-screen">
+                                <Chart type="bar" :data="chartData" :options="chartOptions" />
+                                <!-- <MultiSelect v-model="xAxis" :options="columnList" placeholder="X-Axis" :maxSelectedLabels="3"/> -->
+                            </div>
+                            <div>
+                                <MultiSelect v-model="yAxis2" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="1" />
+                            </div>
+                        </div>
+
                     </div>
                     <div class="col-2">
                         Stats display
@@ -260,6 +299,28 @@ watch(selectedDataSource, async () => {
             </div>
         </div>
     </div>
+
+    <Dialog v-model:visible="chartDialog" :style="{width: '450px'}" header="Chart Details" :modal="true" class="p-fluid">
+        <!-- <Card> -->
+            <div class="field">
+                <label for="firstName">X-Axis</label>
+                <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" autofocus />
+                <small class="p-error" v-if="submitted && !activeUser.firstName">X-Axis is required.</small>
+            </div>
+        <!-- </Card>
+        <Card> -->
+            <div class="field">
+                <label for="firstName">Y-Axis</label>
+                <Dropdown v-model="yAxis1" :options="columnList" placeholder="Y-Axis" autofocus />
+                <!-- <small class="p-error" v-if="submitted && !activeUser.firstName">X-Axis is required.</small> -->
+            </div>
+        <!-- </Card> -->
+            
+        <template #footer>
+            <Button label="Cancel" icon="pi pi-times" text @click="chartDialog = false" />
+            <Button label="Save" icon="pi pi-check" text @click="updateChart" />
+        </template>
+    </Dialog>
 
 </template>
 
