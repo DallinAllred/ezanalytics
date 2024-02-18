@@ -1,13 +1,14 @@
 <script setup>
 import axios from 'axios'
-import { ref, onMounted, watch } from "vue"
+import { computed, reactive, ref, onMounted, watch } from "vue"
 import { useToast } from 'primevue/usetoast'
+import Settings from './Settings.vue'
 
 const toast = useToast()
 
 /*
 Graph needs
-    type: graphTypes
+    type: chartTypes
     data: 
     options
 */
@@ -23,13 +24,22 @@ const selectedDataSource = ref()
 const selectedGraphType = ref()
 
 const xAxis = ref()
-const yAxis1 = ref()
-const yAxis2 = ref()
-const split = ref()
+const yAxis1 = ref([])
+const yAxis2 = ref([])
+const groupBy = ref()
+const tempAxis = ref()
+const activeAxis = ref()
 
-const chartDialog = ref(false)
+const yAxisDialog = ref(false)
 
-const graphTypes = ref([
+
+// let chartLabels = ['Data']
+// let datasets = []
+
+const backgroundColors = ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)']
+const borderColors = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
+
+const chartTypes = ref([
     {name: 'Scatter', value: 'scatter'},
     {name: 'Pie', value: 'pie'},
     {name: 'Doughtnut', value: 'doughtnut'},
@@ -54,7 +64,7 @@ async function getData() {
         columnList.value.push(col)
     }
     rawData.value = data
-    console.log(data)
+    // console.log(data)
 }
 
 function saveChart() {
@@ -67,9 +77,121 @@ function uploadData() {
     toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
 }
 
-function updateChart() {
+// function editYAxis(side) {
+//     activeAxis.value = side
+//     tempAxis.value = side == 'left' ? JSON.parse(JSON.stringify(yAxis1.value)) : JSON.parse(JSON.stringify(yAxis2.value))
+//     if (tempAxis.value && tempAxis.value.length > 1) chartTypes.value[0].optionDisabled = true
+//     yAxisDialog.value = true
+// }
 
+// function addChart() {
+//     if (!tempAxis.value) {
+//         tempAxis.value = []
+//     }
+//     tempAxis.value.push({col: null, type: null})
+// }
+
+// function removeChart(index) {
+//     tempAxis.value.splice(index, 1)
+// }
+
+function editYAxis(side) {
+    activeAxis.value = side
+    tempAxis.value = side == 'left' ? JSON.parse(JSON.stringify(yAxis1.value)) : JSON.parse(JSON.stringify(yAxis2.value))
+    if (tempAxis.value == []) {}
+    tempAxis.value = {type: '', col: '', group: ''}
+    yAxisDialog.value = true
 }
+
+function updateChart() {
+    if (activeAxis.value == 'left') {
+        yAxis1.value = JSON.parse(JSON.stringify(tempAxis.value))
+    } else {
+        yAxis2.value = JSON.parse(JSON.stringify(tempAxis.value))
+    }
+    // console.log(yAxis1.value)
+    let datasets = []
+    // for (let chart of yAxis1.value) {
+    if (yAxis1.value) {
+        // console.log('Updating left Y-axis')
+        datasets = bar(yAxis1.value)
+    }
+    // }
+    // for (let chart of yAxis2.value) {
+    if (yAxis2.value && yAxis2.value.length > 0) {
+        // console.log('Updating right Y-axis')
+        datasets = [...datasets, ...bar(yAxis2.value)]
+    }
+    // }
+    // console.log('Datasets: ', datasets)
+    chartData.datasets = datasets
+    console.log(chartData)
+    yAxisDialog.value = false
+}
+
+function bar(chart, axis='y') {
+    // console.log('Chart: ', chart)
+    let type = chart.type.value
+    let label = chart.col
+    let datasets = []
+    if (chart.group) {
+        let groups = rawData.value.map(el => el[chart.group])
+        groups = [...new Set(groups)]
+        for (const [index, group] of groups.entries()) {
+            let data = rawData.value// .map(el => el[chart.col])
+                .filter(el => el[chart.group] == group)
+
+            data = rawData.value
+            datasets.push({
+                // type,
+                label: group,
+                data,
+                backgroundColor: backgroundColors[index % backgroundColors.length],
+                borderColor: borderColors[index % borderColors.length],
+                borderWidth: 1,
+                yAxisID: axis
+            })
+        }
+    } else {
+        datasets.push({
+            // type,
+            label,
+            data: rawData.value, // data: rawData.value.map(el => el[chart.col]),
+            backgroundColor: backgroundColors[0],
+            borderColor: borderColors[0],
+            borderWidth: 1,
+            yAxisID: axis
+        })
+    }
+    for (let set of datasets) {
+        if (xAxis.value) {
+            let temp = []
+            for (let xLabel of chartData.labels) {
+                temp.push(set.data
+                    .filter(el => el[xAxis.value] == xLabel)
+                    .reduce((acc, el) => acc + el[chart.col], 0))
+            }
+            set.data = temp
+        } else {
+            set.data = set.data.reduce((acc, el) => acc + el[chart.col], 0)
+        }
+    }
+    return datasets
+}
+
+// const chartData = reactive({
+//     labels: ['Data'],
+//     datasets: [
+//         {
+//             type: 'bar',
+//             label: 'Sales',
+//             data: [540, 325, 702, 620],
+//             backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
+//             borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+//             borderWidth: 1
+//         }
+//     ]
+// })
 
 // Chart Setup for Demo Chart
 onMounted(() => {
@@ -107,40 +229,64 @@ onMounted(() => {
 
 
 const chartData = ref({
-        labels: ['Q1', 'Q2', 'Q3', 'Q4', '5', '6', '7'],
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
         datasets: [
             {
                 type: 'scatter',
                 label: 'Sales',
                 // data: [540, 325, 702, 620],
-                data:[{
-                    x: 1, y: 100
-                }, {
-                    x: 2, y: 500
-                }, {
-                    x: 3, y: 750
-                }, {
-                    x: 5, y: 1000
-                }],
-                backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-                borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+                data:[
+                    {x: 'Q1', y: 100},
+                    {x: 'Q2', y: 500},
+                    {x: 'Q3', y: 750},
+                    {x: 'Q4', y: 1000},
+                    {x: 'Q1', y: 200},
+                    {x: 'Q2', y: 600},
+                    {x: 'Q3', y: 150},
+                    {x: 'Q4', y: 100},
+                    {x: 'Q3', y: 850},
+                    {x: 'Q4', y: 350}
+                ],
+                backgroundColor: ['rgba(249, 115, 22, 0.5)'],//, 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
+                borderColor: ['rgb(249, 115, 22)'],//, 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
                 borderWidth: 1
             },{
-                type: 'bar',
-                label: 'Bids',
-                data: [700, 650, 1400, 1200],
-                backgroundColor: ['rgba(50, 135, 52, 0.2)', 'rgba(255, 50, 40, 0.2)', 'rgb(50, 114, 50, 0.2)', 'rgba(139, 0, 100, 0.2)'],
-                // borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+                type: 'scatter',
+                label: 'Global',
+                // data: [540, 325, 702, 620],
+                data:[
+                    {x: 'Q1', y: 1000},
+                    {x: 'Q2', y: 5000},
+                    {x: 'Q3', y: 7500},
+                    {x: 'Q4', y: 10000},
+                    {x: 'Q1', y: 2000},
+                    {x: 'Q2', y: 6000},
+                    {x: 'Q3', y: 1500},
+                    {x: 'Q4', y: 1500},
+                    {x: 'Q3', y: 8500},
+                    {x: 'Q4', y: 3500}
+                ],
+                backgroundColor: ['rgba(6, 182, 212, 0.5)'],//, 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
+                borderColor: ['rgb(6, 182, 212)'],//, 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
                 borderWidth: 1
-            },{
-                type: 'line',
-                label: 'LineChart',
-                borderColor: documentStyle.getPropertyValue('--orange-500'),
-                borderWidth: 2,
-                fill: false,
-                tension: 0.5,
-                data: [500, 250, 120, 480, 560, 760, 420]
-            }
+            },
+            // {
+            //     type: 'bar',
+            //     label: 'Bids',
+            //     data: [700, 650, 1400, 1200],
+            //     backgroundColor: ['rgba(50, 135, 52, 0.2)', 'rgba(255, 50, 40, 0.2)', 'rgb(50, 114, 50, 0.2)', 'rgba(139, 0, 100, 0.2)'],
+            //     // borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+            //     borderWidth: 1
+            // },
+            // {
+            //     type: 'line',
+            //     label: 'LineChart',
+            //     borderColor: documentStyle.getPropertyValue('--orange-500'),
+            //     borderWidth: 2,
+            //     fill: false,
+            //     tension: 0.5,
+            //     data: [500, 250, 120, 480, 560, 760, 420]
+            // }
         ]
     })
 
@@ -149,39 +295,48 @@ const chartData = ref({
 //      title: Input field
 //      legend
 const chartOptions = ref({
-        plugins: {
-            legend: {
-                labels: {
-                    color: documentStyle.getPropertyValue('--text-color')
-                }
+    responsive: true,
+    plugins: {
+        legend: {
+            labels: {
+                color: documentStyle.getPropertyValue('--text-color')
+            }
+        },
+        title: {
+            display: true,
+            text: 'Custom Chart Title'
+        }
+    },
+    scales: {
+        x: {
+            // stacked: true,
+            ticks: {
+                color: documentStyle.getPropertyValue('--text-color-secondary')
+            },
+            grid: {
+                color: documentStyle.getPropertyValue('--surface-border')
             },
             title: {
                 display: true,
-                text: 'Custom Chart Title'
+                text: 'My X-Axis'
             }
         },
-        scales: {
-            x: {
-                // stacked: true,
-                ticks: {
-                    color: documentStyle.getPropertyValue('--text-color-secondary')
-                },
-                grid: {
-                    color: documentStyle.getPropertyValue('--surface-border')
-                }
+        y: {
+            // stacked: true,
+            // beginAtZero: true,
+            ticks: {
+                color: documentStyle.getPropertyValue('--text-color-secondary')
             },
-            y: {
-                // stacked: true,
-                beginAtZero: true,
-                ticks: {
-                    color: documentStyle.getPropertyValue('--text-color-secondary')
-                },
-                grid: {
-                    color: documentStyle.getPropertyValue('--surface-border')
-                }
+            grid: {
+                color: documentStyle.getPropertyValue('--surface-border')
+            },
+            title: {
+                display: true,
+                text: 'My Y-Axis'
             }
         }
-    })
+    }
+})
 
 // const setChartData = () => {
 //     return {
@@ -237,7 +392,11 @@ watch(selectedDataSource, async () => {
     getData()
 })
 watch(xAxis, () => {
-    
+    // updateChart()
+    let labels = rawData.value.map(el => el[xAxis.value])
+    labels = [...new Set(labels)]
+    chartData.labels = labels
+    if (yAxis1.length > 0 || yAxis2.length > 0) updateChart()
 })
 watch(yAxis1, () => {
 
@@ -253,35 +412,51 @@ watch(yAxis2, () => {
         <div class="col-12 flex flex-row gap-2">
             <div><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
             <div><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
-            <div><Dropdown v-model="selectedGraphType" :options="graphTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" /></div>
+            <div><Dropdown v-model="selectedGraphType" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" /></div>
             <div><Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" /></div>
         </div>
         <div class="col-12 grid h-full">
-            <div class="col-2 h-full">
-                <DataTable :value="columns">
-                    <Column field="colName" header="Column" sortable></Column>
+            <!-- <div class="col-2 h-full"> -->
+                <!-- <DataTable :value="columns"> -->
+                    <!-- <Column field="colName" header="Column" sortable></Column> -->
                     <!-- <Column field="type" header="Type"></Column> -->
-                </DataTable>
-            </div>
-            <div class="col-10">
+                <!-- </DataTable> -->
+            <!-- </div> -->
+            <div class="col-10 col-offset-1">
                 <div class="grid">
-                    <div class="col-10">
-                        <!-- <Chart type="bar" :data="chartData" :options="chartOptions" /> -->
-
+                    <div class="col-10 justify-content-center">
                         <div class="flex justify-content-center">
                             <InputText type="text" v-model="chartTitle" placeholder="Title" />
-                            <Button label="Edit" icon="pi pi-pencil" severity="info" @click="chartDialog = true" />
+                            <Dropdown v-model="groupBy" :options="columnList" placeholder="Group By..." :disabled="columnList ? false : true"/>
                         </div>
-                        <div class="flex flex-row">
-                            <div>
-                                <MultiSelect v-model="yAxis1" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="1" />
+                        <div class="flex flex-row gap-2">
+                            <div class="flex flex-row align-items-center gap-1">
+                                <!-- <Button outlined rounded icon="pi pi-pencil" severity="success" @click="editYAxis('left')" :disabled="columnList ? false : true" /> -->
+                                
+                                <div>
+                                    <div class="rot-90">
+                                        <MultiSelect v-model="yAxis1" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList ? false : true">
+                                            <template #dropdownicon>{{  }}</template>
+                                        </MultiSelect>
+                                        <label v-if="yAxis1">{{ yAxis1.col }}</label>
+                                        <!-- <label v-if="yAxis1 && yAxis1.length > 0">{{ yAxis1.map(el => el.col).join(', ') }}</label> -->
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex flex-column align-content-center w-full h-screen">
+                            <div class="flex flex-column align-content-center w-full">
                                 <Chart type="bar" :data="chartData" :options="chartOptions" />
-                                <!-- <MultiSelect v-model="xAxis" :options="columnList" placeholder="X-Axis" :maxSelectedLabels="3"/> -->
+                                <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" :disabled="columnList ? false : true"/>
                             </div>
-                            <div>
-                                <MultiSelect v-model="yAxis2" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="1" />
+                            <div class="flex flex-row align-items-center gap-1">
+                                <div>
+                                    <div class="rot-p90">
+                                        <MultiSelect v-model="yAxis1" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList ? false : true">
+                                            <template #dropdownicon>{{  }}</template>
+                                        </MultiSelect>
+                                        <!-- <label v-if="yAxis2 && yAxis2.length > 0">{{ yAxis2.map(el => el.col).join(', ') }}</label> -->
+                                    </div>
+                                </div>
+                                <!-- <Button outlined rounded icon="pi pi-pencil" severity="success" @click="editYAxis('right')" :disabled="columnList ? false : true" /> -->
                             </div>
                         </div>
 
@@ -292,37 +467,74 @@ watch(yAxis2, () => {
                 </div>
                 <div>
                     Data table
-                    <DataTable>
-
+                    <DataTable :value="rawData">
+                        <Column v-for="col in columnList" :field="col" :header="col"></Column>
                     </DataTable>
                 </div>
             </div>
         </div>
     </div>
 
-    <Dialog v-model:visible="chartDialog" :style="{width: '450px'}" header="Chart Details" :modal="true" class="p-fluid">
-        <!-- <Card> -->
-            <div class="field">
-                <label for="firstName">X-Axis</label>
-                <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" autofocus />
-                <small class="p-error" v-if="submitted && !activeUser.firstName">X-Axis is required.</small>
+    <Dialog v-model:visible="yAxisDialog" :style="{width: '450px'}" header="Axis Details" :modal="true" class="p-fluid">
+        <Card v-model="tempAxis">
+            <template #content>
+            <div class="flex gap-3">
+                <div :style="{width: '400px'}" class="flex flex-column gap-1">
+                    <Dropdown v-model="tempAxis.col" :options="columnList" placeholder="Select a Column" />
+                    <Dropdown v-model="tempAxis.type" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" />
+                </div>
+                <div>
+                    <Dropdown v-model="tempAxis.group" :options="columnList" placeholder="Group data by..." />
+                </div>
             </div>
-        <!-- </Card>
-        <Card> -->
-            <div class="field">
-                <label for="firstName">Y-Axis</label>
-                <Dropdown v-model="yAxis1" :options="columnList" placeholder="Y-Axis" autofocus />
-                <!-- <small class="p-error" v-if="submitted && !activeUser.firstName">X-Axis is required.</small> -->
-            </div>
-        <!-- </Card> -->
-            
+            </template>
+        </Card>
+        <Divider />
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text @click="chartDialog = false" />
+            <Button label="Cancel" icon="pi pi-times" text @click="yAxisDialog = false" />
             <Button label="Save" icon="pi pi-check" text @click="updateChart" />
         </template>
     </Dialog>
 
+    <!-- <Dialog v-model:visible="yAxisDialog" :style="{width: '450px'}" header="Axis Details" :modal="true" class="p-fluid">
+        <Card v-for="(chart, index) in tempAxis" :key="index">
+            <template #content>
+            <div class="flex gap-3">
+                <div :style="{width: '400px'}" class="flex flex-column gap-1">
+                    <Dropdown v-model="chart.col" :options="columnList" placeholder="Select a Column" />
+                    <Dropdown v-model="chart.type" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" />
+                </div>
+                <div class="flex align-items-center">
+                    <Button outlined rounded icon="pi pi-times" severity="danger" @click="removeChart(index)" />
+                </div>
+            </div>
+            </template>
+        </Card>
+        <div v-if="!yAxis1 || yAxis1.length < 4" class="flex justify-content-center">
+            <Button outlined rounded icon="pi pi-plus" severity="success" @click="addChart" />
+        </div>
+        <Divider />
+        <template #footer>
+            <Button label="Cancel" icon="pi pi-times" text @click="yAxisDialog = false" />
+            <Button label="Save" icon="pi pi-check" text @click="updateChart" />
+        </template>
+    </Dialog> -->
 </template>
 
 <style>
+.rot-90 {
+    writing-mode: vertical-lr;
+    rotate: 180deg;
+}
+.rot-p90 {
+    writing-mode: vertical-lr;
+}
 </style>
+
+
+<!-- :pt="{
+    item: ({ props, state, context }) => {
+        console.log(props, state, context)
+        context.disabled = true
+    }
+    }" -->
