@@ -2,6 +2,7 @@
 import axios from 'axios'
 import { computed, reactive, ref, onMounted, watch } from "vue"
 import { useToast } from 'primevue/usetoast'
+import FloatLabel from 'primevue/floatlabel'
 import Settings from './Settings.vue'
 
 const toast = useToast()
@@ -21,20 +22,14 @@ const columnList = ref()
 const dataSources = ref([])
 const rawData = ref()
 const selectedDataSource = ref()
-const chartType = ref()
+const chartType = ref({name: 'Bar', tag: 'bar'})
 
 const xAxis = ref()
 const yAxis1 = ref([])
 const yAxis2 = ref([])
 const groupBy = ref()
-const tempAxis = ref()
-const activeAxis = ref()
 
 const yAxisDialog = ref(false)
-
-
-// let chartLabels = ['Data']
-// let datasets = []
 
 const backgroundColors = ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)']
 const borderColors = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
@@ -64,7 +59,6 @@ async function getData() {
         columnList.value.push(col)
     }
     rawData.value = data
-    // console.log(data)
 }
 
 function saveChart() {
@@ -77,36 +71,7 @@ function uploadData() {
     toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
 }
 
-// function editYAxis(side) {
-//     activeAxis.value = side
-//     tempAxis.value = side == 'left' ? JSON.parse(JSON.stringify(yAxis1.value)) : JSON.parse(JSON.stringify(yAxis2.value))
-//     if (tempAxis.value == []) {}
-//     tempAxis.value = {type: '', col: '', group: ''}
-//     yAxisDialog.value = true
-// }
-
 function updateChart() {
-    // // if (activeAxis.value == 'left') {
-    // //     yAxis1.value = JSON.parse(JSON.stringify(tempAxis.value))
-    // // } else {
-    // //     yAxis2.value = JSON.parse(JSON.stringify(tempAxis.value))
-    // // }
-    // // console.log(yAxis1.value)
-    // let datasets = []
-    // // for (let chart of yAxis1.value) {
-    // if (yAxis1.value && yAxis1.value.length > 1) {
-    //     // console.log('Updating left Y-axis')
-    //     datasets = bar(yAxis1.value)
-    // }
-    // // }
-    // // for (let chart of yAxis2.value) {
-    // if (yAxis2.value && yAxis2.value.length > 0) {
-    //     // console.log('Updating right Y-axis')
-    //     datasets = [...datasets, ...bar(yAxis2.value)]
-    // }
-    // // }
-    // // console.log('Datasets: ', datasets)
-    // console.log('Updating charts...')
     let datasets = []
     if (yAxis1.value && yAxis1.value.length > 0) {
         for (let col of yAxis1.value) {
@@ -127,12 +92,12 @@ function updateChart() {
 function buildChart(colName, axis) {
     let datasets = []
     if (groupBy.value) {
-        // console.log('Grouping by: ', groupBy.value)
         let groups = rawData.value.map(el => el[groupBy.value])
         groups = [...new Set(groups)]
         for (const [index, group] of groups.entries()) {
             let data = rawData.value
                 .filter(el => el[groupBy.value] == group)
+
             datasets.push({
                 type: chartType.value.tag,
                 label: group,
@@ -144,11 +109,17 @@ function buildChart(colName, axis) {
             })
         }
     } else {
+        let bgColors = []
+        if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
+            for (let i = 0; i < xAxis.value.length; i++){
+                bgColors.push(backgroundColors[i % backgroundColors.length])
+            }
+        } else { bgColors = backgroundColors[0] }
         datasets.push({
             type: chartType.value.tag,
             label: colName,
             data: rawData.value,
-            backgroundColor: backgroundColors[0],
+            backgroundColor: bgColors,
             borderColor: borderColors[0],
             borderWidth: 1,
             yAxisID: axis
@@ -170,67 +141,20 @@ function buildChart(colName, axis) {
     return datasets
 }
 
-// function bar(chart, axis='y') {
-//     // console.log('Chart: ', chart)
-//     let type = chart.type.value
-//     let label = chart.col
-//     let datasets = []
-//     if (chart.group) {
-//         let groups = rawData.value.map(el => el[chart.group])
-//         groups = [...new Set(groups)]
-//         for (const [index, group] of groups.entries()) {
-//             let data = rawData.value// .map(el => el[chart.col])
-//                 .filter(el => el[chart.group] == group)
-//             datasets.push({
-//                 // type,
-//                 label: group,
-//                 data,
-//                 backgroundColor: backgroundColors[index % backgroundColors.length],
-//                 borderColor: borderColors[index % borderColors.length],
-//                 borderWidth: 1,
-//                 yAxisID: axis
-//             })
+const chartData = reactive({labels: [], datasets: []})
+// const chartData = reactive({
+//     labels: ['Data'],
+//     datasets: [
+//         {
+//             type: 'bar',
+//             label: 'Sales',
+//             data: [540, 325, 702, 620],
+//             backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
+//             borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+//             borderWidth: 1
 //         }
-//     } else {
-//         datasets.push({
-//             // type,
-//             label,
-//             data: rawData.value, // data: rawData.value.map(el => el[chart.col]),
-//             backgroundColor: backgroundColors[0],
-//             borderColor: borderColors[0],
-//             borderWidth: 1,
-//             yAxisID: axis
-//         })
-//     }
-//     for (let set of datasets) {
-//         if (xAxis.value) {
-//             let temp = []
-//             for (let xLabel of chartData.labels) {
-//                 temp.push(set.data
-//                     .filter(el => el[xAxis.value] == xLabel)
-//                     .reduce((acc, el) => acc + el[chart.col], 0))
-//             }
-//             set.data = temp
-//         } else {
-//             set.data = set.data.reduce((acc, el) => acc + el[chart.col], 0)
-//         }
-//     }
-//     return datasets
-// }
-
-const chartData = reactive({
-    labels: ['Data'],
-    datasets: [
-        {
-            type: 'bar',
-            label: 'Sales',
-            data: [540, 325, 702, 620],
-            backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-            borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-            borderWidth: 1
-        }
-    ]
-})
+//     ]
+// })
 
 // Chart Setup for Demo Chart
 onMounted(() => {
@@ -306,6 +230,7 @@ onMounted(() => {
 //      title: Input field
 //      legend
 const chartOptions = ref({
+    maintainAspectRation: false,
     responsive: true,
     plugins: {
         legend: {
@@ -343,7 +268,22 @@ const chartOptions = ref({
             },
             title: {
                 display: true,
-                text: 'My Y-Axis'
+                text: 'Left Y-Axis'
+            }
+        },
+        y1: {
+            // stacked: true,
+            // beginAtZero: true,
+            position: 'right',
+            ticks: {
+                color: documentStyle.getPropertyValue('--text-color-secondary')
+            },
+            grid: {
+                color: documentStyle.getPropertyValue('--surface-border')
+            },
+            title: {
+                display: true,
+                text: 'Right Y-Axis'
             }
         }
     }
@@ -379,23 +319,31 @@ watch(yAxis2, () => {
 </script>
 
 <template>
-    <div class="grid h-full">
-        <div class="col-12 flex flex-row gap-2">
-            <div><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
-            <div><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
-            <div><Dropdown v-model="chartType" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" /></div>
-            <div><Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" /></div>
+    <div class="grid h-full chart-builder">
+        <div class="col-12 grid chart-builder-header">
+            <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
+            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
+            <div class="col-1 col-offset-7"><Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" /></div>
         </div>
-        <div class="col-12 grid h-full">
-            <div class="col-10 col-offset-1">
-                <div class="grid">
-                    <div class="col-10 justify-content-center">
-                        <div class="grid">
-                            <div class="col-6 col-offset-3 flex justify-content-center">
+        <div class="col-12 grid">
+            <div class="flex flex-column gap-3 col-10 col-offset-1">
+                <div class="grid chart-builder-main">
+                    <div class="col-10 justify-content-center border-round border-solid border-200 border-1">
+                        <div class="grid py-4">
+                            <div class="col-2 flex justify-content start">
+                                <FloatLabel class="w-full">
+                                    <Dropdown v-model="chartType" inputId="chart" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" />
+                                    <label for="chart">Chart Type</label>
+                                </FloatLabel>
+                            </div>
+                            <div class="col-6 col-offset-1 flex justify-content-center">
                                 <InputText type="text" v-model="chartTitle" placeholder="Title" class="justify-self-center"/>
                             </div>
                             <div class="col-2 col-offset-1">
-                                <Dropdown v-model="groupBy" showClear :options="columnList" placeholder="Group By..." :disabled="columnList && chartType ? false : true"/>
+                                <FloatLabel class="w-full">
+                                    <Dropdown v-model="groupBy" inputId="group" showClear :options="columnList" placeholder="Group By..." :disabled="columnList && chartType ? false : true"/>
+                                    <label for="group">Group By</label>
+                                </FloatLabel>
                             </div>
                         </div>
                         <div class="flex flex-row gap-2">
@@ -407,8 +355,8 @@ watch(yAxis2, () => {
                                     <label v-if="yAxis1">{{ yAxis1.col }}</label>
                                 </div>
                             </div>
-                            <div class="flex flex-column align-content-center w-full">
-                                <Chart type="bar" :data="chartData" :options="chartOptions" />
+                            <div class="flex flex-column align-content-center w-full chart-container">
+                                <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="align-self-center" />
                                 <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" :disabled="columnList && chartType ? false : true"/>
                             </div>
                             <div class="flex flex-row align-items-center gap-1">
@@ -421,20 +369,22 @@ watch(yAxis2, () => {
                         </div>
 
                     </div>
-                    <div class="col-2">
+                    <div class="col-2 border-round border-solid border-200 border-1">
                         Stats display
                     </div>
                 </div>
-                <div>
-                    <DataTable :value="rawData">
-                        <Column v-for="col in columnList" :field="col" :header="col"></Column>
-                    </DataTable>
+                <div class="grid chart-builder-table">
+                    <div class="col-12 border-round border-solid border-200 border-1">
+                        <DataTable :value="rawData" scrollable scrollHeight="15rem">
+                            <Column v-for="col in columnList" :field="col" :header="col"></Column>
+                        </DataTable>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <Dialog v-model:visible="yAxisDialog" :style="{width: '450px'}" header="Axis Details" :modal="true" class="p-fluid">
+    <!-- <Dialog v-model:visible="yAxisDialog" :style="{width: '450px'}" header="Axis Details" :modal="true" class="p-fluid">
         <Card v-model="tempAxis">
             <template #content>
             <div class="flex gap-3">
@@ -453,7 +403,7 @@ watch(yAxis2, () => {
             <Button label="Cancel" icon="pi pi-times" text @click="yAxisDialog = false" />
             <Button label="Save" icon="pi pi-check" text @click="updateChart" />
         </template>
-    </Dialog>
+    </Dialog> -->
 
     <!-- <Dialog v-model:visible="yAxisDialog" :style="{width: '450px'}" header="Axis Details" :modal="true" class="p-fluid">
         <Card v-for="(chart, index) in tempAxis" :key="index">
@@ -487,6 +437,30 @@ watch(yAxis2, () => {
 }
 .rot-p90 {
     writing-mode: vertical-lr;
+}
+
+.chart-builder{
+    height: calc(100vh - 4.5rem);
+}
+
+.chart-builder-header {
+    height: 4rem;
+}
+
+.chart-builder-main {
+    height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem);
+}
+
+.chart-container {
+    height: 450px;
+}
+canvas {
+    height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem - 145px) !important;
+    /* height: 417px !important; */
+}
+
+.chart-builder-table {
+    height: 15rem;
 }
 </style>
 
