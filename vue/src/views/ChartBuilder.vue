@@ -456,7 +456,7 @@ watch(yAxis2, () => {
 }
 canvas {
     height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem - 145px) !important;
-    /* height: 417px !important; */
+    /* width: 100% !important; */
 }
 
 .chart-builder-table {
