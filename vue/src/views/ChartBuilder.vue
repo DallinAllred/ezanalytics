@@ -23,10 +23,11 @@ const dataSources = ref([])
 const rawData = ref()
 const selectedDataSource = ref()
 const chartType = ref({name: 'Bar', tag: 'bar'})
+const stacked = ref(false)
 
 const xAxis = ref()
-const yAxis1 = ref([])
-const yAxis2 = ref([])
+const yAxisL = ref([])
+const yAxisR = ref([])
 const groupBy = ref()
 
 const yAxisDialog = ref(false)
@@ -61,25 +62,50 @@ async function getData() {
     rawData.value = data
 }
 
+
+
+
+
 function saveChart() {
     console.log('Saving chart')
     toast.add({severity: 'info', summary: 'Successful', detail: 'Chart save requested', life: 3000})
+
+    let chart = {
+        sourceId: selectedDataSource.value.sourceId,
+        title: chartTitle,
+        type: chartType.value.tag,
+        data: {
+            xAxis: xAxis.value,
+            yAxisL: yAxisL.value,
+            yAxisR: yAxisR.value
+        },
+        options: {}
+    }
 }
+
+
+
 
 function uploadData() {
     console.log('Uploading data')
     toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
 }
 
+function updateLabels(axis) {
+    let labels = rawData.value.map(el => el[axis])
+    labels = [...new Set(labels)]
+    chartData.labels = labels
+}
+
 function updateChart() {
     let datasets = []
-    if (yAxis1.value && yAxis1.value.length > 0) {
-        for (let col of yAxis1.value) {
+    if (yAxisL.value && yAxisL.value.length > 0) {
+        for (let col of yAxisL.value) {
             datasets = [...datasets, ...buildChart(col, 'y')]
         }
     }
-    if (yAxis2.value && yAxis2.value.length > 0) {
-        for (let col of yAxis2.value) {
+    if (yAxisR.value && yAxisR.value.length > 0) {
+        for (let col of yAxisR.value) {
             datasets = [...datasets, ...buildChart(col, 'y1')]
         }
     }
@@ -87,6 +113,15 @@ function updateChart() {
     chartData.datasets = datasets
     // console.log(chartData)
     yAxisDialog.value = false
+}
+
+function toggleStack() {
+    chartOptions.scales.x['stacked'] = stacked.value
+    chartOptions.scales.y['stacked'] = stacked.value
+    if (Object.keys(chartOptions.scales).includes('y1')) {
+        chartOptions.scales.y1['stacked'] = stacked.value
+    }
+    updateChart()
 }
 
 function buildChart(colName, axis) {
@@ -142,6 +177,67 @@ function buildChart(colName, axis) {
 }
 
 const chartData = reactive({labels: [], datasets: []})
+const chartOptions = reactive({
+    maintainAspectRation: false,
+    responsive: true,
+    plugins: {
+        legend: {
+            labels: {
+                color: documentStyle.getPropertyValue('--text-color')
+            }
+        },
+        title: {
+            display: true,
+            text: 'Custom Chart Title'
+        }
+    },
+    scales: {
+        x: {
+            stacked: false,
+            ticks: {
+                color: documentStyle.getPropertyValue('--text-color-secondary')
+            },
+            grid: {
+                color: documentStyle.getPropertyValue('--surface-border')
+            },
+            title: {
+                display: true,
+                text: 'My X-Axis'
+            }
+        },
+        y: {
+            stacked: false,
+            beginAtZero: true,
+            ticks: {
+                color: documentStyle.getPropertyValue('--text-color-secondary')
+            },
+            grid: {
+                color: documentStyle.getPropertyValue('--surface-border')
+            },
+            title: {
+                display: true,
+                text: 'Left Y-Axis'
+            }
+        }
+        // ,y1: {}
+        //     stacked: true,
+        //     beginAtZero: true,
+        //     position: 'right',
+        //     ticks: {
+        //         color: documentStyle.getPropertyValue('--text-color-secondary')
+        //     },
+        //     grid: {
+        //         color: documentStyle.getPropertyValue('--surface-border')
+        //     },
+        //     title: {
+        //         display: true,
+        //         text: 'Right Y-Axis'
+        //     }
+        // }
+    }
+})
+
+
 // const chartData = reactive({
 //     labels: ['Data'],
 //     datasets: [
@@ -159,8 +255,6 @@ const chartData = reactive({labels: [], datasets: []})
 // Chart Setup for Demo Chart
 onMounted(() => {
     getSources()
-    // chartData.value = setChartData()
-    // chartOptions.value = setChartOptions()
 })
 
 // const chartData = ref({
@@ -229,51 +323,32 @@ onMounted(() => {
 // Plugins:
 //      title: Input field
 //      legend
-const chartOptions = ref({
-    maintainAspectRation: false,
-    responsive: true,
-    plugins: {
-        legend: {
-            labels: {
-                color: documentStyle.getPropertyValue('--text-color')
-            }
-        },
-        title: {
-            display: true,
-            text: 'Custom Chart Title'
-        }
-    },
-    scales: {
-        x: {
-            // stacked: true,
-            ticks: {
-                color: documentStyle.getPropertyValue('--text-color-secondary')
-            },
-            grid: {
-                color: documentStyle.getPropertyValue('--surface-border')
-            },
-            title: {
-                display: true,
-                text: 'My X-Axis'
-            }
-        },
-        y: {
-            // stacked: true,
-            // beginAtZero: true,
-            ticks: {
-                color: documentStyle.getPropertyValue('--text-color-secondary')
-            },
-            grid: {
-                color: documentStyle.getPropertyValue('--surface-border')
-            },
-            title: {
-                display: true,
-                text: 'Left Y-Axis'
-            }
-        },
-        y1: {
-            // stacked: true,
-            // beginAtZero: true,
+
+
+
+
+watch(selectedDataSource, async () => {
+    getData()
+})
+watch(chartType, () => {
+    if (xAxis.value && (yAxisL.value.length > 0 || yAxisR.value.length > 0)) updateChart()
+})
+watch(groupBy, () => {
+    if (xAxis.value && (yAxisL.value.length > 0 || yAxisR.value.length > 0)) updateChart()
+})
+watch(xAxis, () => {
+    updateLabels(xAxis.value)
+    if (yAxisL.value.length > 0 || yAxisR.value.length > 0) updateChart()
+})
+
+watch(yAxisL, () => {
+    if (xAxis.value) updateChart()
+})
+watch(yAxisR, () => {
+    if (yAxisR.value && yAxisR.value != []) {
+        chartOptions.y1 = {
+            stacked: stacked.value,
+            beginAtZero: true,
             position: 'right',
             ticks: {
                 color: documentStyle.getPropertyValue('--text-color-secondary')
@@ -286,33 +361,7 @@ const chartOptions = ref({
                 text: 'Right Y-Axis'
             }
         }
-    }
-})
-
-
-
-watch(selectedDataSource, async () => {
-    getData()
-})
-watch(chartType, () => {
-    // console.log(chartType.value)
-    if (xAxis.value && (yAxis1.value.length > 0 || yAxis2.value.length > 0)) updateChart()
-})
-watch(groupBy, () => {
-    if (xAxis.value && (yAxis1.value.length > 0 || yAxis2.value.length > 0)) updateChart()
-})
-watch(xAxis, () => {
-    let labels = rawData.value.map(el => el[xAxis.value])
-    labels = [...new Set(labels)]
-    chartData.labels = labels
-    if (yAxis1.value.length > 0 || yAxis2.value.length > 0) updateChart()
-})
-watch(yAxis1, () => {
-    // console.log('Y-Axis1: ', yAxis1.value)
-    if (xAxis.value) updateChart()
-})
-watch(yAxis2, () => {
-    // console.log('Y-Axis2: ', yAxis2.value)
+    } else { chartOptions.y1 = {} }
     if (xAxis.value) updateChart()
 })
 
@@ -330,13 +379,19 @@ watch(yAxis2, () => {
                 <div class="grid chart-builder-main">
                     <div class="col-10 justify-content-center border-round border-solid border-200 border-1">
                         <div class="grid py-4">
-                            <div class="col-2 flex justify-content start">
-                                <FloatLabel class="w-full">
-                                    <Dropdown v-model="chartType" inputId="chart" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" />
-                                    <label for="chart">Chart Type</label>
-                                </FloatLabel>
+                            <div class="col-3 flex justify-content-start gap-2">
+                                <div>
+                                    <FloatLabel class="w-full">
+                                        <Dropdown v-model="chartType" inputId="chart" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" />
+                                        <label for="chart">Chart Type</label>
+                                    </FloatLabel>
+                                </div>
+                                <div class="flex align-items-center gap-1" v-if="chartType.tag == 'bar' ? true : false">
+                                    <Checkbox v-model="stacked" inputId="stackCheck" :binary="true" @change="toggleStack"/>
+                                    <label for="stackCheck">Stacked</label>
+                                </div>
                             </div>
-                            <div class="col-6 col-offset-1 flex justify-content-center">
+                            <div class="col-6 flex justify-content-center">
                                 <InputText type="text" v-model="chartTitle" placeholder="Title" class="justify-self-center"/>
                             </div>
                             <div class="col-2 col-offset-1">
@@ -349,10 +404,10 @@ watch(yAxis2, () => {
                         <div class="flex flex-row gap-2">
                             <div class="flex flex-row align-items-center gap-1">
                                 <div class="rot-90">
-                                    <MultiSelect v-model="yAxis1" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
+                                    <MultiSelect v-model="yAxisL" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
                                         <template #dropdownicon>{{  }}</template>
                                     </MultiSelect>
-                                    <label v-if="yAxis1">{{ yAxis1.col }}</label>
+                                    <label v-if="yAxisL">{{ yAxisL.col }}</label>
                                 </div>
                             </div>
                             <div class="flex flex-column align-content-center w-full chart-container">
@@ -361,7 +416,7 @@ watch(yAxis2, () => {
                             </div>
                             <div class="flex flex-row align-items-center gap-1">
                                 <div class="rot-p90">
-                                    <MultiSelect v-model="yAxis2" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
+                                    <MultiSelect v-model="yAxisR" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
                                         <template #dropdownicon>{{  }}</template>
                                     </MultiSelect>
                                 </div>
@@ -383,51 +438,6 @@ watch(yAxis2, () => {
             </div>
         </div>
     </div>
-
-    <!-- <Dialog v-model:visible="yAxisDialog" :style="{width: '450px'}" header="Axis Details" :modal="true" class="p-fluid">
-        <Card v-model="tempAxis">
-            <template #content>
-            <div class="flex gap-3">
-                <div :style="{width: '400px'}" class="flex flex-column gap-1">
-                    <Dropdown v-model="tempAxis.col" :options="columnList" placeholder="Select a Column" />
-                    <Dropdown v-model="tempAxis.type" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" />
-                </div>
-                <div>
-                    <Dropdown v-model="tempAxis.group" :options="columnList" placeholder="Group data by..." />
-                </div>
-            </div>
-            </template>
-        </Card>
-        <Divider />
-        <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text @click="yAxisDialog = false" />
-            <Button label="Save" icon="pi pi-check" text @click="updateChart" />
-        </template>
-    </Dialog> -->
-
-    <!-- <Dialog v-model:visible="yAxisDialog" :style="{width: '450px'}" header="Axis Details" :modal="true" class="p-fluid">
-        <Card v-for="(chart, index) in tempAxis" :key="index">
-            <template #content>
-            <div class="flex gap-3">
-                <div :style="{width: '400px'}" class="flex flex-column gap-1">
-                    <Dropdown v-model="chart.col" :options="columnList" placeholder="Select a Column" />
-                    <Dropdown v-model="chart.type" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" />
-                </div>
-                <div class="flex align-items-center">
-                    <Button outlined rounded icon="pi pi-times" severity="danger" @click="removeChart(index)" />
-                </div>
-            </div>
-            </template>
-        </Card>
-        <div v-if="!yAxis1 || yAxis1.length < 4" class="flex justify-content-center">
-            <Button outlined rounded icon="pi pi-plus" severity="success" @click="addChart" />
-        </div>
-        <Divider />
-        <template #footer>
-            <Button label="Cancel" icon="pi pi-times" text @click="yAxisDialog = false" />
-            <Button label="Save" icon="pi pi-check" text @click="updateChart" />
-        </template>
-    </Dialog> -->
 </template>
 
 <style>
@@ -456,114 +466,9 @@ watch(yAxis2, () => {
 }
 canvas {
     height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem - 145px) !important;
-    /* width: 100% !important; */
 }
 
 .chart-builder-table {
     height: 15rem;
 }
 </style>
-
-
-<!-- :pt="{
-    item: ({ props, state, context }) => {
-        console.log(props, state, context)
-        context.disabled = true
-    }
-    }" -->
-
-<script>
-// function editYAxis(side) {
-//     activeAxis.value = side
-//     tempAxis.value = side == 'left' ? JSON.parse(JSON.stringify(yAxis1.value)) : JSON.parse(JSON.stringify(yAxis2.value))
-//     if (tempAxis.value && tempAxis.value.length > 1) chartTypes.value[0].optionDisabled = true
-//     yAxisDialog.value = true
-// }
-
-// function addChart() {
-//     if (!tempAxis.value) {
-//         tempAxis.value = []
-//     }
-//     tempAxis.value.push({col: null, type: null})
-// }
-
-// function removeChart(index) {
-//     tempAxis.value.splice(index, 1)
-// }
-
-
-// CHART MODEL
-/*
-    {
-        _id: MongoID,
-        name: Display Name,
-        user: User creating chart,
-        datasource: Access_id,
-        data: {},
-        options: {}
-    }
-*/
-
-// CHART DATA
-// Labels
-//      Need to look into this. Is it just the x-axis?
-// Datasets
-//      Label = Column Name - Alias would be nice...
-//      Type: Need a good way to add additional types
-//      Data: Pulled from table
-//          Scatter requires data: [{x: val, y: val}, {x: val, y: val},...]
-//      
-//      Need to programatically create new chart if splitting by column
-//          Label becomes filter key, data becomes filtered array
-//          Type matches parent
-
-// const setChartData = () => {
-//     return {
-//         labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-//         datasets: [
-//             {
-//                 label: 'Sales',
-//                 data: [540, 325, 702, 620],
-//                 backgroundColor: ['rgba(249, 115, 22, 0.2)', 'rgba(6, 182, 212, 0.2)', 'rgb(107, 114, 128, 0.2)', 'rgba(139, 92, 246 0.2)'],
-//                 borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//                 borderWidth: 1
-//             }
-//         ]
-//     }
-// }
-// const setChartOptions = () => {
-//     const documentStyle = getComputedStyle(document.documentElement)
-//     const textColor = documentStyle.getPropertyValue('--text-color')
-//     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary')
-//     const surfaceBorder = documentStyle.getPropertyValue('--surface-border')
-
-//     return {
-//         plugins: {
-//             legend: {
-//                 labels: {
-//                     color: textColor
-//                 }
-//             }
-//         },
-//         scales: {
-//             x: {
-//                 ticks: {
-//                     color: textColorSecondary
-//                 },
-//                 grid: {
-//                     color: surfaceBorder
-//                 }
-//             },
-//             y: {
-//                 beginAtZero: true,
-//                 ticks: {
-//                     color: textColorSecondary
-//                 },
-//                 grid: {
-//                     color: surfaceBorder
-//                 }
-//             }
-//         }
-//     }
-// }
-</script>
