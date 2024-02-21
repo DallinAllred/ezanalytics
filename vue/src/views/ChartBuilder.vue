@@ -1,18 +1,16 @@
 <script setup>
 import axios from 'axios'
 import { computed, reactive, ref, onMounted, watch } from "vue"
+import { useRoute, useRouter } from 'vue-router'
+
 import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
 import Settings from './Settings.vue'
 
-const toast = useToast()
+const route = useRoute()
+console.log(route.query)
 
-/*
-Graph needs
-    type: chartTypes
-    data: 
-    options
-*/
+const toast = useToast()
 
 const documentStyle = getComputedStyle(document.documentElement)
 
@@ -36,14 +34,38 @@ const backgroundColors = ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', '
 const borderColors = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
 
 const chartTypes = ref([
-    {name: 'Scatter', tag: 'scatter'},
-    {name: 'Pie', tag: 'pie'},
+    {name: 'Bar', tag: 'bar'},
     {name: 'Doughnut', tag: 'doughnut'},
     {name: 'Line', tag: 'line'},
-    {name: 'Bar', tag: 'bar'},
+    {name: 'Pie', tag: 'pie'},
+    {name: 'Polar Area', tag: 'polarArea'},
     {name: 'Radar', tag: 'radar'},
-    {name: 'Polar Area', tag: 'polarArea'}
+    {name: 'Scatter', tag: 'scatter'},
 ])
+
+const chartData = reactive({labels: [], datasets: []})
+const chartOptions = reactive({
+    maintainAspectRation: false,
+    responsive: true,
+    plugins: {
+        legend: {
+            labels: { color: documentStyle.getPropertyValue('--text-color') }
+        }
+    },
+    scales: {
+        x: {
+            stacked: false,
+            ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+            grid: { color: documentStyle.getPropertyValue('--surface-border') },
+        },
+        y: {
+            beginAtZero: true,
+            stacked: false,
+            ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+            grid: { color: documentStyle.getPropertyValue('--surface-border') },
+        }
+    }
+})
 
 async function getSources() {
     let response = await axios.get('http://localhost:5050/api/sources/')
@@ -62,29 +84,66 @@ async function getData() {
     rawData.value = data
 }
 
-
-
-
-
+// TODO: Finish save
 function saveChart() {
     console.log('Saving chart')
     toast.add({severity: 'info', summary: 'Successful', detail: 'Chart save requested', life: 3000})
-
+    console.log(stacked.value)
     let chart = {
-        sourceId: selectedDataSource.value.sourceId,
-        title: chartTitle,
-        type: chartType.value.tag,
+        sourceId: selectedDataSource.value,
+        title: chartTitle.value,
+        type: chartType.value,
+        groupBy: groupBy.value,
         data: {
             xAxis: xAxis.value,
             yAxisL: yAxisL.value,
-            yAxisR: yAxisR.value
+            // yAxisR: yAxisR.value
         },
-        options: {}
+        options: {
+            stacked: stacked.value
+        }
     }
+    if (yAxisR.value && yAxisR.value.length > 0) {
+        chart.data.yAxisR = yAxisR.value
+        chart.options.y1.stacked = stacked.value
+    }
+    console.log(JSON.stringify(chart))
 }
 
+async function loadChart(chartId) {
 
+    console.log(chartId)
+    let chart = {
+        title: 'Test Chart',
+        sourceId:{sourceId:1,sourceType:"upload",sourceLabel:"Mill Data",sourceAccessId:"mill_data"},
+        type:{name:"Bar",tag:"bar"},
+        groupBy:"part_id",
+        data:{xAxis:"mill_id",yAxisL:["process_time"]},
+        options:{"stacked":false}
+    }
 
+    selectedDataSource.value = chart.sourceId
+    await getData()
+    chartTitle.value = chart.title
+    chartType.value = chart.type
+    xAxis.value = chart.data.xAxis
+    yAxisL.value = chart.data.yAxisL
+    yAxisR.value = chart.data.yAxisR ?? null
+    groupBy.value = chart.groupBy ?? null
+    chartOptions.scales.x.stacked = chart.options.stacked
+    chartOptions.scales.y.stacked = chart.options.stacked
+    if (yAxisR.value) {
+        chartOptions.scales.y1 = {
+            beginAtZero: true,
+            position: 'right',
+            ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+            grid: { color: documentStyle.getPropertyValue('--surface-border') },
+        }
+        chartOptions.scales.y1.stacked = chart.options.stacked
+    }
+    updateLabels(xAxis.value)
+    updateChart()
+}
 
 function uploadData() {
     console.log('Uploading data')
@@ -176,66 +235,51 @@ function buildChart(colName, axis) {
     return datasets
 }
 
-const chartData = reactive({labels: [], datasets: []})
-const chartOptions = reactive({
-    maintainAspectRation: false,
-    responsive: true,
-    plugins: {
-        legend: {
-            labels: {
-                color: documentStyle.getPropertyValue('--text-color')
-            }
-        },
-        title: {
-            display: true,
-            text: 'Custom Chart Title'
-        }
-    },
-    scales: {
-        x: {
-            stacked: false,
-            ticks: {
-                color: documentStyle.getPropertyValue('--text-color-secondary')
-            },
-            grid: {
-                color: documentStyle.getPropertyValue('--surface-border')
-            },
-            title: {
-                display: true,
-                text: 'My X-Axis'
-            }
-        },
-        y: {
-            stacked: false,
-            beginAtZero: true,
-            ticks: {
-                color: documentStyle.getPropertyValue('--text-color-secondary')
-            },
-            grid: {
-                color: documentStyle.getPropertyValue('--surface-border')
-            },
-            title: {
-                display: true,
-                text: 'Left Y-Axis'
-            }
-        }
-        // ,y1: {}
-        //     stacked: true,
-        //     beginAtZero: true,
-        //     position: 'right',
-        //     ticks: {
-        //         color: documentStyle.getPropertyValue('--text-color-secondary')
-        //     },
-        //     grid: {
-        //         color: documentStyle.getPropertyValue('--surface-border')
-        //     },
-        //     title: {
-        //         display: true,
-        //         text: 'Right Y-Axis'
-        //     }
-        // }
-    }
-})
+// const chartOptions = reactive({
+//     maintainAspectRation: false,
+//     responsive: true,
+//     plugins: {
+//         legend: {
+//             labels: { color: documentStyle.getPropertyValue('--text-color') }
+//         },
+//         title: {
+//             display: true,
+//             text: 'Custom Chart Title'
+//         }
+//     },
+//     scales: {
+//         x: {
+//             stacked: false,
+//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
+//             title: {
+//                 display: true,
+//                 text: 'My X-Axis'
+//             }
+//         },
+//         y: {
+//             beginAtZero: true,
+//             stacked: false,
+//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
+//             title: {
+//                 display: true,
+//                 text: 'Left Y-Axis'
+//             }
+//         }
+//         // ,y1: {}
+//         //     beginAtZero: true,
+//         //     stacked: true,
+//         //     position: 'right',
+//         //     ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+//         //     grid: { color: documentStyle.getPropertyValue('--surface-border') },
+//         //     title: {
+//         //         display: true,
+//         //         text: 'Right Y-Axis'
+//         //     }
+//         // }
+//     }
+// })
 
 
 // const chartData = reactive({
@@ -255,6 +299,9 @@ const chartOptions = reactive({
 // Chart Setup for Demo Chart
 onMounted(() => {
     getSources()
+    if ('chart' in route.query){
+        loadChart(route.query.chart)
+    }
 })
 
 // const chartData = ref({
@@ -319,14 +366,6 @@ onMounted(() => {
 //         ]
 //     })
 
-// CHART OPTIONS
-// Plugins:
-//      title: Input field
-//      legend
-
-
-
-
 watch(selectedDataSource, async () => {
     getData()
 })
@@ -372,7 +411,10 @@ watch(yAxisR, () => {
         <div class="col-12 grid chart-builder-header">
             <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
             <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
-            <div class="col-1 col-offset-7"><Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" /></div>
+            <div class="col-1 col-offset-7">
+                <Button label="Load" icon="pi pi-save" severity="success" class="mr-2" @click="loadChart" />
+                <Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" />
+            </div>
         </div>
         <div class="col-12 grid">
             <div class="flex flex-column gap-3 col-10 col-offset-1">
