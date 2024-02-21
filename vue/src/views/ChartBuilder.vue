@@ -366,9 +366,9 @@ onMounted(() => {
 //         ]
 //     })
 
-watch(selectedDataSource, async () => {
-    getData()
-})
+// watch(selectedDataSource, async () => {
+//     getData()
+// })
 watch(chartType, () => {
     if (xAxis.value && (yAxisL.value.length > 0 || yAxisR.value.length > 0)) updateChart()
 })
@@ -389,16 +389,8 @@ watch(yAxisR, () => {
             stacked: stacked.value,
             beginAtZero: true,
             position: 'right',
-            ticks: {
-                color: documentStyle.getPropertyValue('--text-color-secondary')
-            },
-            grid: {
-                color: documentStyle.getPropertyValue('--surface-border')
-            },
-            title: {
-                display: true,
-                text: 'Right Y-Axis'
-            }
+            ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+            grid: { color: documentStyle.getPropertyValue('--surface-border') }
         }
     } else { chartOptions.y1 = {} }
     if (xAxis.value) updateChart()
@@ -409,7 +401,7 @@ watch(yAxisR, () => {
 <template>
     <div class="grid h-full chart-builder">
         <div class="col-12 grid chart-builder-header">
-            <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" /></div>
+            <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
             <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
             <div class="col-1 col-offset-7">
                 <Button label="Load" icon="pi pi-save" severity="success" class="mr-2" @click="loadChart" />
