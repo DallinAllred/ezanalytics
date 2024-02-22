@@ -8,7 +8,7 @@ import FloatLabel from 'primevue/floatlabel'
 import Settings from './Settings.vue'
 
 const route = useRoute()
-console.log(route.query)
+// console.log(route.query)
 
 const toast = useToast()
 
@@ -85,10 +85,7 @@ async function getData() {
 }
 
 // TODO: Finish save
-function saveChart() {
-    console.log('Saving chart')
-    toast.add({severity: 'info', summary: 'Successful', detail: 'Chart save requested', life: 3000})
-    console.log(stacked.value)
+async function saveChart() {
     let chart = {
         sourceId: selectedDataSource.value,
         title: chartTitle.value,
@@ -107,12 +104,21 @@ function saveChart() {
         chart.data.yAxisR = yAxisR.value
         chart.options.y1.stacked = stacked.value
     }
-    console.log(JSON.stringify(chart))
+    // console.log(JSON.stringify(chart))
+    try {
+        let response = await axios.post(`http://localhost:5050/api/charts`, chart)
+        console.log(response.data)
+        toast.add({severity: 'success', summary: 'Successful', detail: 'Chart saved', life: 3000})
+    } catch {
+        toast.add({severity: 'error', summary: 'Error', detail: 'Chart failed to save', life: 3000})
+
+    }
+
 }
 
 async function loadChart(chartId) {
 
-    console.log(chartId)
+    // console.log(chartId)
     let chart = {
         title: 'Test Chart',
         sourceId:{sourceId:1,sourceType:"upload",sourceLabel:"Mill Data",sourceAccessId:"mill_data"},
