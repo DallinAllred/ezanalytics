@@ -8,8 +8,6 @@ import FloatLabel from 'primevue/floatlabel'
 import Settings from './Settings.vue'
 
 const route = useRoute()
-// console.log(route.query)
-
 const toast = useToast()
 
 const documentStyle = getComputedStyle(document.documentElement)
@@ -21,7 +19,7 @@ const dataSources = ref([])
 const rawData = ref()
 const selectedDataSource = ref()
 const chartType = ref({name: 'Bar', tag: 'bar'})
-const stacked = ref(false)
+const stackedBox = ref(false)
 
 const xAxis = ref()
 const yAxisL = ref([])
@@ -94,17 +92,15 @@ async function saveChart() {
         data: {
             xAxis: xAxis.value,
             yAxisL: yAxisL.value,
-            // yAxisR: yAxisR.value
         },
         options: {
-            stacked: stacked.value
+            stacked: stackedBox.value
         }
     }
     if (yAxisR.value && yAxisR.value.length > 0) {
         chart.data.yAxisR = yAxisR.value
-        chart.options.y1.stacked = stacked.value
     }
-    // console.log(JSON.stringify(chart))
+    console.log(chart)
     try {
         let response = await axios.post(`http://localhost:5050/api/charts`, chart)
         console.log(response.data)
@@ -113,19 +109,16 @@ async function saveChart() {
         toast.add({severity: 'error', summary: 'Error', detail: 'Chart failed to save', life: 3000})
 
     }
-
 }
 
 async function loadChart(chartId) {
-
-    // console.log(chartId)
-    let chart = {
-        title: 'Test Chart',
-        sourceId:{sourceId:1,sourceType:"upload",sourceLabel:"Mill Data",sourceAccessId:"mill_data"},
-        type:{name:"Bar",tag:"bar"},
-        groupBy:"part_id",
-        data:{xAxis:"mill_id",yAxisL:["process_time"]},
-        options:{"stacked":false}
+    let chart = {}
+    try {
+        let response = await axios.get(`http://localhost:5050/api/charts/${chartId}`)
+        chart = response.data
+    } catch {
+        toast.add({severity: 'error', summary: 'Chart Not Found', detail: `Unable to find chart ${chartId}`, life: 3000})
+        return
     }
 
     selectedDataSource.value = chart.sourceId
@@ -136,6 +129,7 @@ async function loadChart(chartId) {
     yAxisL.value = chart.data.yAxisL
     yAxisR.value = chart.data.yAxisR ?? null
     groupBy.value = chart.groupBy ?? null
+    stackedBox.value = chart.options.stacked
     chartOptions.scales.x.stacked = chart.options.stacked
     chartOptions.scales.y.stacked = chart.options.stacked
     if (yAxisR.value) {
@@ -174,17 +168,15 @@ function updateChart() {
             datasets = [...datasets, ...buildChart(col, 'y1')]
         }
     }
-
     chartData.datasets = datasets
-    // console.log(chartData)
     yAxisDialog.value = false
 }
 
 function toggleStack() {
-    chartOptions.scales.x['stacked'] = stacked.value
-    chartOptions.scales.y['stacked'] = stacked.value
+    chartOptions.scales.x['stacked'] = stackedBox.value
+    chartOptions.scales.y['stacked'] = stackedBox.value
     if (Object.keys(chartOptions.scales).includes('y1')) {
-        chartOptions.scales.y1['stacked'] = stacked.value
+        chartOptions.scales.y1['stacked'] = stackedBox.value
     }
     updateChart()
 }
@@ -241,140 +233,14 @@ function buildChart(colName, axis) {
     return datasets
 }
 
-// const chartOptions = reactive({
-//     maintainAspectRation: false,
-//     responsive: true,
-//     plugins: {
-//         legend: {
-//             labels: { color: documentStyle.getPropertyValue('--text-color') }
-//         },
-//         title: {
-//             display: true,
-//             text: 'Custom Chart Title'
-//         }
-//     },
-//     scales: {
-//         x: {
-//             stacked: false,
-//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
-//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
-//             title: {
-//                 display: true,
-//                 text: 'My X-Axis'
-//             }
-//         },
-//         y: {
-//             beginAtZero: true,
-//             stacked: false,
-//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
-//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
-//             title: {
-//                 display: true,
-//                 text: 'Left Y-Axis'
-//             }
-//         }
-//         // ,y1: {}
-//         //     beginAtZero: true,
-//         //     stacked: true,
-//         //     position: 'right',
-//         //     ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
-//         //     grid: { color: documentStyle.getPropertyValue('--surface-border') },
-//         //     title: {
-//         //         display: true,
-//         //         text: 'Right Y-Axis'
-//         //     }
-//         // }
-//     }
-// })
-
-
-// const chartData = reactive({
-//     labels: ['Data'],
-//     datasets: [
-//         {
-//             type: 'bar',
-//             label: 'Sales',
-//             data: [540, 325, 702, 620],
-//             backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-//             borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//             borderWidth: 1
-//         }
-//     ]
-// })
-
-// Chart Setup for Demo Chart
-onMounted(() => {
-    getSources()
+onMounted(async () => {
+    await getSources()
     if ('chart' in route.query){
         loadChart(route.query.chart)
     }
 })
 
-// const chartData = ref({
-//         labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-//         datasets: [
-//             {
-//                 type: 'scatter',
-//                 label: 'Sales',
-//                 // data: [540, 325, 702, 620],
-//                 data:[
-//                     {x: 'Q1', y: 100},
-//                     {x: 'Q2', y: 500},
-//                     {x: 'Q3', y: 750},
-//                     {x: 'Q4', y: 1000},
-//                     {x: 'Q1', y: 200},
-//                     {x: 'Q2', y: 600},
-//                     {x: 'Q3', y: 150},
-//                     {x: 'Q4', y: 100},
-//                     {x: 'Q3', y: 850},
-//                     {x: 'Q4', y: 350}
-//                 ],
-//                 backgroundColor: ['rgba(249, 115, 22, 0.5)'],//, 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-//                 borderColor: ['rgb(249, 115, 22)'],//, 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//                 borderWidth: 1
-//             },{
-//                 type: 'scatter',
-//                 label: 'Global',
-//                 // data: [540, 325, 702, 620],
-//                 data:[
-//                     {x: 'Q1', y: 1000},
-//                     {x: 'Q2', y: 5000},
-//                     {x: 'Q3', y: 7500},
-//                     {x: 'Q4', y: 10000},
-//                     {x: 'Q1', y: 2000},
-//                     {x: 'Q2', y: 6000},
-//                     {x: 'Q3', y: 1500},
-//                     {x: 'Q4', y: 1500},
-//                     {x: 'Q3', y: 8500},
-//                     {x: 'Q4', y: 3500}
-//                 ],
-//                 backgroundColor: ['rgba(6, 182, 212, 0.5)'],//, 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-//                 borderColor: ['rgb(6, 182, 212)'],//, 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//                 borderWidth: 1
-//             },
-//             // {
-//             //     type: 'bar',
-//             //     label: 'Bids',
-//             //     data: [700, 650, 1400, 1200],
-//             //     backgroundColor: ['rgba(50, 135, 52, 0.2)', 'rgba(255, 50, 40, 0.2)', 'rgb(50, 114, 50, 0.2)', 'rgba(139, 0, 100, 0.2)'],
-//             //     // borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//             //     borderWidth: 1
-//             // },
-//             // {
-//             //     type: 'line',
-//             //     label: 'LineChart',
-//             //     borderColor: documentStyle.getPropertyValue('--orange-500'),
-//             //     borderWidth: 2,
-//             //     fill: false,
-//             //     tension: 0.5,
-//             //     data: [500, 250, 120, 480, 560, 760, 420]
-//             // }
-//         ]
-//     })
 
-// watch(selectedDataSource, async () => {
-//     getData()
-// })
 watch(chartType, () => {
     if (xAxis.value && (yAxisL.value.length > 0 || yAxisR.value.length > 0)) updateChart()
 })
@@ -392,7 +258,7 @@ watch(yAxisL, () => {
 watch(yAxisR, () => {
     if (yAxisR.value && yAxisR.value != []) {
         chartOptions.y1 = {
-            stacked: stacked.value,
+            stacked: stackedBox.value,
             beginAtZero: true,
             position: 'right',
             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
@@ -427,7 +293,7 @@ watch(yAxisR, () => {
                                     </FloatLabel>
                                 </div>
                                 <div class="flex align-items-center gap-1" v-if="chartType.tag == 'bar' ? true : false">
-                                    <Checkbox v-model="stacked" inputId="stackCheck" :binary="true" @change="toggleStack"/>
+                                    <Checkbox v-model="stackedBox" inputId="stackCheck" :binary="true" @change="toggleStack"/>
                                     <label for="stackCheck">Stacked</label>
                                 </div>
                             </div>
@@ -512,3 +378,132 @@ canvas {
     height: 15rem;
 }
 </style>
+
+<script>
+// const chartOptions = reactive({
+//     maintainAspectRation: false,
+//     responsive: true,
+//     plugins: {
+//         legend: {
+//             labels: { color: documentStyle.getPropertyValue('--text-color') }
+//         },
+//         title: {
+//             display: true,
+//             text: 'Custom Chart Title'
+//         }
+//     },
+//     scales: {
+//         x: {
+//             stacked: false,
+//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
+//             title: {
+//                 display: true,
+//                 text: 'My X-Axis'
+//             }
+//         },
+//         y: {
+//             beginAtZero: true,
+//             stacked: false,
+//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
+//             title: {
+//                 display: true,
+//                 text: 'Left Y-Axis'
+//             }
+//         }
+//         // ,y1: {}
+//         //     beginAtZero: true,
+//         //     stacked: true,
+//         //     position: 'right',
+//         //     ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
+//         //     grid: { color: documentStyle.getPropertyValue('--surface-border') },
+//         //     title: {
+//         //         display: true,
+//         //         text: 'Right Y-Axis'
+//         //     }
+//         // }
+//     }
+// })
+
+
+// const chartData = reactive({
+//     labels: ['Data'],
+//     datasets: [
+//         {
+//             type: 'bar',
+//             label: 'Sales',
+//             data: [540, 325, 702, 620],
+//             backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
+//             borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+//             borderWidth: 1
+//         }
+//     ]
+// })
+
+// const chartData = ref({
+//         labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+//         datasets: [
+//             {
+//                 type: 'scatter',
+//                 label: 'Sales',
+//                 // data: [540, 325, 702, 620],
+//                 data:[
+//                     {x: 'Q1', y: 100},
+//                     {x: 'Q2', y: 500},
+//                     {x: 'Q3', y: 750},
+//                     {x: 'Q4', y: 1000},
+//                     {x: 'Q1', y: 200},
+//                     {x: 'Q2', y: 600},
+//                     {x: 'Q3', y: 150},
+//                     {x: 'Q4', y: 100},
+//                     {x: 'Q3', y: 850},
+//                     {x: 'Q4', y: 350}
+//                 ],
+//                 backgroundColor: ['rgba(249, 115, 22, 0.5)'],//, 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
+//                 borderColor: ['rgb(249, 115, 22)'],//, 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+//                 borderWidth: 1
+//             },{
+//                 type: 'scatter',
+//                 label: 'Global',
+//                 // data: [540, 325, 702, 620],
+//                 data:[
+//                     {x: 'Q1', y: 1000},
+//                     {x: 'Q2', y: 5000},
+//                     {x: 'Q3', y: 7500},
+//                     {x: 'Q4', y: 10000},
+//                     {x: 'Q1', y: 2000},
+//                     {x: 'Q2', y: 6000},
+//                     {x: 'Q3', y: 1500},
+//                     {x: 'Q4', y: 1500},
+//                     {x: 'Q3', y: 8500},
+//                     {x: 'Q4', y: 3500}
+//                 ],
+//                 backgroundColor: ['rgba(6, 182, 212, 0.5)'],//, 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
+//                 borderColor: ['rgb(6, 182, 212)'],//, 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+//                 borderWidth: 1
+//             },
+//             // {
+//             //     type: 'bar',
+//             //     label: 'Bids',
+//             //     data: [700, 650, 1400, 1200],
+//             //     backgroundColor: ['rgba(50, 135, 52, 0.2)', 'rgba(255, 50, 40, 0.2)', 'rgb(50, 114, 50, 0.2)', 'rgba(139, 0, 100, 0.2)'],
+//             //     // borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
+//             //     borderWidth: 1
+//             // },
+//             // {
+//             //     type: 'line',
+//             //     label: 'LineChart',
+//             //     borderColor: documentStyle.getPropertyValue('--orange-500'),
+//             //     borderWidth: 2,
+//             //     fill: false,
+//             //     tension: 0.5,
+//             //     data: [500, 250, 120, 480, 560, 760, 420]
+//             // }
+//         ]
+//     })
+
+// watch(selectedDataSource, async () => {
+//     getData()
+// })
+</script>

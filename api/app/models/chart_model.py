@@ -22,17 +22,22 @@ class Chart():
     def get_charts():
         data = []
         for chart in chart_coll.find():
-            data.append({'id': chart.id, 'title': chart.title})
+            print(chart)
+            data.append({'id': str(chart['_id']), 'title': chart['title']})
         return data
 
     @staticmethod
     def get_chart(chart_id):
-        chart = chart_coll.find({'id': chart_id})
-        pass
+        print(f'ChartID: {chart_id}')
+        chart = chart_coll.find_one({'_id': chart_id})
+        print(f'Model Chart: {chart}')
+        chart['id'] = str(chart['_id'])
+        del chart['_id']
+        return chart
 
     @staticmethod
     def create_chart(chart):
-        del chart['chartId']
+        # del chart['chartId']
         chart_id = chart_coll.insert_one(chart).inserted_id
         return {'chartId': str(chart_id), 'title': chart['title']}
 
