@@ -25,7 +25,7 @@ function newConnection() {
 <template>
     <div class="grid h-full justify-content-between px-2">
         <div class="col-6 flex flex-column gap-2">
-            <h2>Charts</h2>
+            <h2>Uploaded Data</h2>
             <Skeleton height="100%"></Skeleton>
             <div class="flex flex-row justify-content-between">
                 <div><Button label="Delete Data Source" @click="deleteDataSource" /></div>
@@ -33,7 +33,7 @@ function newConnection() {
             </div>
         </div>
         <div class="col-6 flex flex-column gap-2">
-            <h2>Dashboards</h2>
+            <h2>Database Connections</h2>
             <Skeleton height="100%"></Skeleton>
             <div class="flex flex-row justify-content-between">
                 <div><Button label="Delete Connection" @click="deleteConnection" /></div>
