@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { FilterMatchMode } from 'primevue/api'
 import { useToast } from 'primevue/usetoast'
 
+import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
+
 const toast = useToast()
 
 const users = ref()
@@ -205,16 +207,7 @@ async function deleteUser() {
             </template>
         </Dialog>
 
-        <Dialog v-model:visible="deleteUserDialog" :style="{width: '450px'}" header="Confirm" :modal="true">
-            <div class="confirmation-content">
-                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-                <span v-if="activeUser">Are you sure you want to delete <b>{{ activeUser.username }}</b>?</span>
-            </div>
-            <template #footer>
-                <Button label="No" icon="pi pi-times" text @click="deleteUserDialog = false" />
-                <Button label="Yes" icon="pi pi-check" text @click="deleteUser" />
-            </template>
-        </Dialog>
+        <ConfirmDelete v-model="deleteUserDialog" :match="activeUser.username" @delete="deleteUser"></ConfirmDelete>
     </div>
 </template>
 
