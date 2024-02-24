@@ -3,7 +3,7 @@ from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
 
 router = APIRouter(
-    prefix="/dashboards",
+    prefix="/api/dashboards",
     responses={404: {"description": "Not found"}},
 )
 

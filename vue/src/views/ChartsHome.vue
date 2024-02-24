@@ -3,14 +3,20 @@ import { onMounted, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
+import { useToast } from 'primevue/usetoast'
+
+import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
 import EZChart from '@/components/EZChart.vue'
 
 const router = useRouter()
 
 const route = useRoute()
 
+const toast = useToast()
+
+const deleteChartDialog = ref(false)
 const chartList = ref([])
-const selectedChart = ref(null)
+const selectedChart = ref({title: null, id: null})
 
 async function loadCharts() {
     let response = await axios.get(`http://localhost:5050/api/charts`)
@@ -27,8 +33,18 @@ function editChart() {
     }
 }
 
-function deleteChart() {
-    console.log('Deleting chart')
+async function deleteChart() {
+    try {
+        let response = await axios.delete(`http://localhost:5050/api/charts/${selectedChart.value.id}`)
+        console.log(response)
+        deleteChartDialog.value = false
+        toast.add({severity: 'success', summary: 'Success', detail: `Chart "${selectedChart.value.title}" deleted`, life: 3000})
+        selectedChart.value = {title: null, id: null}
+        loadCharts()
+    } catch {
+        toast.add({severity: 'error', summary: 'Error', detail: `Error while deleting "${selectedChart.value.title}"`, life: 3000})
+
+    }
 }
 
 onMounted(async () => {
@@ -55,12 +71,13 @@ onMounted(async () => {
         </div>
         <div class="col-10 flex flex-column gap-5" id="chart-container">
             <div class="flex justify-content-between">
-                <Button severity="danger" label="Delete Chart" @click="deleteChart" v-if="selectedChart && selectedChart.id" />
+                <Button severity="danger" label="Delete Chart" @click="deleteChartDialog = true" v-if="selectedChart && selectedChart.id" />
                 <Button label="Edit Chart" @click="editChart" v-if="selectedChart && selectedChart.id" />
             </div>
             <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%"></EZChart>
         </div>
     </div>
+    <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
 </template>
 
 <style>

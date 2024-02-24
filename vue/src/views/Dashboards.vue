@@ -10,7 +10,7 @@ import EZChart from '@/components/EZChart.vue'
 const router = useRouter()
 
 const dashList = ref([])
-const selectedDash = ref(nul)
+const selectedDash = ref(null)
 
 async function loadDashboards() {
     let response = await axios.get(`http://localhost:5050/api/dashboards`)

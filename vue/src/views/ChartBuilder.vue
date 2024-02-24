@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios'
-import { computed, reactive, ref, onMounted, watch } from "vue"
+import { reactive, ref, onMounted, watch } from "vue"
 import { useRoute, useRouter } from 'vue-router'
 
 import { useToast } from 'primevue/usetoast'

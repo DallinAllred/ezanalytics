@@ -29,17 +29,11 @@ async def read_charts():
 async def read_charts(chart_id):
     chart_id = ObjectId(chart_id)
     chart = chart_model.Chart.get_chart(chart_id)
-    print('Chart: ', chart)
-    # chart : Chart = chart
     return chart
-
-    return chart.model_dump(exclude_none=True)
 
 @router.post("/")
 async def create_chart(chart: Chart):
-    print(chart)
     result = chart_model.Chart.create_chart(chart.model_dump(exclude_none=True))
-    print(result)
     return result
 
 @router.put("/{chart_id}")
@@ -48,4 +42,5 @@ async def update_chart(chart_id):
 
 @router.delete("/{chart_id}")
 async def delete_chart(chart_id):
+    result = chart_model.Chart.delete_chart(ObjectId(chart_id))
     return [{"chart_id": chart_id, "action": "Delete"}]

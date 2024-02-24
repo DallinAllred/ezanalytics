@@ -29,7 +29,7 @@ watch(model, () => {
             </div>
             <div v-if="props.match">
                 <div>Enter "{{ props.match }}"" to delete.</div>
-                <InputText type="text" v-model="matchText" :placeholder="props.match"/>
+                <InputText type="text" v-model="matchText" :placeholder="props.match" autofocus/>
             </div>
         </div>
         <template #footer>
