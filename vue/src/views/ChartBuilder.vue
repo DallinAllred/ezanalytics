@@ -7,7 +7,7 @@ import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
 import Settings from './Settings.vue'
 
-import DataUpload from '@/components/DataUpload.vue'
+import DataUpload from '@/components/dialogs/DataUpload.vue'
 
 const route = useRoute()
 const toast = useToast()
@@ -344,6 +344,7 @@ watch(yAxisR, () => {
             </div>
         </div>
     </div>
+    <DataUpload v-model="showUploadModal"></DataUpload>
 </template>
 
 <style>

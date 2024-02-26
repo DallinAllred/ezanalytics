@@ -65,18 +65,21 @@ async def read_sources(source_id, limit: int | None = None):
     return [{"source_id": source_id}]
 
 @router.post("/upload")
-async def create_source(data: Annotated[dict, Body()]):
-    table_name = data['name']
-    columns = data['columns']
-    if len(columns) < 1:
-        return [{'Error': 'Invalid number of columns supplied'}]
-    try:
-        table_created = source_model.Source.create_datatable(table_name, columns)
-    except Exception as e:
-        return
-    # print(table_created)
-    # result = source_model.Source.upload_data(data)
+async def create_source():
     return [{"action": "Adding conn"}]
+# @router.post("/upload")
+# async def create_source(data: Annotated[dict, Body()]):
+#     table_name = data['name']
+#     columns = data['columns']
+#     if len(columns) < 1:
+#         return [{'Error': 'Invalid number of columns supplied'}]
+#     try:
+#         table_created = source_model.Source.create_datatable(table_name, columns)
+#     except Exception as e:
+#         return
+#     # print(table_created)
+#     # result = source_model.Source.upload_data(data)
+#     return [{"action": "Adding conn"}]
 
 @router.put("/{source_id}")
 async def update_source(source_id):
