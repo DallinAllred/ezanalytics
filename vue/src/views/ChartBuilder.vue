@@ -7,10 +7,14 @@ import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
 import Settings from './Settings.vue'
 
+import DataUpload from '@/components/DataUpload.vue'
+
 const route = useRoute()
 const toast = useToast()
 
 const documentStyle = getComputedStyle(document.documentElement)
+
+const showUploadModal = ref(false)
 
 const chartTitle = ref()
 const columns = ref([])
@@ -142,10 +146,10 @@ async function loadChart(chartId) {
     updateChart()
 }
 
-function uploadData() {
-    console.log('Uploading data')
-    toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
-}
+// function uploadData() {
+//     console.log('Uploading data')
+//     toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
+// }
 
 function updateLabels(axis) {
     let labels = rawData.value.map(el => el[axis])
@@ -270,7 +274,7 @@ watch(yAxisR, () => {
     <div class="grid h-full chart-builder">
         <div class="col-12 grid chart-builder-header">
             <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
-            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
+            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="showUploadModal = true" /></div>
             <div class="col-1 col-offset-7">
                 <Button label="Load" icon="pi pi-save" severity="success" class="mr-2" @click="loadChart" />
                 <Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" />
