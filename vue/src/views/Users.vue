@@ -159,21 +159,21 @@ async function deleteUser() {
             </div>
             <div class="field">
                 <label for="middleName">Middle Name</label>
-                <InputText id="middleName" v-model.trim="activeUser.middleName" autofocus />
+                <InputText id="middleName" v-model.trim="activeUser.middleName" />
             </div>
             <div class="field">
                 <label for="lastName">Last Name*</label>
-                <InputText id="lastName" v-model.trim="activeUser.lastName" required="true" autofocus :class="{'p-invalid': submitted && !activeUser.lastName}" />
+                <InputText id="lastName" v-model.trim="activeUser.lastName" required="true" :class="{'p-invalid': submitted && !activeUser.lastName}" />
                 <small class="p-error" v-if="submitted && !activeUser.lastName">Last name is required.</small>
             </div>
             <div class="field">
                 <label for="username">Username*</label>
-                <InputText id="username" v-model.trim="activeUser.username" required="true" autofocus :class="{'p-invalid': submitted && !activeUser.username}" />
+                <InputText id="username" v-model.trim="activeUser.username" required="true" :class="{'p-invalid': submitted && !activeUser.username}" />
                 <small class="p-error" v-if="submitted && !activeUser.username">Username is required.</small>
             </div>
             <div class="field">
                 <label for="userEmail">Email*</label>
-                <InputText id="userEmail" v-model.trim="activeUser.userEmail" required="true" autofocus :class="{'p-invalid': submitted && !activeUser.userEmail}" />
+                <InputText id="userEmail" v-model.trim="activeUser.userEmail" required="true" :class="{'p-invalid': submitted && !activeUser.userEmail}" />
                 <small class="p-error" v-if="submitted && !activeUser.userEmail">Email is required.</small>
             </div>
             <div class="field">

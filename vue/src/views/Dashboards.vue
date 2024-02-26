@@ -43,7 +43,7 @@ onMounted(async () => {
             <div class="h-full">
                 <DataTable v-model:selection="selectedDash" :value="dashList" selectionMode="single"
                 scrollable class="h-full" dataKey="id">
-                    <Column field="title" header="Chart"></Column>
+                    <Column field="title" header="Dashboard"></Column>
                     <Column field="id" header="ID"></Column>
                 </DataTable>
             </div>

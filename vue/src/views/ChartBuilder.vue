@@ -1,16 +1,20 @@
 <script setup>
 import axios from 'axios'
 import { reactive, ref, onMounted, watch } from "vue"
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
 import Settings from './Settings.vue'
 
+import DataUpload from '@/components/DataUpload.vue'
+
 const route = useRoute()
 const toast = useToast()
 
 const documentStyle = getComputedStyle(document.documentElement)
+
+const showUploadModal = ref(false)
 
 const chartTitle = ref()
 const columns = ref([])
@@ -25,8 +29,6 @@ const xAxis = ref()
 const yAxisL = ref([])
 const yAxisR = ref([])
 const groupBy = ref()
-
-const yAxisDialog = ref(false)
 
 const backgroundColors = ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)']
 const borderColors = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
@@ -82,7 +84,6 @@ async function getData() {
     rawData.value = data
 }
 
-// TODO: Finish save
 async function saveChart() {
     let chart = {
         sourceId: selectedDataSource.value,
@@ -145,10 +146,10 @@ async function loadChart(chartId) {
     updateChart()
 }
 
-function uploadData() {
-    console.log('Uploading data')
-    toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
-}
+// function uploadData() {
+//     console.log('Uploading data')
+//     toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
+// }
 
 function updateLabels(axis) {
     let labels = rawData.value.map(el => el[axis])
@@ -169,7 +170,6 @@ function updateChart() {
         }
     }
     chartData.datasets = datasets
-    yAxisDialog.value = false
 }
 
 function toggleStack() {
@@ -274,7 +274,7 @@ watch(yAxisR, () => {
     <div class="grid h-full chart-builder">
         <div class="col-12 grid chart-builder-header">
             <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
-            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="uploadData" /></div>
+            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="showUploadModal = true" /></div>
             <div class="col-1 col-offset-7">
                 <Button label="Load" icon="pi pi-save" severity="success" class="mr-2" @click="loadChart" />
                 <Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" />
