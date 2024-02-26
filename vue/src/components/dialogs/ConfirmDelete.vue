@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-const model = defineModel()
 const emit = defineEmits(['delete'])
+const model = defineModel()
 const props = defineProps(['match'])
 
 const matchText = ref()
@@ -17,7 +17,6 @@ watch(model, () => {
         matchText.value = ''
     }
 })
-
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, reactive, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -9,9 +9,7 @@ import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
 import EZChart from '@/components/EZChart.vue'
 
 const router = useRouter()
-
 const route = useRoute()
-
 const toast = useToast()
 
 const deleteChartDialog = ref(false)

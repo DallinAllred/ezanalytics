@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios'
 import { reactive, ref, onMounted, watch } from "vue"
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
@@ -25,8 +25,6 @@ const xAxis = ref()
 const yAxisL = ref([])
 const yAxisR = ref([])
 const groupBy = ref()
-
-const yAxisDialog = ref(false)
 
 const backgroundColors = ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)']
 const borderColors = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
@@ -82,7 +80,6 @@ async function getData() {
     rawData.value = data
 }
 
-// TODO: Finish save
 async function saveChart() {
     let chart = {
         sourceId: selectedDataSource.value,
@@ -169,7 +166,6 @@ function updateChart() {
         }
     }
     chartData.datasets = datasets
-    yAxisDialog.value = false
 }
 
 function toggleStack() {
