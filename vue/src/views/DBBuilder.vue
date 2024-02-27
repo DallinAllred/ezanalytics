@@ -39,6 +39,7 @@ function saveDashboard() {
         owner: currentUser.value,
         layout: layout.value
     }
+    let response = axios.post(`http://localhost:5050/api/dashboards`, dashboard)
     console.log(dashboard)
     submitted.value = false
 }
@@ -64,8 +65,9 @@ onMounted(() => {
 <template>
     <div class="grid">
         <div class="col-12 flex">
-            <div class="col-4 col-offset-4 flex justify-content-center">
-                <InputText v-model.trim="dashTitle" type="text" placeholder="Dashboard Title" required="true" :class="{'p-invalid': submitted && !chartTitle}"/>
+            <div class="col-4 col-offset-4 flex flex-column justify-content-center align-items-center gap-2">
+                <InputText v-model.trim="dashTitle" type="text" placeholder="Dashboard Title" required="true" :class="{'p-invalid': submitted && !dashTitle}"/>
+                <small class="p-error" v-if="submitted && !dashTitle">Title is required.</small>
             </div>
             <div class="col-2 col-offset-2 flex justify-content-end">
                 <Button label="Save Dashboard" @click="saveDashboard" />

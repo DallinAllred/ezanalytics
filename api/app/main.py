@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from .internal import admin
 from .routers import user_routes
 from .routers import chart_routes
+from .routers import dashboard_routes
 from .routers import source_routes
 
 # app = FastAPI(dependencies=[Depends(get_query_token)])
@@ -26,6 +27,7 @@ app.add_middleware(
 
 app.include_router(user_routes.router)
 app.include_router(chart_routes.router)
+app.include_router(dashboard_routes.router)
 app.include_router(source_routes.router)
 # app.include_router(items.router)
 # app.include_router(
