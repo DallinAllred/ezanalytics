@@ -10,12 +10,12 @@ client = pymongo.MongoClient(
         password='example')
 
 db = client.ezanalytics
-print(db)
+# print(db)
 
 chart_coll = db.charts
-print(chart_coll)
+# print(chart_coll)
 
-dash_coll = db.dashboards
+# dash_coll = db.dashboards
 
 class Chart():
     @staticmethod
