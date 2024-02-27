@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-// const emit = defineEmits(['delete'])
+const emit = defineEmits(['login'])
 const model = defineModel()
-const props = defineProps(['header'])
+const props = defineProps(['title'])
 
 const username = ref()
 const password = ref()
@@ -21,23 +21,23 @@ const modalHeader = computed(() => {
 function login() {
     submitted.value = true
     invalidCredentials.value = false
-    if (!(username.value.trim() && password.value.trim())) { return }
+    if (!(username.value && password.value)) { return }
     console.log('Logging in')
-    model.value = false
+    // model.value = false
 }
 
 </script>
 
 <template>
-    <Dialog v-model:visible="model" :style="{width: '450px'}" header="User Login" :modal="true">
-        <div class="field">
+    <Dialog v-model:visible="model" :style="{width: '450px'}" header="User Login" :modal="true" :closable="false">
+        <div class="field flex flex-column gap-1">
             <label for="username">Username</label>
             <InputText id="username" v-model.trim="username" required="true" autofocus :class="{'p-invalid': submitted && !username}" />
             <small class="p-error" v-if="submitted && !username">Username is required</small>
         </div>
-        <div class="field">
+        <div class="field flex flex-column gap-1">
             <label for="password">Password</label>
-            <InputText id="password" v-model.trim="password" required="true" :class="{'p-invalid': submitted && !password}" />
+            <InputText id="password" type="password" v-model.trim="password" required="true" :class="{'p-invalid': submitted && !password}" />
             <small class="p-error" v-if="submitted && !password">Password is required</small>
         </div>
         <div>
@@ -45,8 +45,7 @@ function login() {
         </div>
 
         <template #footer>
-            <Button label="Yes" icon="pi pi-check" text @click="login" 
-            :disabled="disableDelete"/>
+            <Button label="Login" @click="login" />
         </template>
     </Dialog>
 

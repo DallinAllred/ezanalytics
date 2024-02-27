@@ -31,11 +31,18 @@ async def read_dashs():
 
 @router.get("/{dash_id}")
 async def read_dashs(dash_id):
+    print(dash_id)
     dash_id = ObjectId(dash_id)
-    return [{"dash_id": dash_id}]
+    data = Dashboard.get_dash(dash_id)
+    return data
+    # return [{"dash_id": dash_id}]
 
 @router.post("/")
 async def create_dash(dash: DashIn):
+    dash = dash.model_dump()
+    print(dash)
+    del dash['dash_id']
+    data = Dashboard.create_dash(dash)
     return [{"action": "Adding dash"}]
 
 @router.put("/{dash_id}")

@@ -41,7 +41,6 @@ async function deleteChart() {
         loadCharts()
     } catch {
         toast.add({severity: 'error', summary: 'Error', detail: `Error while deleting "${selectedChart.value.title}"`, life: 3000})
-
     }
 }
 

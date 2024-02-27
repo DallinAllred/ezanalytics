@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
-import { computed, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import Toast from 'primevue/toast'
 
 
@@ -15,12 +15,21 @@ const pages = ref([
   { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
   { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
   { label: 'User Admin', icon: 'pi pi-users', route: '/users' },
-  { label: 'Settings', icon: 'pi pi-cog', route: '/settings' },
+  { label: 'Settings', icon: 'pi pi-cog', route: '/settings' }
 ]);
 
 const activePage = computed(() => {
   return pages.value.findIndex(page => page.route === location.path)
 })
+
+const loginPage = computed(() => {
+  console.log(location.path)
+  return location.path == '/login'
+})
+
+// console.log(router)
+
+
 </script>
 
 <template>
@@ -32,7 +41,7 @@ const activePage = computed(() => {
           <div class="flex">
             <span id="site-title" class="text-6xl">EZAnalytics</span>
           </div>
-          <div>
+          <div v-if="!loginPage">
             <TabMenu :model="pages" v-model:activeIndex="activePage">
               <template #item="{ item, props }">
                 <router-link v-slot="{ href, navigate }" :to="item.route" custom>
