@@ -155,7 +155,7 @@ async function deleteUser() {
             <div class="field">
                 <label for="firstName">First Name*</label>
                 <InputText id="firstName" v-model.trim="activeUser.firstName" required="true" autofocus :class="{'p-invalid': submitted && !activeUser.firstName}" />
-                <small class="p-error" v-if="submitted && !activeUser.firstName">First name is required.</small>
+                <small class="p-error" v-if="submitted && !activeUser.firstName">First name is required</small>
             </div>
             <div class="field">
                 <label for="middleName">Middle Name</label>
@@ -164,17 +164,17 @@ async function deleteUser() {
             <div class="field">
                 <label for="lastName">Last Name*</label>
                 <InputText id="lastName" v-model.trim="activeUser.lastName" required="true" :class="{'p-invalid': submitted && !activeUser.lastName}" />
-                <small class="p-error" v-if="submitted && !activeUser.lastName">Last name is required.</small>
+                <small class="p-error" v-if="submitted && !activeUser.lastName">Last name is required</small>
             </div>
             <div class="field">
                 <label for="username">Username*</label>
                 <InputText id="username" v-model.trim="activeUser.username" required="true" :class="{'p-invalid': submitted && !activeUser.username}" />
-                <small class="p-error" v-if="submitted && !activeUser.username">Username is required.</small>
+                <small class="p-error" v-if="submitted && !activeUser.username">Username is required</small>
             </div>
             <div class="field">
                 <label for="userEmail">Email*</label>
                 <InputText id="userEmail" v-model.trim="activeUser.userEmail" required="true" :class="{'p-invalid': submitted && !activeUser.userEmail}" />
-                <small class="p-error" v-if="submitted && !activeUser.userEmail">Email is required.</small>
+                <small class="p-error" v-if="submitted && !activeUser.userEmail">Email is required</small>
             </div>
             <div class="field">
                 <label class="mb-3">Permissions</label>

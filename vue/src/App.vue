@@ -28,7 +28,10 @@ const loginPage = computed(() => {
 })
 
 // console.log(router)
-
+function signout() {
+  console.log('Signing out')
+  router.push('/login')
+}
 
 </script>
 
@@ -56,6 +59,7 @@ const loginPage = computed(() => {
         </div>
         
         <div class="justify-content-end">
+        <Button v-if="!loginPage" label="Sign Out" text @click="signout()" />
           <!-- <span>Sign Out</span> -->
         </div>
       </div>
