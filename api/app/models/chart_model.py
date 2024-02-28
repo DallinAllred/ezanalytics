@@ -1,21 +1,12 @@
 import pymongo
 
-
-# client = MongoClient('root:example@mongodb://mongo:27017/ezanalytics')
-
 client = pymongo.MongoClient(
         host='mongo',
         port=27017,
         username='root',
         password='example')
-
 db = client.ezanalytics
-# print(db)
-
 chart_coll = db.charts
-# print(chart_coll)
-
-# dash_coll = db.dashboards
 
 class Chart():
     @staticmethod

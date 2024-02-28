@@ -27,7 +27,6 @@ class DashIn(BaseModel):
 async def read_dashs():
     data = Dashboard.get_dashboards()
     return data
-    # return [{"dash_name": "Rick"}, {"dashname": "Morty"}]
 
 @router.get("/{dash_id}")
 async def read_dashs(dash_id):
@@ -35,7 +34,6 @@ async def read_dashs(dash_id):
     dash_id = ObjectId(dash_id)
     data = Dashboard.get_dash(dash_id)
     return data
-    # return [{"dash_id": dash_id}]
 
 @router.post("/")
 async def create_dash(dash: DashIn):
@@ -52,4 +50,6 @@ async def update_dash(dash_id):
 
 @router.delete("/{dash_id}")
 async def delete_dash(dash_id):
+    dash_id = ObjectId(dash_id)
+    data = Dashboard.delete_dash(dash_id)
     return [{"dash_id": dash_id, "action": "Delete"}]
