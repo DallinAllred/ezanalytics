@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from  'primevue/usetoast'
 import axios from 'axios'
 
@@ -9,11 +9,7 @@ const model = defineModel()
 
 const toast = useToast()
 
-const chartList = ref([])
 const dashTitle = ref('')
-
-const dashId = ref(null)
-
 const layout = ref([])
 
 const currentUser = ref('admin')
@@ -29,17 +25,13 @@ async function loadDash(dashId) {
         toast.add({severity: 'error', summary: 'Dashboard Not Found', detail: `Unable to find dashboard ${dashId}`, life: 3000})
         return
     }
-    // loadCharts()
 }
 
-// async function loadCharts() {
-//     let response = await axios.get(`http://localhost:5050/api/charts`)
-//     chartList.value = response.data
-//     console.log(chartList.value)
-// }
-
 onMounted(() => {
-    // console.log(model.value)
+    loadDash(model.value)
+})
+
+watch(model, () => {
     loadDash(model.value)
 })
 
@@ -51,9 +43,6 @@ onMounted(() => {
             <div class="col-12 grid flex justify-content-between">
                 <div v-for="(chart, col) of row" :class="`col-${12 / row.length}`" class="dash-row">
                     <div v-if="chart.id">
-                        <!-- <div class="flex justify-content-start">
-                            <label>{{ layout[index][col].title }} </label>
-                        </div> -->
                         <EZChart v-model="chart.id" height="100%"></EZChart>
                     </div>
                 </div>

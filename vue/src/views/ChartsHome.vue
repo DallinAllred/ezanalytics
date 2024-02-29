@@ -34,7 +34,6 @@ function editChart() {
 async function deleteChart() {
     try {
         let response = await axios.delete(`http://localhost:5050/api/charts/${selectedChart.value.id}`)
-        console.log(response)
         deleteChartDialog.value = false
         toast.add({severity: 'success', summary: 'Success', detail: `Chart "${selectedChart.value.title}" deleted`, life: 3000})
         selectedChart.value = {title: null, id: null}

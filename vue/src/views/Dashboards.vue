@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, ref, reactive, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, ref} from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 import { useToast } from  'primevue/usetoast';
@@ -9,6 +9,7 @@ import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue';
 import EZDash from '@/components/EZDash.vue'
 
 const router = useRouter()
+const toast = useToast()
 
 const deleteDashDialog = ref(false)
 const dashList = ref([])
@@ -67,7 +68,6 @@ onMounted(async () => {
         <div class="col-10 flex flex-column gap-2" id="dash-container">
             <div class="flex justify-content-between">
                 <Button severity="danger" label="Delete Dashboard" @click="deleteDashDialog = true" v-if="selectedDash && selectedDash.id" />
-                <!-- <p>{{ selectedDash.title }}</p> -->
                 <Button label="Edit Dashboard" @click="editDashboard" v-if="selectedDash && selectedDash.id" />
             </div>
             <div class="flex justify-content-center">
