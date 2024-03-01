@@ -2,6 +2,7 @@ from fastapi import APIRouter, Body, Response, status
 from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
 from typing import Annotated, Any, List
+from enum import Enum
 
 from ..models import source_model
 
@@ -9,6 +10,12 @@ router = APIRouter(
     prefix="/api/sources",
     responses={404: {"description": "Not found"}},
 )
+
+class ColEnum(str, Enum):
+    numeric = 'NUMERIC'
+    varchar = 'VARCHAR'
+    timestamp = 'TIMESTAMP'
+
 
 class SourceIn(BaseModel):
     model_config = ConfigDict(
@@ -18,9 +25,9 @@ class SourceIn(BaseModel):
         )
     )
     source_id: int | None = None
-    source_type: str | None = None
-    source_label: str
-    source_access_id: str
+    source_type: str | None = None # 'upload' or 'db'(?)
+    source_label: str # Human readable label
+    source_access_id: str # Table name in Postgres
 
 class SourceOut(BaseModel):
     model_config = ConfigDict(
@@ -33,18 +40,19 @@ class SourceOut(BaseModel):
         from_attributes=True
     )
     sourceId: int | None = None
-    sourceType: str | None = None
+    sourceType: str = 'upload'
     sourceLabel: str
     sourceAccessId: str
 
-class Column(BaseModel):
-    name: str
-    type: str
+# class Column(BaseModel):
+#     name: str
+#     code: str
 
-class Upload(BaseModel):
+class UploadMetadata(BaseModel):
     name: str
-    columns: List[Column]
-    data: List[Any]
+    columns: dict
+    # columns: List[Column]
+    # data: List[Any]
 
 @router.get("/")
 async def read_sources():
@@ -64,22 +72,21 @@ async def read_sources(source_id, limit: int | None = None):
         pass
     return [{"source_id": source_id}]
 
-@router.post("/upload")
-async def create_source():
-    return [{"action": "Adding conn"}]
 # @router.post("/upload")
-# async def create_source(data: Annotated[dict, Body()]):
-#     table_name = data['name']
-#     columns = data['columns']
-#     if len(columns) < 1:
-#         return [{'Error': 'Invalid number of columns supplied'}]
-#     try:
-#         table_created = source_model.Source.create_datatable(table_name, columns)
-#     except Exception as e:
-#         return
-#     # print(table_created)
-#     # result = source_model.Source.upload_data(data)
+# async def create_source():
 #     return [{"action": "Adding conn"}]
+@router.post("/upload")
+# async def create_source(data: Annotated[dict, Body()]):
+async def create_source(data: UploadMetadata):
+    if len(data.columns) < 1:
+        return [{'Error': 'Invalid number of columns supplied'}]
+    try:
+        table_created = source_model.Source.create_datatable(data.name, data.columns)
+    except Exception as e:
+        return
+    # print(table_created)
+    # result = source_model.Source.upload_data(data)
+    return [{"action": "Adding conn"}]
 
 @router.put("/{source_id}")
 async def update_source(source_id):

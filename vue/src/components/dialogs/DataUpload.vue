@@ -1,4 +1,5 @@
 <script setup>
+import axios from 'axios';
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router';
 const model = defineModel()
@@ -21,7 +22,7 @@ const file = ref()
 
 const dataTypes = ref([
     { name: 'String', code: 'varchar'},
-    { name: 'Numeric', code: 'float'},
+    { name: 'Numeric', code: 'numeric'},
     { name: 'Datetime', code: 'datetime'}
 ])
 const colTypes = ref([])
@@ -51,8 +52,11 @@ const delimiterList = ref([
 ])
 
 function preUpload(event) {
-    console.log(event.files[0])
+    // console.log(event.files[0])
     file.value = event.files[0]
+    if (!tableTitle.value) {
+        tableTitle.value = file.value.name.split('.')[0]
+    }
     let reader = new FileReader()
     reader.readAsText(file.value)
     reader.onload = function(event) {
@@ -60,23 +64,39 @@ function preUpload(event) {
         let rows = csvdata.split('\n')
         rows = rows.map(row => row.trim())
         headerRow.value = rows[0]
-        sampleDataRows.value = rows.slice(1,4)
-        console.log(rows)
+        sampleDataRows.value = rows.slice(1)
+        // console.log(rows)
     }
 }
 
-function uploadData() {
+async function uploadData() {
     submitted.value = true
     if (!(tableTitle.value
         && usedDelim.value
         && colTypes.value.length > 0)) { return }
 
+    // console.log(colTypes.value)
+    let columns = Object.assign({},
+            ...headers.value.map((key, i) => ({[key]: colTypes.value[i].code})))
+    console.log(columns)
+    let tableData = {
+        name: tableTitle.value,
+        columns
+    }
+    // console.log(tableData)
+    // let response = await axios.post(`http://localhost:5050/api/sources/upload`)
+    // Create table and upload reference
+    //  let tableName = await axios.post(url)
+    // Upload file by triggering file upload func -- Probably won't work
+
+    let url = `http://localhost:5050/api/sources/upload`
     console.log('Uploading')
+    // model.value = false
 }
 
 watch(sampleData, () => {
     let types = []
-    for (let col of headers.value) {// of sampleData.value[0].keys) {
+    for (let col of headers.value) {
         let colType = { name: 'Numeric', code: 'float'}
         for (let row of sampleData.value) {
             if (!Number(row[col])) colType = { name: 'String', code: 'varchar'}
@@ -85,39 +105,23 @@ watch(sampleData, () => {
     }
     colTypes.value = types
 })
-
-// watch(delimiter, () => {
-//     console.log(delimiter.value)
-// })
-
-// watch(file, () => {
-//     console.log(file.value)
-//     console.log(file.value.files)
-// })
-
-// watch(model, () => {
-//     if (!model.value) {
-//         matchText.value = ''
-//     }
-// })
 </script>
 
 <template>
-    <Dialog v-model:visible="model" :style="{width: '600px'}" header="Upload Data" :modal="true" class="p-fluid">
+    <Dialog v-model:visible="model" :style="{width: '600px', height: '700px'}" header="Upload Data" :modal="true" class="p-fluid">
         <div class="field">
-            <label for="tableTitle">Title</label>
-            <InputText id="tableTitle" v-model.trim="tableTitle" required="true" autofocus :class="{'p-invalid': submitted && !tableTitle}" />
-            <small class="p-error" v-if="submitted && !tableTitle">Title is required</small>
-        </div>
-        <div class="field">
-            <FileUpload name="file[]" :url="`http://localhost:5050/api/sources/upload`" @select="preUpload"
-                :show-upload-button="false" :show-cancel-button="false"> 
-                <!-- accept="*csv*"> -->
+            <FileUpload :url="`http://localhost:5050/api/sources/upload`" name="file[]" @select="preUpload" @remove="tableTitle = ''"
+            choose-label="Select File to Upload" :show-upload-button="false" :show-cancel-button="false"> 
                 <template #empty>
                     <p>Drag and drop file here to upload</p>
                 </template>
             </FileUpload>
             <small class="p-error" v-if="submitted && !file">No file has been selected</small>
+        </div>
+        <div class="field">
+            <label for="tableTitle">Title</label>
+            <InputText id="tableTitle" v-model.trim="tableTitle" required="true" :class="{'p-invalid': submitted && !tableTitle}" />
+            <small class="p-error" v-if="submitted && !tableTitle">Title is required</small>
         </div>
         <div class="field">
             <label>Delimiter</label>
@@ -135,7 +139,7 @@ watch(sampleData, () => {
             </div>
         </div>
         <div>
-            <DataTable :value="sampleData" scrollable>
+            <DataTable :value="sampleData" scrollable scrollHeight="200px">
                 <Column v-for="(col, index) in headers" :field="col">
                     <template #header>
                         <div class="flex flex-column">

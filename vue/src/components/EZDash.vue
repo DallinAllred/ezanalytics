@@ -20,7 +20,6 @@ async function loadDash(dashId) {
         let data = response.data
         dashTitle.value = data.title
         layout.value = data.layout
-        console.log(response.data)
     } catch {
         toast.add({severity: 'error', summary: 'Dashboard Not Found', detail: `Unable to find dashboard ${dashId}`, life: 3000})
         return

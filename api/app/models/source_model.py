@@ -65,10 +65,10 @@ class Source():
         params = []
         query = 'CREATE TABLE %s (id SERIAL INT PRIMARY KEY'
         params.append(table_name)
-        for col in columns:
+        for col in columns.keys():
             query += ', %s %s DEFAULT NULL'
-            params.append(col.name)
-            params.append(col.type)
+            params.append(col)
+            params.append(columns[col])
         query += ');'
         result = upload_conn.execute(query, params)
         upload_conn.commit()

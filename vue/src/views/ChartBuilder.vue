@@ -274,10 +274,10 @@ watch(yAxisR, () => {
     <div class="grid h-full chart-builder">
         <div class="col-12 grid chart-builder-header">
             <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
-            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" severity="success" class="mr-2" @click="showUploadModal = true" /></div>
+            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" class="mr-2" @click="showUploadModal = true" /></div>
             <div class="col-1 col-offset-7">
-                <Button label="Load" icon="pi pi-save" severity="success" class="mr-2" @click="loadChart" />
-                <Button label="Save" icon="pi pi-save" severity="success" class="mr-2" @click="saveChart" />
+                <!-- <Button label="Load" icon="pi pi-save" class="mr-2" @click="loadChart" /> -->
+                <Button label="Save" icon="pi pi-save" class="mr-2" @click="saveChart" />
             </div>
         </div>
         <div class="col-12 grid">

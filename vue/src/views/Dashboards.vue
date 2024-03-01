@@ -33,8 +33,9 @@ function editDashboard() {
 async function deleteDash() {
     try {
         let response = await axios.delete(`http://localhost:5050/api/dashboards/${selectedDash.value.id}`)
-        toast.add({severity: 'success', summary: 'Success', detail: `Dashboard "${selectedDash.value.title}" deleted`, life: 3000})
+        toast.add({severity: 'success', summary: 'Success', detail: `Dashboard "${selectedDash.value.title}" has been deleted`, life: 3000})
         selectedDash.value = {title: null, id: null}
+        deleteDashDialog.value = false
         loadDashboards()
     } catch {
         toast.add({severity: 'error', summary: 'Error', detail: `Error while deleting "${selectedDash.value.title}"`, life: 3000})

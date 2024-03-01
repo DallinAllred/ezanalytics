@@ -52,4 +52,4 @@ async def update_dash(dash_id):
 async def delete_dash(dash_id):
     dash_id = ObjectId(dash_id)
     data = Dashboard.delete_dash(dash_id)
-    return [{"dash_id": dash_id, "action": "Delete"}]
+    return [{"dash_id": str(dash_id), "action": "Delete"}]
