@@ -44,15 +44,9 @@ class SourceOut(BaseModel):
     sourceLabel: str
     sourceAccessId: str
 
-# class Column(BaseModel):
-#     name: str
-#     code: str
-
 class UploadMetadata(BaseModel):
     name: str
     columns: dict
-    # columns: List[Column]
-    # data: List[Any]
 
 @router.get("/")
 async def read_sources():
@@ -72,9 +66,6 @@ async def read_sources(source_id, limit: int | None = None):
         pass
     return [{"source_id": source_id}]
 
-# @router.post("/upload")
-# async def create_source():
-#     return [{"action": "Adding conn"}]
 @router.post("/upload")
 # async def create_source(data: Annotated[dict, Body()]):
 async def create_source(data: UploadMetadata):

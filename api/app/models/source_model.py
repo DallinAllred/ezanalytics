@@ -59,8 +59,13 @@ class Source():
         result = source_conn.execute(query)
         tables = result.fetchall()
         tables = [t[0] for t in tables]
-        if table_name in tables:
-            raise Exception('Invalid table name')
+        i = 0
+        proposed_name = table_name
+        while proposed_name in tables:
+            i+=1
+            proposed_name = f'{table_name}_{i}'
+            # raise Exception('Invalid table name')
+        table_name = proposed_name
         print(tables)
         params = []
         query = 'CREATE TABLE %s (id SERIAL INT PRIMARY KEY'
@@ -79,7 +84,6 @@ class Source():
 
         # BETTER WAY: SAVE CSV TO POSTGRES AND INGEST
         # COPY zip_codes FROM '/path/to/csv/ZIP_CODES.txt' DELIMITER ',' CSV HEADER;
-
 
         query = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
         result = source_conn.execute(query)

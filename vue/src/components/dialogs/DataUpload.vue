@@ -7,18 +7,24 @@ const model = defineModel()
 // const props = defineProps(['match'])
 
 const submitted = ref(false)
+const uploading = ref(false)
 
+const file = ref()
 const tableTitle = ref('')
+
+const delimiterList = ref([
+    {name: 'Comma', char: ','},
+    {name: 'Tab', char: '\t'},
+    {name: 'Tilde', char: '~'},
+    {name: 'Other', char: ''},
+])
 const delimiter = ref({name: 'Comma', char: ','})
 const otherDel = ref('')
-
 const usedDelim = computed(() => {
     if (delimiter.value.name != 'Other') return delimiter.value.char
     else if (otherDel.value == '') return null
     else return otherDel.value
 })
-
-const file = ref()
 
 const dataTypes = ref([
     { name: 'String', code: 'varchar'},
@@ -27,12 +33,12 @@ const dataTypes = ref([
 ])
 const colTypes = ref([])
 
-const headerRow = ref('Col1,Col2,Col3,Col4')
+const headerRow = ref('')
 const headers = computed(() => {
     return headerRow.value.split(usedDelim.value)
 })
 
-const sampleDataRows = ref(['R1C1,R1C2,R1C3,R1C4', 'R2C1,R2C2,R2C3,R2C4'])
+const sampleDataRows = ref([])
 const sampleData = computed(() => {
     let data = []
     for (let row of sampleDataRows.value) {
@@ -44,15 +50,7 @@ const sampleData = computed(() => {
     return data
 })
 
-const delimiterList = ref([
-    {name: 'Comma', char: ','},
-    {name: 'Tab', char: '\t'},
-    {name: 'Tilde', char: '~'},
-    {name: 'Other', char: ''},
-])
-
 function preUpload(event) {
-    // console.log(event.files[0])
     file.value = event.files[0]
     if (!tableTitle.value) {
         tableTitle.value = file.value.name.split('.')[0]
@@ -65,8 +63,13 @@ function preUpload(event) {
         rows = rows.map(row => row.trim())
         headerRow.value = rows[0]
         sampleDataRows.value = rows.slice(1)
-        // console.log(rows)
     }
+}
+
+function removeFile() {
+    tableTitle.value = ''
+    sampleDataRows.value = []
+    delimiter.value = {name: 'Comma', char: ','}
 }
 
 async function uploadData() {
@@ -74,8 +77,8 @@ async function uploadData() {
     if (!(tableTitle.value
         && usedDelim.value
         && colTypes.value.length > 0)) { return }
-
-    // console.log(colTypes.value)
+    uploading.value = true
+    console.log(colTypes.value)
     let columns = Object.assign({},
             ...headers.value.map((key, i) => ({[key]: colTypes.value[i].code})))
     console.log(columns)
@@ -83,7 +86,7 @@ async function uploadData() {
         name: tableTitle.value,
         columns
     }
-    // console.log(tableData)
+    console.log(tableData)
     // let response = await axios.post(`http://localhost:5050/api/sources/upload`)
     // Create table and upload reference
     //  let tableName = await axios.post(url)
@@ -97,7 +100,7 @@ async function uploadData() {
 watch(sampleData, () => {
     let types = []
     for (let col of headers.value) {
-        let colType = { name: 'Numeric', code: 'float'}
+        let colType = { name: 'Numeric', code: 'numeric'}
         for (let row of sampleData.value) {
             if (!Number(row[col])) colType = { name: 'String', code: 'varchar'}
         }
@@ -108,9 +111,9 @@ watch(sampleData, () => {
 </script>
 
 <template>
-    <Dialog v-model:visible="model" :style="{width: '600px', height: '700px'}" header="Upload Data" :modal="true" class="p-fluid">
+    <Dialog v-model:visible="model" :style="{width: '600px'}" header="Upload Data" :modal="true" class="p-fluid">
         <div class="field">
-            <FileUpload :url="`http://localhost:5050/api/sources/upload`" name="file[]" @select="preUpload" @remove="tableTitle = ''"
+            <FileUpload  name="file[]" @select="preUpload" @remove="removeFile"
             choose-label="Select File to Upload" :show-upload-button="false" :show-cancel-button="false"> 
                 <template #empty>
                     <p>Drag and drop file here to upload</p>
@@ -139,7 +142,7 @@ watch(sampleData, () => {
             </div>
         </div>
         <div>
-            <DataTable :value="sampleData" scrollable scrollHeight="200px">
+            <DataTable v-if="sampleData.length > 0" :value="sampleData" scrollable scrollHeight="200px">
                 <Column v-for="(col, index) in headers" :field="col">
                     <template #header>
                         <div class="flex flex-column">
@@ -154,7 +157,7 @@ watch(sampleData, () => {
         </div>
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" @click="model = false" />
-            <Button label="Upload" icon="pi pi-upload" @click="uploadData" />
+            <Button label="Upload" :icon="uploading ? 'pi pi-spin pi-spinner' : 'pi pi-upload'" @click="uploadData" />
         </template>
     </Dialog>
 
