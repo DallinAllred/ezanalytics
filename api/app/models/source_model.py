@@ -54,7 +54,7 @@ class Source():
     
     @staticmethod
     def create_datatable(table_name, columns):
-        # Validate table does not exist
+        # Prevent duplicate table names
         query = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
         result = source_conn.execute(query)
         tables = result.fetchall()
@@ -66,7 +66,6 @@ class Source():
             proposed_name = f'{table_name}_{i}'
             # raise Exception('Invalid table name')
         table_name = proposed_name
-        print(tables)
         params = []
         query = 'CREATE TABLE %s (id SERIAL INT PRIMARY KEY'
         params.append(table_name)
@@ -78,6 +77,7 @@ class Source():
         result = upload_conn.execute(query, params)
         upload_conn.commit()
         print(result)
+        return table_name
 
     @staticmethod
     def upload_data(table_name, data):

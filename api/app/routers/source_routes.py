@@ -66,18 +66,26 @@ async def read_sources(source_id, limit: int | None = None):
         pass
     return [{"source_id": source_id}]
 
-@router.post("/upload")
-# async def create_source(data: Annotated[dict, Body()]):
-async def create_source(data: UploadMetadata):
+@router.post("/upload", status_code=201)
+async def create_source(data: UploadMetadata, response: Response):
     if len(data.columns) < 1:
         return [{'Error': 'Invalid number of columns supplied'}]
     try:
-        table_created = source_model.Source.create_datatable(data.name, data.columns)
+        for col in data.columns.keys():
+            col_type = data.columns[col]
+            col_type = ColEnum[col_type]
+            data.columns[col] = col_type.value
+    except ValueError as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {'message': 'Invalid column type provided'}
+    try:
+        table_name = source_model.Source.create_datatable(data.name, data.columns)
     except Exception as e:
-        return
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {'message': 'Unable to create table'}
+    return {'tableName': table_name}
     # print(table_created)
     # result = source_model.Source.upload_data(data)
-    return [{"action": "Adding conn"}]
 
 @router.put("/{source_id}")
 async def update_source(source_id):
