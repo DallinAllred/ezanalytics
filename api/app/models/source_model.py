@@ -1,4 +1,5 @@
 import psycopg
+from psycopg import sql
 
 source_conn = psycopg.connect(
     host='postgres_eza_container',
@@ -64,17 +65,19 @@ class Source():
         while proposed_name in tables:
             i+=1
             proposed_name = f'{table_name}_{i}'
-            # raise Exception('Invalid table name')
         table_name = proposed_name
         params = []
-        query = 'CREATE TABLE %s (id SERIAL INT PRIMARY KEY'
-        params.append(table_name)
+        identifiers = []
+        query = 'CREATE TABLE {} (id SERIAL PRIMARY KEY'
+        identifiers.append(sql.Identifier(table_name))
         for col in columns.keys():
-            query += ', %s %s DEFAULT NULL'
+            query += ', {} ' + columns[col] + ' DEFAULT NULL'
+            identifiers.append(sql.Identifier(col))
             params.append(col)
-            params.append(columns[col])
         query += ');'
-        result = upload_conn.execute(query, params)
+        query = sql.SQL(query).format(*identifiers)
+        result = upload_conn.execute(query)
+        # print(query.as_string(upload_conn))
         upload_conn.commit()
         print(result)
         return table_name

@@ -58,7 +58,6 @@ async def read_sources():
 async def read_sources(source_id, limit: int | None = None):
     loc_data = source_model.Source.get_source(source_id)
     if loc_data['source_type'] == 'upload':
-        # Uploaded data, pull from access_id table
         data = source_model.Source.get_data_table(loc_data['source_access_id'], limit)
         return data
     else: # External DB connection
@@ -68,22 +67,27 @@ async def read_sources(source_id, limit: int | None = None):
 
 @router.post("/upload", status_code=201)
 async def create_source(data: UploadMetadata, response: Response):
-    if len(data.columns) < 1:
-        return [{'Error': 'Invalid number of columns supplied'}]
+    # print(data)
+    # return {'message': 'Data received'}
+    if len(data.columns.keys()) < 1:
+        print('Invalid column count')
+        return {'Error': 'Invalid number of columns supplied'}
     try:
         for col in data.columns.keys():
             col_type = data.columns[col]
             col_type = ColEnum[col_type]
             data.columns[col] = col_type.value
     except ValueError as e:
+        print('Invalid column type')
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {'message': 'Invalid column type provided'}
     try:
         table_name = source_model.Source.create_datatable(data.name, data.columns)
     except Exception as e:
+        print('Error creating table')
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {'message': 'Unable to create table'}
-    return {'tableName': table_name}
+    return {'created': table_name}
     # print(table_created)
     # result = source_model.Source.upload_data(data)
 

@@ -78,16 +78,22 @@ async function uploadData() {
         && usedDelim.value
         && colTypes.value.length > 0)) { return }
     uploading.value = true
-    console.log(colTypes.value)
     let columns = Object.assign({},
             ...headers.value.map((key, i) => ({[key]: colTypes.value[i].code})))
-    console.log(columns)
     let tableData = {
         name: tableTitle.value,
         columns
     }
     console.log(tableData)
-    // let response = await axios.post(`http://localhost:5050/api/sources/upload`)
+    try {
+        let response = await axios.post(`http://localhost:5050/api/sources/upload`, tableData)
+        console.log(response)
+        console.log(response.data)
+    } catch (error) {
+        console.log(error)
+        uploading.value = false
+        return
+    }
     // Create table and upload reference
     //  let tableName = await axios.post(url)
     // Upload file by triggering file upload func -- Probably won't work
