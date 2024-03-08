@@ -62,6 +62,7 @@ async def read_sources(source_id, limit: int | None = None):
         return data
     else: # External DB connection
 # TODO: Connections phase
+# CONNECTIONS PAGE
         pass
     return [{"source_id": source_id}]
 
@@ -80,12 +81,14 @@ async def create_source(data: UploadMetadata, response: Response):
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {'error': 'Invalid column type provided'}
     try:
-        table_name = Source.create_datatable(data.name, data.columns)
+        table_name, version = Source.create_datatable(data.name, data.columns)
     except Exception as e:
         print('Error creating table')
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {'error': 'Unable to create table'}
     try:
+        if version > 0:
+            data.name = f'{data.name}_{version}'
         Source.create_upload_source(data.user, data.name, table_name)
     except Exception as e:
         print('Error adding entry to sources')
@@ -106,6 +109,7 @@ async def update_source(table_name, data: Annotated[list, Body()], response: Res
 
 @router.delete("/{source_id}")
 async def delete_source(source_id):
+# CONNECTIONS PAGE
     # Get table
     # Drop table
     # Remove row from data_sources table

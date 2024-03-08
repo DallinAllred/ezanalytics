@@ -1,39 +1,20 @@
-# import psycopg
-# from psycopg_pool import ConnectionPool
+from argon2 import PasswordHasher
 
 from .db import eza_pool
 
-# user_conn = psycopg.connect(
-#     host='postgres_eza_container',
-#     dbname='ezanalytics',
-#     user='postgres',
-#     password='mypassword'
-# )
-
-# host='postgres_eza_container'
-# dbname='ezanalytics'
-# user='postgres'
-# password='mypassword'
-# conn_string = f'postgresql://{user}:{password}@{host}/{dbname}'
-# user_pool = ConnectionPool(conn_string)
 
 class User():
     @staticmethod
     def get_users():
-        # query = '''SELECT user_id, username FROM users;'''
         headers = ['user_id', 'first_name', 'middle_name', 'last_name', 'username', 'user_email',
                    'admin', 'viewer', 'chart_builder', 'dash_builder', 'connections']
         query = '''SELECT user_id, first_name, middle_name, last_name, username, user_email,
                    admin, viewer, chart_builder, dash_builder, connections
                    FROM users;'''
-        # data = None
         with eza_pool.connection() as conn:
             result = conn.execute(query)
             data = result.fetchall()
-        # result = user_conn.execute(query)
-        # data = result.fetchall()
         json_data = []
-        # headers = ['user_id','username']
         for row in data:
             json_data.append(dict(zip(headers, row)))
         return json_data
@@ -48,8 +29,6 @@ class User():
         with eza_pool.connection() as conn:
             result = conn.execute(query)
             data = result.fetchall()
-        # result = user_conn.execute(query, [user_id])
-        # data = result.fetchall()
         json_data = []
         for row in data:
             json_data.append(dict(zip(headers, row)))
@@ -64,8 +43,6 @@ class User():
         with eza_pool.connection() as conn:
             result = conn.execute(query, list(data.values()))
             conn.commit()
-        # result = user_conn.execute(query, list(data.values()))
-        # user_conn.commit()
         print(result)
 
     @staticmethod
@@ -81,17 +58,26 @@ class User():
         with eza_pool.connection() as conn:
             result = conn.execute(query, list(data.values()) + [user_id])
             conn.commit()
-        # result = user_conn.execute(query, list(data.values()) + [user_id])
-        # user_conn.commit()
         print(result)
 
     @staticmethod
     def delete_user(user_id):
-        print(user_id)
         query = '''DELETE FROM users WHERE user_id=%s;'''
         with eza_pool.connection() as conn:
             result = conn.execute(query, [user_id])
             conn.commit()
-        # result = user_conn.execute(query, [user_id])
-        # user_conn.commit()
         print(result)
+
+    @staticmethod
+    def login(username, password):
+        query = 'SELECT username, password FROM users WHERE username=%s;'
+        with eza_pool.connection() as conn:
+            result = conn.execute(query, [username])
+            data = result.fetchall()
+        if len(data) != 1:
+            raise ValueError
+        hash = data[0][1]
+        ph = PasswordHasher()
+        return ph.verify(hash, password)
+
+        

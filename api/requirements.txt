@@ -7,3 +7,4 @@ psycopg
 psycopg_pool
 pymongo
 redis
+argon2-cffi

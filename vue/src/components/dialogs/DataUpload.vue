@@ -2,12 +2,11 @@
 import axios from 'axios';
 import { computed, ref, watch } from 'vue'
 import { useToast } from 'primevue/usetoast';
-// import { useRoute } from 'vue-router';
+
 const model = defineModel()
-// const emit = defineEmits(['delete'])
-// const props = defineProps(['match'])
 
 const toast = useToast()
+
 const currentUserId = ref(1)
 
 const submitted = ref(false)
@@ -101,12 +100,14 @@ async function uploadData() {
     try {
         let data = delimitedData.value
         let response = await axios.put(`http://localhost:5050/api/sources/upload/${createdTableName}`, data)
-        // console.log(response.data)
         let resData = response.data
-        toast.add({severity: 'success', summary: 'Successful', detail: `${resData.rowsAdded} rows added. ${resData.rowsDropped} rows failed.`, life: 3000})
     } catch (error) {
         console.log(error)
     }
+    toast.add({severity: 'success', summary: 'Successful', detail: 'Data uploaded', life: 3000})
+    uploading.value = false
+    submitted.value = false
+    removeFile()
     model.value = false
 }
 

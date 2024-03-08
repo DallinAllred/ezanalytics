@@ -146,11 +146,6 @@ async function loadChart(chartId) {
     updateChart()
 }
 
-// function uploadData() {
-//     console.log('Uploading data')
-//     toast.add({severity: 'info', summary: 'Successful', detail: 'Data upload triggered', life: 3000})
-// }
-
 function updateLabels(axis) {
     let labels = rawData.value.map(el => el[axis])
     labels = [...new Set(labels)]
@@ -160,14 +155,10 @@ function updateLabels(axis) {
 function updateChart() {
     let datasets = []
     if (yAxisL.value && yAxisL.value.length > 0) {
-        for (let col of yAxisL.value) {
-            datasets = [...datasets, ...buildChart(col, 'y')]
-        }
+        for (let col of yAxisL.value) { datasets = [...datasets, ...buildChart(col, 'y')] }
     }
     if (yAxisR.value && yAxisR.value.length > 0) {
-        for (let col of yAxisR.value) {
-            datasets = [...datasets, ...buildChart(col, 'y1')]
-        }
+        for (let col of yAxisR.value) { datasets = [...datasets, ...buildChart(col, 'y1')] }
     }
     chartData.datasets = datasets
 }
@@ -240,6 +231,9 @@ onMounted(async () => {
     }
 })
 
+watch(showUploadModal, () => {
+    if (!showUploadModal.value) getSources()
+})
 
 watch(chartType, () => {
     if (xAxis.value && (yAxisL.value.length > 0 || yAxisR.value.length > 0)) updateChart()
@@ -251,7 +245,6 @@ watch(xAxis, () => {
     updateLabels(xAxis.value)
     if (yAxisL.value.length > 0 || yAxisR.value.length > 0) updateChart()
 })
-
 watch(yAxisL, () => {
     if (xAxis.value) updateChart()
 })
@@ -276,7 +269,6 @@ watch(yAxisR, () => {
             <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
             <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" class="mr-2" @click="showUploadModal = true" /></div>
             <div class="col-1 col-offset-7">
-                <!-- <Button label="Load" icon="pi pi-save" class="mr-2" @click="loadChart" /> -->
                 <Button label="Save" icon="pi pi-save" class="mr-2" @click="saveChart" />
             </div>
         </div>
