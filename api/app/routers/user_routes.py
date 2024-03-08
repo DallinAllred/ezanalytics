@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Response, status
 from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
+from typing import Any
 
-from ..models import user_model
+from ..models.user_model import User
 
 router = APIRouter(
     prefix='/api/users',
@@ -68,16 +69,29 @@ class UserOut(BaseModel):
     dashBuilder: bool | None = False
     connections: bool | None = False
 
+class Credentials(BaseModel):
+    username: Any
+    password: Any
+
+@router.put('/login', status_code=200)
+async def login_user(credentials: Credentials, response: Response):
+    print('Login route')
+    try:
+        User.login(credentials.username, credentials.password)
+    except Exception as e:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+    return
 
 @router.get('/')
 async def read_users():
-    data = user_model.User.get_users()
+    data = User.get_users()
     data = [UserOut(**user).model_dump() for user in data]
     return data
 
 @router.get('/{user_id}')
 async def read_user(user_id):
-    data = user_model.User.get_user(user_id)[0]
+    data = User.get_user(user_id)[0]
     data = UserOut(**data)
     return data.model_dump()
 
@@ -86,7 +100,7 @@ async def create_user(user: UserIn, response: Response):
     if not user.password:
         user.password = f'{user.first_name}_{user.last_name}'
     # try:
-    data = user_model.User.create_user(user.model_dump())
+    data = User.create_user(user.model_dump())
     # except:
     #     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     #     return None
@@ -95,7 +109,7 @@ async def create_user(user: UserIn, response: Response):
 @router.put('/{user_id}')
 async def update_user(user: UserIn, response: Response):
     # try:
-    data = user_model.User.update_user(user.model_dump())
+    data = User.update_user(user.model_dump())
     # except Exception as e:
     #     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     #     return None
@@ -104,5 +118,5 @@ async def update_user(user: UserIn, response: Response):
 @router.delete('/{user_id}')
 async def delete_user(user_id):
     print(user_id)
-    data = user_model.User.delete_user(user_id)
+    data = User.delete_user(user_id)
     return [{'user_id': user_id, 'action': 'Delete'}]

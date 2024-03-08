@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import axios from 'axios'
 const emit = defineEmits(['login'])
 const model = defineModel()
 const props = defineProps(['title'])
@@ -18,12 +19,21 @@ const modalHeader = computed(() => {
     }
 })
 
-function login() {
+async function login() {
     submitted.value = true
     invalidCredentials.value = false
     if (!(username.value && password.value)) { return }
-    console.log('Logging in')
-    // model.value = false
+    let data = {
+        username: username.value,
+        password: password.value
+    }
+    try {
+        let response = await axios.put(`http://localhost:5050/api/users/login`, data)
+        console.log(response)
+        emit('login')
+    } catch (error) {
+        invalidCredentials.value = true
+    }
 }
 
 </script>
@@ -48,7 +58,6 @@ function login() {
             <Button label="Login" @click="login" />
         </template>
     </Dialog>
-
 </template>
 
 <style>
