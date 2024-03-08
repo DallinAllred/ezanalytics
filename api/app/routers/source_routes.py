@@ -4,7 +4,7 @@ from pydantic.alias_generators import to_snake, to_camel
 from typing import Annotated, Any, List
 from enum import Enum
 
-from ..models import source_model
+from ..models.source_model import Source
 
 router = APIRouter(
     prefix="/api/sources",
@@ -15,7 +15,6 @@ class ColEnum(str, Enum):
     numeric = 'NUMERIC'
     varchar = 'VARCHAR'
     timestamp = 'TIMESTAMP'
-
 
 class SourceIn(BaseModel):
     model_config = ConfigDict(
@@ -45,20 +44,21 @@ class SourceOut(BaseModel):
     sourceAccessId: str
 
 class UploadMetadata(BaseModel):
-    name: str
     columns: dict
+    name: str
+    user: int
 
 @router.get("/")
 async def read_sources():
-    data = source_model.Source.get_sources()
+    data = Source.get_sources()
     data = [SourceOut(**source).model_dump() for source in data]
     return data
 
 @router.get("/{source_id}")
 async def read_sources(source_id, limit: int | None = None):
-    loc_data = source_model.Source.get_source(source_id)
+    loc_data = Source.get_source(source_id)
     if loc_data['source_type'] == 'upload':
-        data = source_model.Source.get_data_table(loc_data['source_access_id'], limit)
+        data = Source.get_data_table(loc_data['source_access_id'], limit)
         return data
     else: # External DB connection
 # TODO: Connections phase
@@ -67,8 +67,6 @@ async def read_sources(source_id, limit: int | None = None):
 
 @router.post("/upload", status_code=201)
 async def create_source(data: UploadMetadata, response: Response):
-    # print(data)
-    # return {'message': 'Data received'}
     if len(data.columns.keys()) < 1:
         print('Invalid column count')
         return {'Error': 'Invalid number of columns supplied'}
@@ -80,21 +78,35 @@ async def create_source(data: UploadMetadata, response: Response):
     except ValueError as e:
         print('Invalid column type')
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {'message': 'Invalid column type provided'}
+        return {'error': 'Invalid column type provided'}
     try:
-        table_name = source_model.Source.create_datatable(data.name, data.columns)
+        table_name = Source.create_datatable(data.name, data.columns)
     except Exception as e:
         print('Error creating table')
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return {'message': 'Unable to create table'}
+        return {'error': 'Unable to create table'}
+    try:
+        Source.create_upload_source(data.user, data.name, table_name)
+    except Exception as e:
+        print('Error adding entry to sources')
+        Source.delete_datatable(table_name)
+        response.status_code = status.HTTP_502_BAD_GATEWAY
+        return {'error': 'Unable to create resource'}
     return {'created': table_name}
-    # print(table_created)
-    # result = source_model.Source.upload_data(data)
 
-@router.put("/{source_id}")
-async def update_source(source_id):
-    return [{"action": f'Updating conn {source_id}'}]
+@router.put("/upload/{table_name}", status_code=201)
+async def update_source(table_name, data: Annotated[list, Body()], response: Response):
+    try:
+        success, fails = Source.upload_data(table_name, data)
+        return {'rowsAdded': success, 'rowsDropped': fails}
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {'error': 'Error uploading data'}
+    # return [{"action": f'Updating conn {table_name}'}]
 
 @router.delete("/{source_id}")
 async def delete_source(source_id):
+    # Get table
+    # Drop table
+    # Remove row from data_sources table
     return [{"source_id": source_id, "action": "Delete"}]

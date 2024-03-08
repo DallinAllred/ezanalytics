@@ -1,10 +1,14 @@
 <script setup>
 import axios from 'axios';
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router';
+import { useToast } from 'primevue/usetoast';
+// import { useRoute } from 'vue-router';
 const model = defineModel()
 // const emit = defineEmits(['delete'])
 // const props = defineProps(['match'])
+
+const toast = useToast()
+const currentUserId = ref(1)
 
 const submitted = ref(false)
 const uploading = ref(false)
@@ -38,10 +42,10 @@ const headers = computed(() => {
     return headerRow.value.split(usedDelim.value)
 })
 
-const sampleDataRows = ref([])
-const sampleData = computed(() => {
+const rawData = ref([])
+const delimitedData = computed(() => {
     let data = []
-    for (let row of sampleDataRows.value) {
+    for (let row of rawData.value) {
         let cols = row.split(usedDelim.value)
         cols = Object.assign({},
             ...headers.value.map((key, i) => ({[key]: cols[i]})))
@@ -58,17 +62,17 @@ function preUpload(event) {
     let reader = new FileReader()
     reader.readAsText(file.value)
     reader.onload = function(event) {
-        let csvdata = event.target.result
-        let rows = csvdata.split('\n')
+        let csv = event.target.result
+        let rows = csv.split('\n')
         rows = rows.map(row => row.trim())
         headerRow.value = rows[0]
-        sampleDataRows.value = rows.slice(1)
+        rawData.value = rows.slice(1)
     }
 }
 
 function removeFile() {
     tableTitle.value = ''
-    sampleDataRows.value = []
+    rawData.value = []
     delimiter.value = {name: 'Comma', char: ','}
 }
 
@@ -81,38 +85,42 @@ async function uploadData() {
     let columns = Object.assign({},
             ...headers.value.map((key, i) => ({[key]: colTypes.value[i].code})))
     let tableData = {
+        columns,
         name: tableTitle.value,
-        columns
+        user: currentUserId.value
     }
-    console.log(tableData)
+    let createdTableName = ''
     try {
         let response = await axios.post(`http://localhost:5050/api/sources/upload`, tableData)
-        console.log(response)
-        console.log(response.data)
+        createdTableName = response.data.created
     } catch (error) {
         console.log(error)
         uploading.value = false
         return
     }
-    // Create table and upload reference
-    //  let tableName = await axios.post(url)
-    // Upload file by triggering file upload func -- Probably won't work
-
-    let url = `http://localhost:5050/api/sources/upload`
-    console.log('Uploading')
-    // model.value = false
+    try {
+        let data = delimitedData.value
+        let response = await axios.put(`http://localhost:5050/api/sources/upload/${createdTableName}`, data)
+        // console.log(response.data)
+        let resData = response.data
+        toast.add({severity: 'success', summary: 'Successful', detail: `${resData.rowsAdded} rows added. ${resData.rowsDropped} rows failed.`, life: 3000})
+    } catch (error) {
+        console.log(error)
+    }
+    model.value = false
 }
 
-watch(sampleData, () => {
+watch(delimitedData, () => {
     let types = []
     for (let col of headers.value) {
         let colType = { name: 'Numeric', code: 'numeric'}
-        for (let row of sampleData.value) {
+        for (let row of delimitedData.value) {
             if (!Number(row[col])) colType = { name: 'String', code: 'varchar'}
         }
         types.push(colType)
     }
     colTypes.value = types
+    console.log(delimitedData.value)
 })
 </script>
 
@@ -148,7 +156,7 @@ watch(sampleData, () => {
             </div>
         </div>
         <div>
-            <DataTable v-if="sampleData.length > 0" :value="sampleData" scrollable scrollHeight="200px">
+            <DataTable v-if="delimitedData.length > 0" :value="delimitedData" scrollable scrollHeight="200px">
                 <Column v-for="(col, index) in headers" :field="col">
                     <template #header>
                         <div class="flex flex-column">

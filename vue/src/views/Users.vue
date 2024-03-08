@@ -95,7 +95,7 @@ async function deleteUser() {
     <div>
         <Toolbar class="mb-4">
             <template #start>
-                <Button label="New User" icon="pi pi-plus" severity="success" class="mr-2" @click="openNew" />
+                <Button label="New User" icon="pi pi-plus" class="mr-2" @click="openNew" />
             </template>
         </Toolbar>
 

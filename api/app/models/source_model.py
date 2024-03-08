@@ -38,6 +38,21 @@ class Source():
         return dict(zip(headers, data[0]))
     
     @staticmethod
+    def create_upload_source(user_id, source_name, access_name):
+        print('Creating source entry')
+        query = '''INSERT INTO data_sources(user_id, source_type, source_label, source_access_id)
+        VALUES (%s, 'upload', %s, %s)'''
+        params = [user_id, source_name, access_name]
+        source_conn.execute(query, params)
+        source_conn.commit()
+        # return proposed_name
+
+    @staticmethod
+    def create_connection_source(user_id, source_name, access_name):
+        print('Creating connection source')
+        return
+    
+    @staticmethod
     def get_data_table(table_name, limit):
         params = []
         query = f'''SELECT * FROM {table_name}'''
@@ -57,56 +72,82 @@ class Source():
     def create_datatable(table_name, columns):
         # Prevent duplicate table names
         query = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
-        result = source_conn.execute(query)
+        result = upload_conn.execute(query)
         tables = result.fetchall()
         tables = [t[0] for t in tables]
         i = 0
-        proposed_name = table_name
+        proposed_name = '_'.join(table_name.lower().split())
+        temp = proposed_name
         while proposed_name in tables:
             i+=1
-            proposed_name = f'{table_name}_{i}'
-        table_name = proposed_name
-        params = []
+            proposed_name = f'{temp}_{i}'
         identifiers = []
         query = 'CREATE TABLE {} (id SERIAL PRIMARY KEY'
-        identifiers.append(sql.Identifier(table_name))
+        identifiers.append(sql.Identifier(proposed_name))
         for col in columns.keys():
             query += ', {} ' + columns[col] + ' DEFAULT NULL'
             identifiers.append(sql.Identifier(col))
-            params.append(col)
         query += ');'
         query = sql.SQL(query).format(*identifiers)
         result = upload_conn.execute(query)
-        # print(query.as_string(upload_conn))
         upload_conn.commit()
-        print(result)
-        return table_name
+        return proposed_name
+
+    @staticmethod
+    def delete_datatable(table_name):
+        query = "DROP TABLE IF EXISTS {table};"
+        query = sql.SQL(query).format(table = sql.Identifier(table_name))
+        upload_conn.execute(query)
+        upload_conn.commit()
 
     @staticmethod
     def upload_data(table_name, data):
+        columns = data[0].keys()
+        col_identifiers = [sql.Identifier(col) for col in columns]
+        col_placeholder = ['%s' for col in columns]
+        col_placeholder = ','.join(col_placeholder)
+
+        query = 'INSERT INTO {table_name} ({columns}) VALUES ('+\
+            col_placeholder + ');'
+        query = sql.SQL(query).format(
+            table_name = sql.Identifier(table_name),
+            columns = sql.SQL(',').join(col_identifiers)
+        )
+
+        success_count = 0
+        fail_count = 0
+        for row in data:
+            params = list(row.values())
+            try:
+                upload_conn.execute(query, params)
+                upload_conn.commit()
+                success_count += 1
+            except Exception as e:
+                fail_count += 1
+        
+        return success_count, fail_count
 
         # BETTER WAY: SAVE CSV TO POSTGRES AND INGEST
         # COPY zip_codes FROM '/path/to/csv/ZIP_CODES.txt' DELIMITER ',' CSV HEADER;
 
-        query = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
-        result = source_conn.execute(query)
-        tables = result.fetchall()
-        tables = [t[0] for t in tables]
-        if table_name not in tables:
-            raise Exception('Invalid table name')
-        
-        col_list = ','.join(data[0].keys())
-        query = ''
-        params = []
-        for row in data:
-            query += f'INSERT INTO {table_name} ('
-            cols = ['%s' for key in row.keys()]
-            query += ','.join(cols)
-            params += row.keys()
-            query += ') VALUES ('
-            query += ','.join(cols)
-            params += row.values()
-            query += ');'
+        # query = "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
+        # result = source_conn.execute(query)
+        # tables = result.fetchall()
+        # tables = [t[0] for t in tables]
+        # if table_name not in tables:
+        #     raise Exception('Invalid table name')
+        # col_list = ','.join(data[0].keys())
+        # query = ''
+        # params = []
+        # for row in data:
+        #     query += f'INSERT INTO {table_name} ('
+        #     cols = ['%s' for key in row.keys()]
+        #     query += ','.join(cols)
+        #     params += row.keys()
+        #     query += ') VALUES ('
+        #     query += ','.join(cols)
+        #     params += row.values()
+            # query += ');'
 
 
 

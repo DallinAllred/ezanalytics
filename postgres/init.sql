@@ -23,6 +23,7 @@ CREATE TABLE users (
 
 -- DUMMY DATA
 -- DUMMY USERS
+INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('admin', 'admin', 'admin', 'admin', 'AdminPassword');
 INSERT INTO users (first_name, middle_name, last_name, username, user_email, password) VALUES ('John', 'Adams', 'Doe', 'johndoe', 'john@email.com', 'password');
 INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jane', 'Doe', 'jadoe', 'jane@email.com', 'password');
 INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com', 'password');
@@ -32,6 +33,7 @@ CREATE TYPE source_type_enum AS ENUM('external', 'upload');
 
 CREATE TABLE data_sources (
     source_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(user_id) NOT NULL,
     source_type source_type_enum,
     source_label VARCHAR(100) NOT NULL,
     source_access_id VARCHAR(100) UNIQUE NOT NULL
@@ -48,19 +50,11 @@ CREATE TABLE connections (
 
 -- DUMMY DATA
 -- DUMMY Table references
-INSERT INTO data_sources(source_type, source_label, source_access_id) VALUES ('upload', 'Mill Data', 'mill_data');
-INSERT INTO data_sources(source_type, source_label, source_access_id) VALUES ('upload', 'Mill Data 2', 'mill_data2');
-INSERT INTO data_sources(source_type, source_label, source_access_id) VALUES ('upload', 'Mill Data 3', 'mill_data3');
+INSERT INTO data_sources(user_id, source_type, source_label, source_access_id) VALUES (1, 'upload', 'Mill Data', 'mill_data');
 -- END DUMMY DATA
 
 CREATE DATABASE upload_data;
 \c upload_data
--- CREATE TABLE owners (
---     user_id,
---     data_table,
---     PRIMARY KEY (user_id, data_table)
--- )
-
 
 -- DUMMY DATA
 CREATE TABLE mill_data (

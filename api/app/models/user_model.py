@@ -1,11 +1,21 @@
-import psycopg
+# import psycopg
+# from psycopg_pool import ConnectionPool
 
-user_conn = psycopg.connect(
-    host='postgres_eza_container',
-    dbname='ezanalytics',
-    user='postgres',
-    password='mypassword'
-)
+from .db import eza_pool
+
+# user_conn = psycopg.connect(
+#     host='postgres_eza_container',
+#     dbname='ezanalytics',
+#     user='postgres',
+#     password='mypassword'
+# )
+
+# host='postgres_eza_container'
+# dbname='ezanalytics'
+# user='postgres'
+# password='mypassword'
+# conn_string = f'postgresql://{user}:{password}@{host}/{dbname}'
+# user_pool = ConnectionPool(conn_string)
 
 class User():
     @staticmethod
@@ -16,8 +26,12 @@ class User():
         query = '''SELECT user_id, first_name, middle_name, last_name, username, user_email,
                    admin, viewer, chart_builder, dash_builder, connections
                    FROM users;'''
-        result = user_conn.execute(query)
-        data = result.fetchall()
+        # data = None
+        with eza_pool.connection() as conn:
+            result = conn.execute(query)
+            data = result.fetchall()
+        # result = user_conn.execute(query)
+        # data = result.fetchall()
         json_data = []
         # headers = ['user_id','username']
         for row in data:
@@ -31,8 +45,11 @@ class User():
         query = '''SELECT user_id, first_name, middle_name, last_name, username, user_email,
                    admin, viewer, chart_builder, dash_builder, connections
                    FROM users WHERE user_id=%s;'''
-        result = user_conn.execute(query, [user_id])
-        data = result.fetchall()
+        with eza_pool.connection() as conn:
+            result = conn.execute(query)
+            data = result.fetchall()
+        # result = user_conn.execute(query, [user_id])
+        # data = result.fetchall()
         json_data = []
         for row in data:
             json_data.append(dict(zip(headers, row)))
@@ -44,8 +61,11 @@ class User():
         columns = ','.join(data.keys())
         value_string = ', '.join([f'%s' for val in data.values()])
         query = f'''INSERT INTO users ({columns}) VALUES ({value_string});'''
-        result = user_conn.execute(query, list(data.values()))
-        user_conn.commit()
+        with eza_pool.connection() as conn:
+            result = conn.execute(query, list(data.values()))
+            conn.commit()
+        # result = user_conn.execute(query, list(data.values()))
+        # user_conn.commit()
         print(result)
 
     @staticmethod
@@ -58,14 +78,20 @@ class User():
             pass
         value_string = ', '.join([f'{key}=%s' for key in data.keys()])
         query = f'''UPDATE users SET {value_string} WHERE user_id=%s;'''
-        result = user_conn.execute(query, list(data.values()) + [user_id])
-        user_conn.commit()
+        with eza_pool.connection() as conn:
+            result = conn.execute(query, list(data.values()) + [user_id])
+            conn.commit()
+        # result = user_conn.execute(query, list(data.values()) + [user_id])
+        # user_conn.commit()
         print(result)
 
     @staticmethod
     def delete_user(user_id):
         print(user_id)
         query = '''DELETE FROM users WHERE user_id=%s;'''
-        result = user_conn.execute(query, [user_id])
-        user_conn.commit()
+        with eza_pool.connection() as conn:
+            result = conn.execute(query, [user_id])
+            conn.commit()
+        # result = user_conn.execute(query, [user_id])
+        # user_conn.commit()
         print(result)
