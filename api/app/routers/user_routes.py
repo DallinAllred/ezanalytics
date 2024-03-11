@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Response, status
 from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
-from typing import Any
 
 from ..models.user_model import User
 
@@ -68,20 +67,6 @@ class UserOut(BaseModel):
     chartBuilder: bool | None = False
     dashBuilder: bool | None = False
     connections: bool | None = False
-
-class Credentials(BaseModel):
-    username: Any
-    password: Any
-
-@router.put('/login', status_code=200)
-async def login_user(credentials: Credentials, response: Response):
-    print('Login route')
-    try:
-        User.login(credentials.username, credentials.password)
-    except Exception as e:
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return
-    return
 
 @router.get('/')
 async def read_users():

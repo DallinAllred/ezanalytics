@@ -1,5 +1,5 @@
 <script setup>
-import axios from 'axios'
+import axios from '@/axiosConfig'
 import { reactive, ref, onMounted, watch } from "vue"
 import { useRoute } from 'vue-router'
 
@@ -68,12 +68,12 @@ const chartOptions = reactive({
 })
 
 async function getSources() {
-    let response = await axios.get('http://localhost:5050/api/sources/')
+    let response = await axios.get('/api/sources/')
     dataSources.value = response.data
 }
 
 async function getData() {
-    let response = await axios.get(`http://localhost:5050/api/sources/${selectedDataSource.value.sourceId}`)
+    let response = await axios.get(`/api/sources/${selectedDataSource.value.sourceId}`)
     let data = response.data
     columns.value = []
     columnList.value = []
@@ -103,7 +103,7 @@ async function saveChart() {
     }
     console.log(chart)
     try {
-        let response = await axios.post(`http://localhost:5050/api/charts`, chart)
+        let response = await axios.post(`/api/charts`, chart)
         console.log(response.data)
         toast.add({severity: 'success', summary: 'Successful', detail: 'Chart saved', life: 3000})
     } catch {
@@ -115,7 +115,7 @@ async function saveChart() {
 async function loadChart(chartId) {
     let chart = {}
     try {
-        let response = await axios.get(`http://localhost:5050/api/charts/${chartId}`)
+        let response = await axios.get(`/api/charts/${chartId}`)
         chart = response.data
     } catch {
         toast.add({severity: 'error', summary: 'Chart Not Found', detail: `Unable to find chart ${chartId}`, life: 3000})

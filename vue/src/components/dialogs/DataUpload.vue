@@ -1,7 +1,7 @@
 <script setup>
-import axios from 'axios';
+import axios from '@/axiosConfig'
 import { computed, ref, watch } from 'vue'
-import { useToast } from 'primevue/usetoast';
+import { useToast } from 'primevue/usetoast'
 
 const model = defineModel()
 
@@ -90,7 +90,7 @@ async function uploadData() {
     }
     let createdTableName = ''
     try {
-        let response = await axios.post(`http://localhost:5050/api/sources/upload`, tableData)
+        let response = await axios.post(`/api/sources/upload`, tableData)
         createdTableName = response.data.created
     } catch (error) {
         console.log(error)
@@ -99,7 +99,7 @@ async function uploadData() {
     }
     try {
         let data = delimitedData.value
-        let response = await axios.put(`http://localhost:5050/api/sources/upload/${createdTableName}`, data)
+        let response = await axios.put(`/api/sources/upload/${createdTableName}`, data)
         let resData = response.data
     } catch (error) {
         console.log(error)

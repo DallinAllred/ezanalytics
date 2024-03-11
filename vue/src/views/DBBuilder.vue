@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from  'primevue/usetoast'
-import axios from 'axios'
+import axios from '@/axiosConfig'
 
 import EZChart from '@/components/EZChart.vue'
 
@@ -24,7 +24,7 @@ const currentUser = ref('admin')
 const submitted = ref(false)
 
 async function loadCharts() {
-    let response = await axios.get(`http://localhost:5050/api/charts`)
+    let response = await axios.get(`/api/charts`)
     chartList.value = response.data
 }
 
@@ -38,7 +38,7 @@ function saveDashboard() {
         layout: layout.value
     }
     try {
-        let response = axios.post(`http://localhost:5050/api/dashboards`, dashboard)
+        let response = axios.post(`/api/dashboards`, dashboard)
         toast.add({severity: 'success', summary: 'Success', detail: 'Dashboard saved', life: 3000})
     } catch {
         toast.add({severity: 'error', summary: 'Error', detail: 'An error occurred while saving the dashboard', life: 3000})

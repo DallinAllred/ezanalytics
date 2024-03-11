@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref} from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '@/axiosConfig'
 
 import { useToast } from  'primevue/usetoast';
 
@@ -16,7 +16,7 @@ const dashList = ref([])
 const selectedDash = ref({title: null, id: null})
 
 async function loadDashboards() {
-    let response = await axios.get(`http://localhost:5050/api/dashboards`)
+    let response = await axios.get(`/api/dashboards`)
     dashList.value = response.data
 }
 
@@ -32,7 +32,7 @@ function editDashboard() {
 
 async function deleteDash() {
     try {
-        let response = await axios.delete(`http://localhost:5050/api/dashboards/${selectedDash.value.id}`)
+        let response = await axios.delete(`/api/dashboards/${selectedDash.value.id}`)
         toast.add({severity: 'success', summary: 'Success', detail: `Dashboard "${selectedDash.value.title}" has been deleted`, life: 3000})
         selectedDash.value = {title: null, id: null}
         deleteDashDialog.value = false

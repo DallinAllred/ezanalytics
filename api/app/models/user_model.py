@@ -27,7 +27,7 @@ class User():
                    admin, viewer, chart_builder, dash_builder, connections
                    FROM users WHERE user_id=%s;'''
         with eza_pool.connection() as conn:
-            result = conn.execute(query)
+            result = conn.execute(query, [user_id])
             data = result.fetchall()
         json_data = []
         for row in data:
@@ -68,16 +68,15 @@ class User():
             conn.commit()
         print(result)
 
-    @staticmethod
-    def login(username, password):
-        query = 'SELECT username, password FROM users WHERE username=%s;'
-        with eza_pool.connection() as conn:
-            result = conn.execute(query, [username])
-            data = result.fetchall()
-        if len(data) != 1:
-            raise ValueError
-        hash = data[0][1]
-        ph = PasswordHasher()
-        return ph.verify(hash, password)
-
+    # @staticmethod
+    # def login(username, password):
+    #     query = 'SELECT username, password FROM users WHERE username=%s;'
+    #     with eza_pool.connection() as conn:
+    #         result = conn.execute(query, [username])
+    #         data = result.fetchall()
+    #     if len(data) != 1:
+    #         raise ValueError
+    #     hash = data[0][1]
+    #     ph = PasswordHasher()
+    #     ph.verify(hash, password)
         

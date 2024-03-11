@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '@/axiosConfig'
 
 import { useToast } from 'primevue/usetoast'
 
@@ -17,7 +17,7 @@ const chartList = ref([])
 const selectedChart = ref({title: null, id: null})
 
 async function loadCharts() {
-    let response = await axios.get(`http://localhost:5050/api/charts`)
+    let response = await axios.get(`/api/charts`)
     chartList.value = response.data
 }
 
@@ -33,7 +33,7 @@ function editChart() {
 
 async function deleteChart() {
     try {
-        let response = await axios.delete(`http://localhost:5050/api/charts/${selectedChart.value.id}`)
+        let response = await axios.delete(`/api/charts/${selectedChart.value.id}`)
         deleteChartDialog.value = false
         toast.add({severity: 'success', summary: 'Success', detail: `Chart "${selectedChart.value.title}" has been deleted`, life: 3000})
         selectedChart.value = {title: null, id: null}

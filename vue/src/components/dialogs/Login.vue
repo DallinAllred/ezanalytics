@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import axios from 'axios'
+import axios from '@/axiosConfig'
+
 const emit = defineEmits(['login'])
 const model = defineModel()
 const props = defineProps(['title'])
@@ -28,7 +29,7 @@ async function login() {
         password: password.value
     }
     try {
-        let response = await axios.put(`http://localhost:5050/api/users/login`, data)
+        let response = await axios.put(`/api/auth/login`, data)
         console.log(response)
         emit('login')
     } catch (error) {
