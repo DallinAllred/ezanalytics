@@ -2,10 +2,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from  'primevue/usetoast'
 import axios from '@/axiosConfig'
+import Login from '@/components/dialogs/Login.vue'
 
 import EZChart from '@/components/EZChart.vue'
 
 const toast = useToast()
+
+const showLogin = ref(false)
 
 const chartList = ref([])
 const dashTitle = ref('')
@@ -117,6 +120,7 @@ onMounted(() => {
             <Button v-if="enableAddRow" icon="pi pi-plus" outlined rounded label="Add Row" class="mr-2" @click="addRow()" />
         </div>
     </div>
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

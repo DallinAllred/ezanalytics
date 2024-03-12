@@ -32,13 +32,11 @@ class Auth:
         hash = data[0][2]
         ph = PasswordHasher()
         ph.verify(hash, password)
-        temp = f'{username}{datetime.now()}'
-        print(user_id)
         session_id = ph.hash(f'{username}{datetime.now()}')
         return session_id, user_id
     
     @staticmethod
-    def create_session(session_id, user_info, expiration):
+    def create_session(session_id, user_info, timeout):
         redis_client.hset(
             session_id,
             mapping={
@@ -48,7 +46,7 @@ class Auth:
                 'chart_builder': int(user_info['chart_builder']),
                 'dash_builder': int(user_info['dash_builder']),
                 'connections': int(user_info['connections']),
-                'timeout': expiration
+                'timeout': timeout
             }
         )
 
@@ -71,9 +69,9 @@ async def login_user(credentials: Credentials, response: Response):
         user_info = User.get_user(user_id)
         user_info = user_info[0]
         session_id = session_id.split(',')[-1][4:]
-        expiration = datetime.now() + timedelta(minutes=30)
-        expiration = expiration.strftime('%d/%m/%Y, %H:%M:%S')
-        Auth.create_session(session_id, user_info, expiration)
+        timeout = datetime.now() + timedelta(minutes=30)
+        timeout = timeout.strftime('%d/%m/%Y, %H:%M:%S')
+        Auth.create_session(session_id, user_info, timeout)
         response.set_cookie(
             key='session_id',
             value=session_id,
@@ -87,6 +85,7 @@ async def login_user(credentials: Credentials, response: Response):
 @router.put('/logout', status_code=200)
 async def logout_user(response: Response,
                       session_id: Annotated[str | None, Cookie()] = None):
+    print('Logging out')
     if session_id:
         Auth.delete_session(session_id)
         response.set_cookie(
@@ -94,7 +93,7 @@ async def logout_user(response: Response,
             value=session_id,
             max_age=0
         )
-    return
+    return True
 
 @router.get('/permissions')
 async def get_permission(response: Response,

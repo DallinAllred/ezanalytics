@@ -22,6 +22,7 @@ class ChartIn(BaseModel):
 
 @router.get("/")
 async def read_charts():
+    print('Getting charts')
     data = Chart.get_charts()
     return data
 

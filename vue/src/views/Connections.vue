@@ -1,7 +1,11 @@
 <script setup>
+import { ref } from 'vue'
 import { useToast } from  'primevue/usetoast';
+import Login from './Login.vue';
 
 const toast = useToast()
+
+const showLogin = ref(false)
 
 function deleteDataSource() {
     toast.add({severity: 'warn', summary: 'Warning', detail: 'Delete Data Source clicked', life: 3000})
@@ -41,6 +45,7 @@ function newConnection() {
             </div>
         </div>
     </div>
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

@@ -2,6 +2,7 @@
 import { onMounted, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
+import Login from '@/components/dialogs/Login.vue'
 
 import { useToast } from  'primevue/usetoast';
 
@@ -78,7 +79,7 @@ onMounted(async () => {
         </div>
     </div>
     <ConfirmDelete v-model="deleteDashDialog" :match="selectedDash.title" @delete="deleteDash"></ConfirmDelete>
-
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

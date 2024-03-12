@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { FilterMatchMode } from 'primevue/api'
 import { useToast } from 'primevue/usetoast'
-
 import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
+import Login from '@/components/dialogs/Login.vue'
 
 const toast = useToast()
+
+const showLogin = ref(false)
 
 const users = ref()
 const activeUser = ref({})
@@ -208,6 +210,7 @@ async function deleteUser() {
         </Dialog>
 
         <ConfirmDelete v-model="deleteUserDialog" :match="activeUser.username" @delete="deleteUser"></ConfirmDelete>
+        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
 </template>
 

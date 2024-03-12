@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
-
+import Login from '@/components/dialogs/Login.vue'
 import { useToast } from 'primevue/usetoast'
 
 import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
@@ -13,6 +13,8 @@ const route = useRoute()
 const toast = useToast()
 
 const deleteChartDialog = ref(false)
+const showLogin = ref(false)
+
 const chartList = ref([])
 const selectedChart = ref({title: null, id: null})
 
@@ -74,6 +76,7 @@ onMounted(async () => {
         </div>
     </div>
     <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

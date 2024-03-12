@@ -16,7 +16,7 @@ const modalHeader = computed(() => {
         return props.title
     }
     else {
-        return 'Login'
+        return 'User Login'
     }
 })
 
@@ -40,7 +40,7 @@ async function login() {
 </script>
 
 <template>
-    <Dialog v-model:visible="model" :style="{width: '450px'}" header="User Login" :modal="true" :closable="false">
+    <Dialog v-model:visible="model" :style="{width: '450px'}" :header="modalHeader" :modal="true" :closable="false">
         <div class="field flex flex-column gap-1">
             <label for="username">Username</label>
             <InputText id="username" v-model.trim="username" required="true" autofocus :class="{'p-invalid': submitted && !username}" />

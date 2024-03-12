@@ -2,7 +2,6 @@ from argon2 import PasswordHasher
 
 from .db import eza_pool
 
-
 class User():
     @staticmethod
     def get_users():
@@ -67,16 +66,4 @@ class User():
             result = conn.execute(query, [user_id])
             conn.commit()
         print(result)
-
-    # @staticmethod
-    # def login(username, password):
-    #     query = 'SELECT username, password FROM users WHERE username=%s;'
-    #     with eza_pool.connection() as conn:
-    #         result = conn.execute(query, [username])
-    #         data = result.fetchall()
-    #     if len(data) != 1:
-    #         raise ValueError
-    #     hash = data[0][1]
-    #     ph = PasswordHasher()
-    #     ph.verify(hash, password)
         

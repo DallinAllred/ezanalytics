@@ -23,13 +23,13 @@ const activePage = computed(() => {
 })
 
 const loginPage = computed(() => {
-  console.log(location.path)
+  // console.log(location.path)
   return location.path == '/login'
 })
 
 // console.log(router)
 function signout() {
-  console.log('Signing out')
+  // console.log('Signing out')
   router.push('/login')
 }
 

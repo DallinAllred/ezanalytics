@@ -1,10 +1,10 @@
 <script setup>
-import axios from '@/axiosConfig'
 import { reactive, ref, onMounted, watch } from "vue"
 import { useRoute } from 'vue-router'
-
 import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
+import axios from '@/axiosConfig'
+import Login from '@/components/dialogs/Login.vue'
 import Settings from './Settings.vue'
 
 import DataUpload from '@/components/dialogs/DataUpload.vue'
@@ -14,6 +14,7 @@ const toast = useToast()
 
 const documentStyle = getComputedStyle(document.documentElement)
 
+const showLogin = ref(false)
 const showUploadModal = ref(false)
 
 const chartTitle = ref()
@@ -337,6 +338,7 @@ watch(yAxisR, () => {
         </div>
     </div>
     <DataUpload v-model="showUploadModal"></DataUpload>
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>
