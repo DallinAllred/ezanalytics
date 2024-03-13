@@ -1,12 +1,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from '@/axiosConfig'
-import Login from '@/components/dialogs/Login.vue'
 import { useToast } from 'primevue/usetoast'
-
+import axios from '@/axiosConfig'
 import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
 import EZChart from '@/components/EZChart.vue'
+import Login from '@/components/dialogs/Login.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -18,9 +17,23 @@ const showLogin = ref(false)
 const chartList = ref([])
 const selectedChart = ref({title: null, id: null})
 
+async function loadPage() {
+    await loadCharts()
+    if ('chart' in route.query){
+        let queryChart = chartList.value.filter(chart => chart.id == route.query.chart)
+        selectedChart.value = queryChart[0]
+    }
+}
+
 async function loadCharts() {
-    let response = await axios.get(`/api/charts`)
-    chartList.value = response.data
+    try {
+        let response = await axios.get(`/api/charts`)
+        chartList.value = response.data
+    } catch (err) {
+        if (err.response?.status === 401) {
+            showLogin.value = true
+        }
+    }
 }
 
 function newChart() {
@@ -40,17 +53,17 @@ async function deleteChart() {
         toast.add({severity: 'success', summary: 'Success', detail: `Chart "${selectedChart.value.title}" has been deleted`, life: 3000})
         selectedChart.value = {title: null, id: null}
         loadCharts()
-    } catch {
+    } catch (err) {
+        if (err.response?.status === 401) {
+            showLogin.value = true
+            return
+        }
         toast.add({severity: 'error', summary: 'Error', detail: `Error while deleting "${selectedChart.value.title}"`, life: 3000})
     }
 }
 
 onMounted(async () => {
-    await loadCharts()
-    if ('chart' in route.query){
-        let queryChart = chartList.value.filter(chart => chart.id == route.query.chart)
-        selectedChart.value = queryChart[0]
-    }
+    await loadPage()
 })
 
 </script>
@@ -76,7 +89,7 @@ onMounted(async () => {
         </div>
     </div>
     <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
-    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false; loadPage()"></Login>
 </template>
 
 <style>

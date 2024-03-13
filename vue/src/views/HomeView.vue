@@ -14,31 +14,14 @@ const ownedDashboards = ref([])
 
 async function loadItems() {
     try {
-        let response = await axios.get(`/api/charts`)//?user=${userId}`)
-            .then((response) => {
-                console.log('Then block')
-                return response
-            })
-            .catch((err) => {
-                console.log('Catch block')
-                console.log(err)
-                console.log(err.status)
-                if (err.response?.status === 401) showLogin.value = true
-            })
+        let response = await axios.get(`/api/charts?user=${userId}`)
         console.log('Response: ', response.status)
         ownedCharts.value = response.data
-        return
         response = await axios.get(`/api/dashboards?user=${userId}`)
-            // .then((response) => response)
-            // .catch((err) => {
-            //     if (err.response?.status === 401) showLogin.value = true
-            // })
         ownedDashboards.value = response.data
     } catch (err) {
-        console.log('Error: ', err)
-        console.log('Status: ', err)
+        if (err.response?.status === 401) { showLogin.value = true }
     }
-
 }
 
 function viewCharts() {
@@ -80,7 +63,7 @@ onMounted(async () => {
             <Skeleton height="100%"></Skeleton>
         </div> -->
     </div>
-    <Login v-model="showLogin" title="Session Timed Out" @login="router.push('/')"></Login>
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

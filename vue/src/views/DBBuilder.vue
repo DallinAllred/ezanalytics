@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from  'primevue/usetoast'
 import axios from '@/axiosConfig'
 import Login from '@/components/dialogs/Login.vue'
@@ -26,9 +26,18 @@ const currentUser = ref('admin')
 
 const submitted = ref(false)
 
+let saving = false
+
 async function loadCharts() {
-    let response = await axios.get(`/api/charts`)
-    chartList.value = response.data
+    try {
+        let response = await axios.get(`/api/charts`)
+        chartList.value = response.data
+    } catch (err) {
+        if (err.response?.status === 401) {
+            showLogin.value = true
+            saving = false
+        }
+    }
 }
 
 function saveDashboard() {
@@ -43,7 +52,11 @@ function saveDashboard() {
     try {
         let response = axios.post(`/api/dashboards`, dashboard)
         toast.add({severity: 'success', summary: 'Success', detail: 'Dashboard saved', life: 3000})
-    } catch {
+    } catch (err) {
+        if (err.response?.status === 401) {
+            showLogin.value = true
+            saving = true
+        }
         toast.add({severity: 'error', summary: 'Error', detail: 'An error occurred while saving the dashboard', life: 3000})
     }
     submitted.value = false
@@ -68,6 +81,11 @@ function removeChart(row, col) {
 }
 
 onMounted(() => {
+    loadCharts()
+})
+
+watch(showLogin, () => {
+    if (showLogin.value || saving) return
     loadCharts()
 })
 

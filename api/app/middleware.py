@@ -15,14 +15,23 @@ async def validate_session(request: Request, call_next):
             raise KeyError
     except KeyError as e:
         print('No session found')
-        return JSONResponse(status_code=401, content={'error': 'Invalid credentials'})
-
+        return JSONResponse(status_code=401,
+                            content={'error': 'Invalid credentials'},
+                            headers={
+                                'Access-Control-Allow-Origin': 'http://lvh.me:8080',
+                                'Access-Control-Allow-Credentials': 'true'
+                                })
     now = datetime.now()
     timeout = redis_client.hget(session_id, 'timeout')
     timeout = datetime.strptime(timeout, '%d/%m/%Y, %H:%M:%S')
     if now > timeout:
         print('Session timed out')
-        return JSONResponse(status_code=401, content={'error': 'Expired credentials'})
+        return JSONResponse(status_code=401,
+                            content={'error': 'Expired credentials'},
+                            headers={
+                                'Access-Control-Allow-Origin': 'http://lvh.me:8080',
+                                'Access-Control-Allow-Credentials': 'true'
+                                })
     timeout = datetime.now() + timedelta(minutes=30)
     timeout = timeout.strftime('%d/%m/%Y, %H:%M:%S')
     redis_client.hset(session_id, 'timeout', timeout)

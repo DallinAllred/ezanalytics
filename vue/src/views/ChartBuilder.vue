@@ -68,13 +68,38 @@ const chartOptions = reactive({
     }
 })
 
+let saving = false
+
+async function loadPage() {
+    await getSources()
+    if ('chart' in route.query){
+        loadChart(route.query.chart)
+    }
+}
+
 async function getSources() {
-    let response = await axios.get('/api/sources/')
+    try {
+        let response = await axios.get('/api/sources/')
+    } catch (err) {
+        if (err.response.status === 401) {
+            showLogin.value = true
+            saving = false
+            return
+        }
+    }
     dataSources.value = response.data
 }
 
 async function getData() {
-    let response = await axios.get(`/api/sources/${selectedDataSource.value.sourceId}`)
+    try {
+        let response = await axios.get(`/api/sources/${selectedDataSource.value.sourceId}`)
+    } catch (err) {
+        if (err.response.status === 401) {
+            showLogin.value = true
+            saving = false
+            return
+        }
+    }
     let data = response.data
     columns.value = []
     columnList.value = []
@@ -107,7 +132,12 @@ async function saveChart() {
         let response = await axios.post(`/api/charts`, chart)
         console.log(response.data)
         toast.add({severity: 'success', summary: 'Successful', detail: 'Chart saved', life: 3000})
-    } catch {
+    } catch (err) {
+        if (err.response.status === 401) {
+            showLogin.value = true
+            saving = true
+            return
+        }
         toast.add({severity: 'error', summary: 'Error', detail: 'Chart failed to save', life: 3000})
 
     }
@@ -118,7 +148,12 @@ async function loadChart(chartId) {
     try {
         let response = await axios.get(`/api/charts/${chartId}`)
         chart = response.data
-    } catch {
+    } catch (err) {
+        if (err.response.status === 401) {
+            showLogin = true
+            saving = false
+            return
+        }
         toast.add({severity: 'error', summary: 'Chart Not Found', detail: `Unable to find chart ${chartId}`, life: 3000})
         return
     }
@@ -225,11 +260,13 @@ function buildChart(colName, axis) {
     return datasets
 }
 
-onMounted(async () => {
-    await getSources()
-    if ('chart' in route.query){
-        loadChart(route.query.chart)
-    }
+onMounted(() => {
+    loadPage()
+})
+
+watch(showLogin, () => {
+    if (showLogin.value || saving) return
+    loadPage()
 })
 
 watch(showUploadModal, () => {

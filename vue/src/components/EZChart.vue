@@ -1,5 +1,5 @@
 <script setup>
-import axios from 'axios'
+import axios from '@/axiosConfig'
 import { reactive, ref, onMounted, watch } from "vue"
 
 import { useToast } from 'primevue/usetoast'
@@ -50,7 +50,7 @@ const chartOptions = reactive({
 })
 
 async function getData() {
-    let response = await axios.get(`http://localhost:5050/api/sources/${dataSource.value.sourceId}`)
+    let response = await axios.get(`/api/sources/${dataSource.value.sourceId}`)
     let data = response.data
     rawData.value = data
 }
@@ -58,7 +58,7 @@ async function getData() {
 async function loadChart(chartId) {
     let chart = {}
     try {
-        let response = await axios.get(`http://localhost:5050/api/charts/${chartId}`)
+        let response = await axios.get(`/api/charts/${chartId}`)
         chart = response.data
     } catch {
         toast.add({severity: 'error', summary: 'Chart Not Found', detail: `Unable to find chart ${chartId}`, life: 3000})

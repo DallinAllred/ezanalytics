@@ -4,8 +4,7 @@ const API_SERVER = 'http://lvh.me:5050'
 
 const axiosInstance = axios.create({
     withCredentials: true,
-    baseURL: API_SERVER,
-    validateStatus: () => true
+    baseURL: API_SERVER
 })
 
 export default axiosInstance

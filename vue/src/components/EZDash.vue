@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from  'primevue/usetoast'
-import axios from 'axios'
+import axios from '@/axiosConfig'
 
 import EZChart from '@/components/EZChart.vue'
 
@@ -16,7 +16,7 @@ const currentUser = ref('admin')
 
 async function loadDash(dashId) {
     try {
-        let response = await axios.get(`http://localhost:5050/api/dashboards/${dashId}`)
+        let response = await axios.get(`/api/dashboards/${dashId}`)
         let data = response.data
         dashTitle.value = data.title
         layout.value = data.layout

@@ -51,6 +51,15 @@ class Auth:
         )
 
     @staticmethod
+    async def clean_sessions():
+        now = datetime.now()
+        for session in redis_client.keys():
+            timeout = redis_client.hget(session, 'timeout')
+            datetime.strptime(timeout, '%d/%m/%Y, %H:%M:%S')
+            if timeout < now:
+                redis_client.delete(session)
+
+    @staticmethod
     def delete_session(session_id):
         redis_client.delete(session_id)
 
@@ -75,8 +84,9 @@ async def login_user(credentials: Credentials, response: Response):
         response.set_cookie(
             key='session_id',
             value=session_id,
-            max_age=600
+            max_age=36_000
         )
+        Auth.clean_sessions()
     except Exception as e:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return

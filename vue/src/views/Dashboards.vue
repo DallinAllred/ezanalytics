@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref} from 'vue'
+import { onMounted, ref, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
 import Login from '@/components/dialogs/Login.vue'
@@ -16,9 +16,23 @@ const deleteDashDialog = ref(false)
 const dashList = ref([])
 const selectedDash = ref({title: null, id: null})
 
+async function loadPage() {
+    await loadDashboards()
+    console.log(dashList.value)
+    console.log(router)
+    if (router.query && 'dash' in router.query) {
+        let queryDash = dashList.value.filter(dash => dash.id == router.query.dash)
+        selectedDash.value = queryDash[0]
+    }
+}
+
 async function loadDashboards() {
-    let response = await axios.get(`/api/dashboards`)
-    dashList.value = response.data
+    try {
+        let response = await axios.get(`/api/dashboards`)
+        dashList.value = response.data
+    } catch (err) {
+        if (err.response?.status === 401) { showLogin.value = true }
+    }
 }
 
 function newDashboard() {
@@ -38,19 +52,22 @@ async function deleteDash() {
         selectedDash.value = {title: null, id: null}
         deleteDashDialog.value = false
         loadDashboards()
-    } catch {
+    } catch (err) {
+        if (err.response?.status === 401) {
+            showLogin.value = true
+            return
+        }
         toast.add({severity: 'error', summary: 'Error', detail: `Error while deleting "${selectedDash.value.title}"`, life: 3000})
     }
 }
 
 onMounted(async () => {
-    await loadDashboards()
-    console.log(dashList.value)
-    console.log(router)
-    if (router.query && 'dash' in router.query) {
-        let queryDash = dashList.value.filter(dash => dash.id == router.query.dash)
-        selectedDash.value = queryDash[0]
-    }
+    loadPage()
+})
+
+watch(showLogin, () => {
+    if (showLogin.value) return
+    loadPage()
 })
 
 </script>
