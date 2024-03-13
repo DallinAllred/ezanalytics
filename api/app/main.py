@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .auth import auth
-from .middleware import validate_session
+from .middleware import validate_session, validate_permissions
 from .routers import user_routes
 from .routers import chart_routes
 from .routers import dashboard_routes
@@ -27,6 +27,7 @@ app.add_middleware(
 )
 
 app.add_middleware(BaseHTTPMiddleware, dispatch=validate_session)
+app.add_middleware(BaseHTTPMiddleware, dispatch=validate_permissions)
 
 app.include_router(auth.router)
 app.include_router(user_routes.router)

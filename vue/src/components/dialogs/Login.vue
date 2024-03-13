@@ -30,7 +30,8 @@ async function login() {
     }
     try {
         let response = await axios.put(`/api/auth/login`, data)
-        console.log(response)
+        console.log(response.data)
+        localStorage.setItem('eza-user', JSON.stringify(response.data))
         emit('login')
     } catch (error) {
         invalidCredentials.value = true

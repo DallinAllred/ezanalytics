@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Cookie, Response, status
 from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
+from typing import Annotated
 
 from bson import ObjectId
 
@@ -20,24 +21,23 @@ class ChartIn(BaseModel):
     data: dict
     options: dict
 
-@router.get("/")
+@router.get("/", status_code=200)
 async def read_charts():
-    print('Getting charts')
     data = Chart.get_charts()
     return data
 
-@router.get("/{chart_id}")
+@router.get("/{chart_id}", status_code=200)
 async def read_charts(chart_id):
     chart_id = ObjectId(chart_id)
     chart = Chart.get_chart(chart_id)
     return chart
 
-@router.post("/")
+@router.post("/", status_code=201)
 async def create_chart(chart: ChartIn):
     result = Chart.create_chart(chart.model_dump(exclude_none=True))
     return result
 
-@router.put("/{chart_id}")
+@router.put("/{chart_id}", status_code=201)
 async def update_chart(chart_id):
     return [{"action": f'Updating chart {chart_id}'}]
 

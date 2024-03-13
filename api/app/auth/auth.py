@@ -37,10 +37,9 @@ class Auth:
     
     @staticmethod
     def create_session(session_id, user_info, timeout):
-        redis_client.hset(
-            session_id,
-            mapping={
+        map = {
                 'username': user_info['username'],
+                'user_id': int(user_info['user_id']),
                 'admin': int(user_info['admin']),
                 'viewer': int(user_info['viewer']),
                 'chart_builder': int(user_info['chart_builder']),
@@ -48,14 +47,15 @@ class Auth:
                 'connections': int(user_info['connections']),
                 'timeout': timeout
             }
-        )
+        redis_client.hset(session_id, mapping=map)
+        return map
 
     @staticmethod
-    async def clean_sessions():
+    def clean_sessions():
         now = datetime.now()
         for session in redis_client.keys():
             timeout = redis_client.hget(session, 'timeout')
-            datetime.strptime(timeout, '%d/%m/%Y, %H:%M:%S')
+            timeout = datetime.strptime(timeout, '%d/%m/%Y, %H:%M:%S')
             if timeout < now:
                 redis_client.delete(session)
 
@@ -69,6 +69,16 @@ class Auth:
         del info['username']
         del info['timeout']
         return info
+    
+    # @staticmethod
+    # def validate(session_id, permission):
+    #     admin = redis_client.hget(session_id, 'admin')
+    #     admin = bool(int(admin))
+    #     allow = redis_client.hget(session_id, permission)
+    #     allow = bool(int(allow))
+    #     if allow or admin:
+    #         return True
+    #     return False
 
 
 @router.put('/login', status_code=200)
@@ -80,7 +90,7 @@ async def login_user(credentials: Credentials, response: Response):
         session_id = session_id.split(',')[-1][4:]
         timeout = datetime.now() + timedelta(minutes=30)
         timeout = timeout.strftime('%d/%m/%Y, %H:%M:%S')
-        Auth.create_session(session_id, user_info, timeout)
+        user_map = Auth.create_session(session_id, user_info, timeout)
         response.set_cookie(
             key='session_id',
             value=session_id,
@@ -90,7 +100,8 @@ async def login_user(credentials: Credentials, response: Response):
     except Exception as e:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return
-    return
+    del user_map['timeout']
+    return user_map
 
 @router.put('/logout', status_code=200)
 async def logout_user(response: Response,

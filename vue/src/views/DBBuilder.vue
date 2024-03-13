@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useToast } from  'primevue/usetoast'
 import axios from '@/axiosConfig'
 import Login from '@/components/dialogs/Login.vue'
 
 import EZChart from '@/components/EZChart.vue'
 
+const route = useRoute()
 const toast = useToast()
 
 const showLogin = ref(false)
@@ -28,7 +30,14 @@ const submitted = ref(false)
 
 let saving = false
 
-async function loadCharts() {
+async function loadPage() {
+    await getCharts()
+    if ('dash' in route.query) {
+        loadDashboard(route.query.dash)
+    }
+}
+
+async function getCharts() {
     try {
         let response = await axios.get(`/api/charts`)
         chartList.value = response.data
@@ -61,6 +70,24 @@ function saveDashboard() {
     }
     submitted.value = false
 }
+
+async function loadDashboard(dashId) {
+    let dash = {}
+    try {
+        let response = await axios.get(`/api/dashboards/${dashId}`)
+        dash = response.data
+    } catch (err) {
+        if (err.response.status === 401) {
+            showLogin.value = true
+            saving = false
+        }
+        toast.add({severity: 'error', summary: 'Dashboard Not Found', detail: `Unable to find dashboard ${dashId}`, life: 3000})
+        return
+    }
+    dashTitle.value = dash.title
+    layout.value = dash.layout
+}
+
 function addRow() {
     if (enableAddRow.value) layout.value.push([])
 }
@@ -81,12 +108,12 @@ function removeChart(row, col) {
 }
 
 onMounted(() => {
-    loadCharts()
+    loadPage()
 })
 
 watch(showLogin, () => {
     if (showLogin.value || saving) return
-    loadCharts()
+    getCharts()
 })
 
 </script>

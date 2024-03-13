@@ -5,13 +5,12 @@ import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
 import axios from '@/axiosConfig'
 import Login from '@/components/dialogs/Login.vue'
-import Settings from './Settings.vue'
-
 import DataUpload from '@/components/dialogs/DataUpload.vue'
 
 const route = useRoute()
 const toast = useToast()
 
+const currentUser = JSON.parse(localStorage.getItem('eza-user'))
 const documentStyle = getComputedStyle(document.documentElement)
 
 const showLogin = ref(false)
@@ -72,7 +71,8 @@ let saving = false
 
 async function loadPage() {
     await getSources()
-    if ('chart' in route.query){
+    if ('chart' in route.query) {
+        console.log('Loading: ', route.query.chart)
         loadChart(route.query.chart)
     }
 }
@@ -80,6 +80,7 @@ async function loadPage() {
 async function getSources() {
     try {
         let response = await axios.get('/api/sources/')
+        dataSources.value = response.data
     } catch (err) {
         if (err.response.status === 401) {
             showLogin.value = true
@@ -87,31 +88,30 @@ async function getSources() {
             return
         }
     }
-    dataSources.value = response.data
 }
 
 async function getData() {
     try {
         let response = await axios.get(`/api/sources/${selectedDataSource.value.sourceId}`)
+        let data = response.data
+        columns.value = []
+        columnList.value = []
+        for (let col of Object.keys(data[0])) {
+            columns.value.push({colName: col, type: 'Cont.'})
+            columnList.value.push(col)
+        }
+        rawData.value = data
     } catch (err) {
         if (err.response.status === 401) {
             showLogin.value = true
             saving = false
-            return
         }
     }
-    let data = response.data
-    columns.value = []
-    columnList.value = []
-    for (let col of Object.keys(data[0])) {
-        columns.value.push({colName: col, type: 'Cont.'})
-        columnList.value.push(col)
-    }
-    rawData.value = data
 }
 
 async function saveChart() {
     let chart = {
+        owner: currentUser.user_id,
         sourceId: selectedDataSource.value,
         title: chartTitle.value,
         type: chartType.value,
@@ -150,7 +150,7 @@ async function loadChart(chartId) {
         chart = response.data
     } catch (err) {
         if (err.response.status === 401) {
-            showLogin = true
+            showLogin.value = true
             saving = false
             return
         }

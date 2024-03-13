@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import axios from '@/axiosConfig'
@@ -11,11 +11,18 @@ const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 
+const currentUser = JSON.parse(localStorage.getItem('eza-user'))
+
 const deleteChartDialog = ref(false)
 const showLogin = ref(false)
 
 const chartList = ref([])
 const selectedChart = ref({title: null, id: null})
+
+const editor = computed(() => {
+    if (currentUser.admin || currentUser['chart_builder']) return true
+    return false
+})
 
 async function loadPage() {
     await loadCharts()
@@ -78,12 +85,12 @@ onMounted(async () => {
                     <Column field="id" header="ID"></Column>
                 </DataTable>
             </div>
-            <Button label="New Chart" @click="newChart" />
+            <Button :disabled="!editor" label="New Chart" @click="newChart" />
         </div>
         <div class="col-10 flex flex-column gap-5" id="chart-container">
             <div class="flex justify-content-between">
-                <Button severity="danger" label="Delete Chart" @click="deleteChartDialog = true" v-if="selectedChart && selectedChart.id" />
-                <Button label="Edit Chart" @click="editChart" v-if="selectedChart && selectedChart.id" />
+                <Button :disabled="!editor" severity="danger" label="Delete Chart" @click="deleteChartDialog = true" v-if="selectedChart && selectedChart.id" />
+                <Button :disabled="!editor" label="Edit Chart" @click="editChart" v-if="selectedChart && selectedChart.id" />
             </div>
             <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%"></EZChart>
         </div>

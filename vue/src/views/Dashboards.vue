@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch} from 'vue'
+import { computed, onMounted, ref, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
 import Login from '@/components/dialogs/Login.vue'
@@ -12,14 +12,19 @@ import EZDash from '@/components/EZDash.vue'
 const router = useRouter()
 const toast = useToast()
 
+const currentUser = JSON.parse(localStorage.getItem('eza-user'))
+const editor = computed(() => {
+    if (currentUser.admin || currentUser['chart_builder']) return true
+    return false
+})
+
+const showLogin = ref(false)
 const deleteDashDialog = ref(false)
 const dashList = ref([])
 const selectedDash = ref({title: null, id: null})
 
 async function loadPage() {
     await loadDashboards()
-    console.log(dashList.value)
-    console.log(router)
     if (router.query && 'dash' in router.query) {
         let queryDash = dashList.value.filter(dash => dash.id == router.query.dash)
         selectedDash.value = queryDash[0]
@@ -82,12 +87,12 @@ watch(showLogin, () => {
                     <Column field="id" header="ID"></Column>
                 </DataTable>
             </div>
-            <Button label="New Dashboard" @click="newDashboard" />
+            <Button :disabled="!editor" label="New Dashboard" @click="newDashboard" />
         </div>
         <div class="col-10 flex flex-column gap-2" id="dash-container">
             <div class="flex justify-content-between">
-                <Button severity="danger" label="Delete Dashboard" @click="deleteDashDialog = true" v-if="selectedDash && selectedDash.id" />
-                <Button label="Edit Dashboard" @click="editDashboard" v-if="selectedDash && selectedDash.id" />
+                <Button :disabled="!editor" severity="danger" label="Delete Dashboard" @click="deleteDashDialog = true" v-if="selectedDash && selectedDash.id" />
+                <Button :disabled="!editor" label="Edit Dashboard" @click="editDashboard" v-if="selectedDash && selectedDash.id" />
             </div>
             <div class="flex justify-content-center">
                 <h2>{{ selectedDash.title }}</h2>
