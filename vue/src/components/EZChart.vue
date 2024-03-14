@@ -4,6 +4,7 @@ import { reactive, ref, onMounted, watch } from "vue"
 
 import { useToast } from 'primevue/usetoast'
 
+const emit = defineEmits(['timeout401'])
 const model = defineModel()
 const props = defineProps(['height', 'width'])
 
@@ -50,9 +51,13 @@ const chartOptions = reactive({
 })
 
 async function getData() {
-    let response = await axios.get(`/api/sources/${dataSource.value.sourceId}`)
-    let data = response.data
-    rawData.value = data
+    try {
+        let response = await axios.get(`/api/sources/${dataSource.value.sourceId}`)
+        let data = response.data
+        rawData.value = data
+    } catch (err) {
+        if (err.response?.status === 401) emit('timeout401')
+    }
 }
 
 async function loadChart(chartId) {
@@ -60,7 +65,11 @@ async function loadChart(chartId) {
     try {
         let response = await axios.get(`/api/charts/${chartId}`)
         chart = response.data
-    } catch {
+    } catch (err) {
+        if (err.response?.status === 401) {
+            emit('timeout401')
+            return
+        }
         toast.add({severity: 'error', summary: 'Chart Not Found', detail: `Unable to find chart ${chartId}`, life: 3000})
         return
     }

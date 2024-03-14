@@ -5,6 +5,7 @@ import axios from '@/axiosConfig'
 
 import EZChart from '@/components/EZChart.vue'
 
+const emit = defineEmits(['timeout401'])
 const model = defineModel()
 
 const toast = useToast()
@@ -20,7 +21,11 @@ async function loadDash(dashId) {
         let data = response.data
         dashTitle.value = data.title
         layout.value = data.layout
-    } catch {
+    } catch (err) {
+        if (err.response?.status === 401) {
+            emit('timeout401')
+            return
+        }
         toast.add({severity: 'error', summary: 'Dashboard Not Found', detail: `Unable to find dashboard ${dashId}`, life: 3000})
         return
     }

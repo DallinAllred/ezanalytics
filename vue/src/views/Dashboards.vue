@@ -97,7 +97,7 @@ watch(showLogin, () => {
             <div class="flex justify-content-center">
                 <h2>{{ selectedDash.title }}</h2>
             </div>
-            <EZDash v-if="selectedDash && selectedDash.id" v-model="selectedDash.id"></EZDash>
+            <EZDash v-if="selectedDash && selectedDash.id" v-model="selectedDash.id" @timeout401="showLogin = true"></EZDash>
         </div>
     </div>
     <ConfirmDelete v-model="deleteDashDialog" :match="selectedDash.title" @delete="deleteDash"></ConfirmDelete>

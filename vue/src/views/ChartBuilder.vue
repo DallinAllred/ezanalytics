@@ -374,7 +374,7 @@ watch(yAxisR, () => {
             </div>
         </div>
     </div>
-    <DataUpload v-model="showUploadModal"></DataUpload>
+    <DataUpload v-model="showUploadModal" @timeout401="showLogin = true"></DataUpload>
     <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 

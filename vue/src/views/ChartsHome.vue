@@ -92,7 +92,7 @@ onMounted(async () => {
                 <Button :disabled="!editor" severity="danger" label="Delete Chart" @click="deleteChartDialog = true" v-if="selectedChart && selectedChart.id" />
                 <Button :disabled="!editor" label="Edit Chart" @click="editChart" v-if="selectedChart && selectedChart.id" />
             </div>
-            <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%"></EZChart>
+            <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%" @timeout401="showLogin = true"></EZChart>
         </div>
     </div>
     <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>

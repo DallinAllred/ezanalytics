@@ -3,11 +3,13 @@ import axios from '@/axiosConfig'
 import { computed, ref, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 
+const emit = defineEmits(['timeout401'])
 const model = defineModel()
 
 const toast = useToast()
 
-const currentUserId = ref(1)
+const currentUser = JSON.parse(localStorage.getItem['eza-user'])
+const currentUserId = currentUser['user_id']
 
 const submitted = ref(false)
 const uploading = ref(false)
@@ -92,17 +94,23 @@ async function uploadData() {
     try {
         let response = await axios.post(`/api/sources/upload`, tableData)
         createdTableName = response.data.created
-    } catch (error) {
-        console.log(error)
+    } catch (err) {
+        if (err.response?.status === 401) {
+            emit('timeout401')
+            return
+        }
         uploading.value = false
         return
     }
     try {
         let data = delimitedData.value
         let response = await axios.put(`/api/sources/upload/${createdTableName}`, data)
-        let resData = response.data
-    } catch (error) {
-        console.log(error)
+    } catch (err) {
+        if (err.response?.status === 401) {
+            emit('timeout401')
+            return
+        }
+        console.log(err)
     }
     toast.add({severity: 'success', summary: 'Successful', detail: 'Data uploaded', life: 3000})
     uploading.value = false
