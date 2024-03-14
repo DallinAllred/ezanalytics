@@ -40,7 +40,12 @@ async def validate_permissions(request: Request, call_next):
     path = request.url.path
     if path == '/api/auth/logout' or path == '/api/auth/login':
         return await call_next(request)
-    session_id = request.cookies['session_id']
+    try:
+        session_id = request.cookies['session_id']
+    except KeyError:
+        return JSONResponse(status_code=401,
+                            content={'error': 'Invalid credentials'},
+                            headers=ERROR_HEADERS)
     user = redis_client.hgetall(session_id)
     user = {key: bool(int(val)) if val == '0' or val == '1'
             else val for key, val in user.items()}

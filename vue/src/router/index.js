@@ -58,6 +58,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from) => {
+  if (to.name === 'Login') {
+    return
+  }
   const permissions = {
     Home: 'viewer',
     Charts: 'viewer',
@@ -69,12 +72,12 @@ router.beforeEach((to, from) => {
     Settings: 'viewer'
   }
   let currentUser = JSON.parse(localStorage.getItem('eza-user'))
-  // console.log(currentUser)
-  // console.log(currentUser.admin)
-  // console.log(to.name, permissions[to.name])
-  if (!(currentUser.admin ||
-    to.name === 'Login' ||
-    currentUser[permissions[to.name]])) return false
+  if (!currentUser) {
+    return { name: 'Login'}
+  }
+  if (!( currentUser.admin || currentUser[permissions[to.name]])) {
+    return false
+  }
 })
 
 export default router

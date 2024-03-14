@@ -1,10 +1,8 @@
 from argon2 import PasswordHasher
-
 from datetime import datetime, timedelta
-
 from fastapi import APIRouter, Cookie, Response, status
-from pydantic import AliasGenerator, BaseModel
-from typing import Annotated, Any
+from pydantic import BaseModel
+from typing import Annotated
 
 from ..models.db import eza_pool, redis_client
 from ..models.user_model import User
@@ -15,8 +13,8 @@ router = APIRouter(
 )
 
 class Credentials(BaseModel):
-    username: Any
-    password: Any
+    username: str
+    password: str
 
 
 class Auth:    
@@ -69,17 +67,6 @@ class Auth:
         del info['username']
         del info['timeout']
         return info
-    
-    # @staticmethod
-    # def validate(session_id, permission):
-    #     admin = redis_client.hget(session_id, 'admin')
-    #     admin = bool(int(admin))
-    #     allow = redis_client.hget(session_id, permission)
-    #     allow = bool(int(allow))
-    #     if allow or admin:
-    #         return True
-    #     return False
-
 
 @router.put('/login', status_code=200)
 async def login_user(credentials: Credentials, response: Response):
