@@ -12,6 +12,7 @@ import router from './router'
 
 import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
 import Login from '@/components/dialogs/Login.vue'
+import Unauthorized from './components/Unauthorized.vue';
 
 const app = createApp(App)
 app.use(PrimeVue)
@@ -19,6 +20,7 @@ app.use(ToastService)
 
 app.component('ConfirmDelete', ConfirmDelete)
     .component('Login', Login)
+    .component('Unauthorized', Unauthorized)
 
 app.use(router)
 

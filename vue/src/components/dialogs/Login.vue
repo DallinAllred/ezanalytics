@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import axios from '@/axiosConfig'
 
 const emit = defineEmits(['login'])
@@ -12,12 +12,8 @@ const submitted = ref(false)
 const invalidCredentials = ref(false)
 
 const modalHeader = computed(() => {
-    if (props.title) {
-        return props.title
-    }
-    else {
-        return 'User Login'
-    }
+    if (props.title) { return props.title }
+    else { return 'User Login' }
 })
 
 async function login() {
@@ -30,26 +26,24 @@ async function login() {
     }
     try {
         let response = await axios.put(`/api/auth/login`, data)
-        console.log(response.data)
         localStorage.setItem('eza-user', JSON.stringify(response.data))
         emit('login')
     } catch (error) {
         invalidCredentials.value = true
     }
 }
-
 </script>
 
 <template>
     <Dialog v-model:visible="model" :style="{width: '450px'}" :header="modalHeader" :modal="true" :closable="false">
         <div class="field flex flex-column gap-1">
             <label for="username">Username</label>
-            <InputText id="username" v-model.trim="username" required="true" autofocus :class="{'p-invalid': submitted && !username}" />
+            <InputText id="username" v-model.trim="username" required="true" autofocus :class="{'p-invalid': submitted && !username}" @keyup.enter="login" />
             <small class="p-error" v-if="submitted && !username">Username is required</small>
         </div>
         <div class="field flex flex-column gap-1">
             <label for="password">Password</label>
-            <InputText id="password" type="password" v-model.trim="password" required="true" :class="{'p-invalid': submitted && !password}" />
+            <InputText id="password" type="password" v-model.trim="password" required="true" :class="{'p-invalid': submitted && !password}" @keyup.enter="login" />
             <small class="p-error" v-if="submitted && !password">Password is required</small>
         </div>
         <div>

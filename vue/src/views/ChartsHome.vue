@@ -1,17 +1,18 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import axios from '@/axiosConfig'
-import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
 import EZChart from '@/components/EZChart.vue'
-import Login from '@/components/dialogs/Login.vue'
+// import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
+// import Login from '@/components/dialogs/Login.vue'
+// import Unauthorized from '@/components/Unauthorized.vue'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 
-const currentUser = JSON.parse(localStorage.getItem('eza-user'))
+const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
 
 const deleteChartDialog = ref(false)
 const showLogin = ref(false)
@@ -76,7 +77,10 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="grid h-full">
+    <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
+        <Unauthorized />
+    </div>
+    <div v-else class="grid h-full">
         <div class="col-2 flex flex-column gap-2">
             <div class="h-full">
                 <DataTable v-model:selection="selectedChart" :value="chartList" selectionMode="single"
@@ -94,9 +98,9 @@ onMounted(async () => {
             </div>
             <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%" @timeout401="showLogin = true"></EZChart>
         </div>
+        <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
+        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false; loadPage()"></Login>
     </div>
-    <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
-    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false; loadPage()"></Login>
 </template>
 
 <style>

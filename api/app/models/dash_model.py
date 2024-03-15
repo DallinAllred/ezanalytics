@@ -30,6 +30,12 @@ class Dashboard():
         return{'dashId': str(dash_id), 'title': dash['title']}
     
     @staticmethod
+    def update_dash(dash_id, dash):
+        result = dash_coll.replace_one({'_id': dash_id}, dash)
+        print(result)
+        return
+
+    @staticmethod
     def delete_dash(dash_id):
         result = dash_coll.delete_one({'_id': dash_id})
         return result

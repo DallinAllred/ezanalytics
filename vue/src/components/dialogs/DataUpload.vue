@@ -8,7 +8,7 @@ const model = defineModel()
 
 const toast = useToast()
 
-const currentUser = JSON.parse(localStorage.getItem['eza-user'])
+const currentUser = JSON.parse(localStorage.getItem('eza-user'))
 const currentUserId = currentUser['user_id']
 
 const submitted = ref(false)

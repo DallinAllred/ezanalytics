@@ -3,16 +3,20 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useToast } from  'primevue/usetoast'
 import axios from '@/axiosConfig'
-import Login from '@/components/dialogs/Login.vue'
-
 import EZChart from '@/components/EZChart.vue'
+// import Login from '@/components/dialogs/Login.vue'
+// import Unauthorized from '@/components/Unauthorized.vue'
 
 const route = useRoute()
 const toast = useToast()
 
+const currentUser = JSON.parse(localStorage.getItem('eza-user'))
+
 const showLogin = ref(false)
 
 const chartList = ref([])
+const dashId = ref(null)
+const dashOwner = ref(currentUser['user_id'])
 const dashTitle = ref('')
 
 const layout = ref([])
@@ -24,7 +28,6 @@ const enableAddRow = computed(() => {
     return false
 })
 
-const currentUser = ref('admin')
 
 const submitted = ref(false)
 
@@ -33,7 +36,8 @@ let saving = false
 async function loadPage() {
     await getCharts()
     if ('dash' in route.query) {
-        loadDashboard(route.query.dash)
+        await loadDashboard(route.query.dash)
+        dashId.value = route.query.dash
     }
 }
 
@@ -55,18 +59,31 @@ function saveDashboard() {
     && layout.value.length > 0)) { return }
     let dashboard = {
         title: dashTitle.value,
-        owner: currentUser.value,
+        owner: dashOwner.value,
         layout: layout.value
     }
-    try {
-        let response = axios.post(`/api/dashboards`, dashboard)
-        toast.add({severity: 'success', summary: 'Success', detail: 'Dashboard saved', life: 3000})
-    } catch (err) {
-        if (err.response?.status === 401) {
-            showLogin.value = true
-            saving = true
+    if (dashId.value) {
+        try {
+            let response = axios.put(`/api/dashboards/${dashId.value}`, dashboard)
+            toast.add({severity: 'success', summary: 'Success', detail: 'Dashboard saved', life: 3000})
+        } catch (err) {
+            if (err.response?.status === 401) {
+                showLogin.value = true
+                saving = true
+            }
+            toast.add({severity: 'error', summary: 'Error', detail: 'An error occurred while saving the dashboard', life: 3000})
         }
-        toast.add({severity: 'error', summary: 'Error', detail: 'An error occurred while saving the dashboard', life: 3000})
+    } else {
+        try {
+            let response = axios.post(`/api/dashboards`, dashboard)
+            toast.add({severity: 'success', summary: 'Success', detail: 'Dashboard saved', life: 3000})
+        } catch (err) {
+            if (err.response?.status === 401) {
+                showLogin.value = true
+                saving = true
+            }
+            toast.add({severity: 'error', summary: 'Error', detail: 'An error occurred while saving the dashboard', life: 3000})
+        }
     }
     submitted.value = false
 }
@@ -84,6 +101,7 @@ async function loadDashboard(dashId) {
         toast.add({severity: 'error', summary: 'Dashboard Not Found', detail: `Unable to find dashboard ${dashId}`, life: 3000})
         return
     }
+    dashOwner.value = dash.owner ?? currentUser['user_id']
     dashTitle.value = dash.title
     layout.value = dash.layout
 }
@@ -115,11 +133,13 @@ watch(showLogin, () => {
     if (showLogin.value || saving) return
     getCharts()
 })
-
 </script>
 
 <template>
-    <div class="grid">
+    <div v-if="!(currentUser.admin || currentUser['dash_builder'])" class="flex p-3">
+        <Unauthorized />
+    </div>
+    <div v-else class="grid">
         <div class="col-12 flex">
             <div class="col-4 col-offset-4 flex flex-column justify-content-center align-items-center gap-2">
                 <InputText v-model.trim="dashTitle" type="text" placeholder="Dashboard Title" required="true" :class="{'p-invalid': submitted && !dashTitle}"/>
@@ -164,8 +184,8 @@ watch(showLogin, () => {
         <div class="flex justify-content-center w-full">
             <Button v-if="enableAddRow" icon="pi pi-plus" outlined rounded label="Add Row" class="mr-2" @click="addRow()" />
         </div>
+        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
-    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

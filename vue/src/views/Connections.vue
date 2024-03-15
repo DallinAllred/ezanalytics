@@ -1,9 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useToast } from  'primevue/usetoast';
-import Login from './Login.vue';
+// import Login from './Login.vue';
 
 const toast = useToast()
+
+const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
 
 const showLogin = ref(false)
 
@@ -27,7 +29,10 @@ function newConnection() {
 </script>
 
 <template>
-    <div class="grid h-full justify-content-between px-2">
+    <div v-if="!(currentUser.admin || currentUser.connections)" class="flex p-3">
+        <Unauthorized />
+    </div>
+    <div v-else class="grid h-full justify-content-between px-2">
         <div class="col-6 flex flex-column gap-2">
             <h2>Uploaded Data</h2>
             <Skeleton height="100%"></Skeleton>
@@ -44,8 +49,8 @@ function newConnection() {
                 <div><Button label="New Connection" @click="newConnection" /></div>
             </div>
         </div>
+        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
-    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

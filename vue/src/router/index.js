@@ -8,76 +8,45 @@ const router = createRouter({
       path: '/',
       name: 'Home',
       component: HomeView,
-      nav: true,
-      permissions: 'viewer'
+      // nav: true
     },{
       path: '/chartsHome',
       name: 'Charts',
       component: () => import('../views/ChartsHome.vue'),
-      nav: true,
-      permissions: 'viewer'
+      // nav: true
     },{
       path: '/chartBuilder',
       name: 'Chart Builder',
-      component: () => import('../views/ChartBuilder.vue'),
-      permissions: 'chart_builder'
+      component: () => import('../views/ChartBuilder.vue')
     },{
       path: '/dashboards',
       name: 'Dashboards',
       component: () => import('../views/Dashboards.vue'),
-      nav: true,
-      permssions: 'viewer'
+      // nav: true
     },{
       path: '/dbBuilder',
       name: 'DB Builder',
-      component: () => import('../views/DBBuilder.vue'),
-      permissions: 'dash_builder'
+      component: () => import('../views/DBBuilder.vue')
     },{
       path: '/connections',
       name: 'Connections',
       component: () => import('../views/Connections.vue'),
-      nav: true,
-      permissions: 'connections'
+      // nav: true
     },{
       path: '/users',
       name: 'User Admin',
       component: () => import('../views/Users.vue'),
-      nav: true,
-      permissions: 'admin'
+      // nav: true
     },{
       path: '/settings',
       name: 'Settings',
-      component: () => import('../views/Settings.vue'),
-      permissions: 'viewer'
+      component: () => import('../views/Settings.vue')
     },{
       path: '/login',
       name: 'Login',
       component: () => import('../views/Login.vue')
     }
   ]
-})
-
-router.beforeEach((to, from) => {
-  if (to.name === 'Login') {
-    return
-  }
-  const permissions = {
-    Home: 'viewer',
-    Charts: 'viewer',
-    Dashboards: 'viewer',
-    'Chart Builder': 'chart_builder',
-    'DB Builder': 'dash_builder',
-    Connections: 'connections',
-    Users: 'admin',
-    Settings: 'viewer'
-  }
-  let currentUser = JSON.parse(localStorage.getItem('eza-user'))
-  if (!currentUser) {
-    return { name: 'Login'}
-  }
-  if (!( currentUser.admin || currentUser[permissions[to.name]])) {
-    return false
-  }
 })
 
 export default router

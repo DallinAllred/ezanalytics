@@ -31,6 +31,11 @@ class Chart():
         # del chart['chartId']
         chart_id = chart_coll.insert_one(chart).inserted_id
         return {'chartId': str(chart_id), 'title': chart['title']}
+    
+    @staticmethod
+    def update_chart(chart_id, chart):
+        chart_coll.replace_one({'_id': chart_id}, chart)
+        return
 
     @staticmethod
     def delete_chart(chart_id):

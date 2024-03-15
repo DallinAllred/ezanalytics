@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 class ChartIn(BaseModel):
-    chartId: str | None = None
+    # chartId: str | None = None
     sourceId: dict
     title: str
     type: dict
@@ -38,8 +38,11 @@ async def create_chart(chart: ChartIn):
     return result
 
 @router.put("/{chart_id}", status_code=201)
-async def update_chart(chart_id):
-    return [{"action": f'Updating chart {chart_id}'}]
+async def update_chart(chart_id, chart: ChartIn):
+    chart_id = ObjectId(chart_id)
+    chart = chart.model_dump(exclude_none=True)
+    result = Chart.update_chart(chart_id, chart)
+    return result
 
 @router.delete("/{chart_id}")
 async def delete_chart(chart_id):

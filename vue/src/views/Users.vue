@@ -1,15 +1,16 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { FilterMatchMode } from 'primevue/api'
 import { useToast } from 'primevue/usetoast'
 import axios from '@/axiosConfig'
 import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
 import Login from '@/components/dialogs/Login.vue'
+import Unauthorized from '@/components/Unauthorized.vue'
 
 const toast = useToast()
 
+const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
 const showLogin = ref(false)
-
 const users = ref()
 const activeUser = ref({})
 const newUser = ref(false)
@@ -55,38 +56,28 @@ async function saveUser() {
         && activeUser.value.userEmail?.trim())) { return }
     if (newUser.value === true) {
         try {
-            let response = axios.post('/api/users', activeUser.value)
+            let response = await axios.post('/api/users', activeUser.value)
             toast.add({severity: 'success', summary: 'Successful', detail: 'User created', life: 3000})
         } catch (err) {
             if (err.response?.status === 401) {
                 showLogin.value = true
-                return
+            } else {
+                toast.add({severity: 'error', summary: 'Error', detail: 'Unable to create user', life: 3000})
             }
+            return
         }
-        // let response = await fetch(`http://localhost:5050/api/users/`, {
-        //     method: 'POST',
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify(activeUser.value)
-        // })
     } else {
         try {
-            axios.put(`/api/users/${activeUser.value.userId}`, activeUser.value)
+            await axios.put(`/api/users/${activeUser.value.userId}`, activeUser.value)
             toast.add({severity: 'success', summary: 'Successful', detail: 'User updated', life: 3000})
         } catch (err) {
             if (err.response?.status === 401) {
                 showLogin.value = true
-                return
+            } else {
+                toast.add({severity: 'error', summary: 'Error', detail: 'Unable to update user', life: 3000})
             }
+            return
         }
-        // let response = await fetch(`http://localhost:5050/api/users/${activeUser.value.userId}`, {
-        //     method: 'PUT',
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify(activeUser.value)
-        // })
     }
     userDialog.value = false
     activeUser.value = {}
@@ -95,34 +86,35 @@ async function saveUser() {
 }
 
 async function loadUsers() {
+    if (!currentUser.admin) return
     try {
         let response = await axios.get('/api/users')
         users.value = response.data
     } catch (err) {
         if (err.response?.status === 401) { showLogin.value = true }
+        else {
+            toast.add({severity: 'error', summary: 'Error', detail: 'Unable to load users', life: 3000})
+        }
     }
-    // let userData = await fetch('http://localhost:5050/api/users/')
-    // userData = await userData.json()
-    // users.value = userData
 }
 
 async function deleteUser() {
     try {
-        let response = axios.delete(`/api/users/${activeUser.value.userId}`)
+        let response = await axios.delete(`/api/users/${activeUser.value.userId}`)
         deleteUserDialog.value = false
         toast.add({severity: 'success', summary: 'Successful', detail: 'User deleted', life: 3000})
         loadUsers()
     } catch (err) {
         if (err.response?.status === 401) { showLogin.value = true }
     }
-    // let response = await fetch(`http://localhost:5050/api/users/${activeUser.value.userId}`, {
-    //     method: 'DELETE'
-    // })
 }
 </script>
 
 <template>
-    <div>
+    <div v-if="!currentUser.admin" class="flex p-3">
+        <Unauthorized />
+    </div>
+    <div v-else>
         <Toolbar class="mb-4">
             <template #start>
                 <Button label="New User" icon="pi pi-plus" class="mr-2" @click="openNew" />
@@ -238,7 +230,7 @@ async function deleteUser() {
         </Dialog>
 
         <ConfirmDelete v-model="deleteUserDialog" :match="activeUser.username" @delete="deleteUser"></ConfirmDelete>
-        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
+        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false; loadUsers"></Login>
     </div>
 </template>
 

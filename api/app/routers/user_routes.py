@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Response, status
+from argon2 import PasswordHasher
+from fastapi import APIRouter, Response
 from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
 
@@ -23,7 +24,7 @@ class UserIn(BaseModel):
                     'lastName': 'Doe',
                     'username': 'jsdoe',
                     'userEmail': 'jdoe@mail.com',
-                    'password': 'Password hash or plaintext password for a new user',
+                    'password': 'Plaintext password for a new user',
                     'admin': 'Boolean. Default: False',
                     'viewer': 'Boolean. Default: False',
                     'chartBuilder': 'Boolean. Default: False',
@@ -80,24 +81,17 @@ async def read_user(user_id):
     data = UserOut(**data)
     return data.model_dump()
 
-@router.post('/')
+@router.post('/', status_code=201)
 async def create_user(user: UserIn, response: Response):
     if not user.password:
-        user.password = f'{user.first_name}_{user.last_name}'
-    # try:
+        ph = PasswordHasher()
+        user.password = ph.hash(f'{user.first_name}.{user.last_name}')
     data = User.create_user(user.model_dump())
-    # except:
-    #     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    #     return None
     return user.model_dump()
 
 @router.put('/{user_id}')
 async def update_user(user: UserIn, response: Response):
-    # try:
     data = User.update_user(user.model_dump())
-    # except Exception as e:
-    #     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    #     return None
     return [{'action': f'Updating user {user.user_id}'}]
 
 @router.delete('/{user_id}')

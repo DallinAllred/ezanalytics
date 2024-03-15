@@ -4,8 +4,9 @@ import { useRoute } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
 import axios from '@/axiosConfig'
-import Login from '@/components/dialogs/Login.vue'
 import DataUpload from '@/components/dialogs/DataUpload.vue'
+// import Login from '@/components/dialogs/Login.vue'
+// import Unauthorized from "@/components/Unauthorized.vue"
 
 const route = useRoute()
 const toast = useToast()
@@ -16,6 +17,8 @@ const documentStyle = getComputedStyle(document.documentElement)
 const showLogin = ref(false)
 const showUploadModal = ref(false)
 
+const chartId = ref(null)
+const chartOwner = ref(currentUser['user_id'])
 const chartTitle = ref()
 const columns = ref([])
 const columnList = ref()
@@ -72,8 +75,8 @@ let saving = false
 async function loadPage() {
     await getSources()
     if ('chart' in route.query) {
-        console.log('Loading: ', route.query.chart)
-        loadChart(route.query.chart)
+        await loadChart(route.query.chart)
+        chartId.value = route.query.chart
     }
 }
 
@@ -82,7 +85,7 @@ async function getSources() {
         let response = await axios.get('/api/sources/')
         dataSources.value = response.data
     } catch (err) {
-        if (err.response.status === 401) {
+        if (err.response?.status === 401) {
             showLogin.value = true
             saving = false
             return
@@ -102,7 +105,7 @@ async function getData() {
         }
         rawData.value = data
     } catch (err) {
-        if (err.response.status === 401) {
+        if (err.response?.status === 401) {
             showLogin.value = true
             saving = false
         }
@@ -111,7 +114,7 @@ async function getData() {
 
 async function saveChart() {
     let chart = {
-        owner: currentUser.user_id,
+        owner: chartOwner.value,
         sourceId: selectedDataSource.value,
         title: chartTitle.value,
         type: chartType.value,
@@ -127,19 +130,30 @@ async function saveChart() {
     if (yAxisR.value && yAxisR.value.length > 0) {
         chart.data.yAxisR = yAxisR.value
     }
-    console.log(chart)
-    try {
-        let response = await axios.post(`/api/charts`, chart)
-        console.log(response.data)
-        toast.add({severity: 'success', summary: 'Successful', detail: 'Chart saved', life: 3000})
-    } catch (err) {
-        if (err.response.status === 401) {
-            showLogin.value = true
-            saving = true
-            return
+    if (chartId.value) {
+        try {
+            let response = await axios.put(`/api/charts/${chartId.value}`, chart)
+            toast.add({severity: 'success', summary: 'Successful', detail: 'Chart saved', life: 3000})
+        } catch (err) {
+            if (err.response?.status === 401) {
+                showLogin.value = true
+                saving = true
+                return
+            }
+            toast.add({severity: 'error', summary: 'Error', detail: 'Chart failed to save', life: 3000})
         }
-        toast.add({severity: 'error', summary: 'Error', detail: 'Chart failed to save', life: 3000})
-
+    } else {
+        try {
+            let response = await axios.post(`/api/charts`, chart)
+            toast.add({severity: 'success', summary: 'Successful', detail: 'Chart saved', life: 3000})
+        } catch (err) {
+            if (err.response?.status === 401) {
+                showLogin.value = true
+                saving = true
+                return
+            }
+            toast.add({severity: 'error', summary: 'Error', detail: 'Chart failed to save', life: 3000})
+        }
     }
 }
 
@@ -149,7 +163,7 @@ async function loadChart(chartId) {
         let response = await axios.get(`/api/charts/${chartId}`)
         chart = response.data
     } catch (err) {
-        if (err.response.status === 401) {
+        if (err.response?.status === 401) {
             showLogin.value = true
             saving = false
             return
@@ -160,6 +174,7 @@ async function loadChart(chartId) {
 
     selectedDataSource.value = chart.sourceId
     await getData()
+    chartOwner.value = chart.owner ?? currentUser['user_id']
     chartTitle.value = chart.title
     chartType.value = chart.type
     xAxis.value = chart.data.xAxis
@@ -260,13 +275,13 @@ function buildChart(colName, axis) {
     return datasets
 }
 
-onMounted(() => {
-    loadPage()
+onMounted(async () => {
+    await loadPage()
 })
 
-watch(showLogin, () => {
+watch(showLogin, async () => {
     if (showLogin.value || saving) return
-    loadPage()
+    await loadPage()
 })
 
 watch(showUploadModal, () => {
@@ -298,11 +313,13 @@ watch(yAxisR, () => {
     } else { chartOptions.y1 = {} }
     if (xAxis.value) updateChart()
 })
-
 </script>
 
 <template>
-    <div class="grid h-full chart-builder">
+    <div v-if="!(currentUser.admin || currentUser['chart_builder'])" class="flex p-3">
+        <Unauthorized />
+    </div>
+    <div v-else class="grid h-full chart-builder">
         <div class="col-12 grid chart-builder-header">
             <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
             <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" class="mr-2" @click="showUploadModal = true" /></div>
@@ -373,9 +390,9 @@ watch(yAxisR, () => {
                 </div>
             </div>
         </div>
+        <DataUpload v-model="showUploadModal" @timeout401="showLogin = true"></DataUpload>
+        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
-    <DataUpload v-model="showUploadModal" @timeout401="showLogin = true"></DataUpload>
-    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

@@ -1,20 +1,19 @@
 <script setup>
-import { computed, onMounted, ref, watch} from 'vue'
+import { computed, onMounted, reactive, ref, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
-import Login from '@/components/dialogs/Login.vue'
-
 import { useToast } from  'primevue/usetoast';
-
-import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue';
 import EZDash from '@/components/EZDash.vue'
+// import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue';
+// import Login from '@/components/dialogs/Login.vue'
+// import Unauthorized from '@/components/Unauthorized.vue';
 
 const router = useRouter()
 const toast = useToast()
 
-const currentUser = JSON.parse(localStorage.getItem('eza-user'))
+const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
 const editor = computed(() => {
-    if (currentUser.admin || currentUser['chart_builder']) return true
+    if (currentUser.admin || currentUser['dash_builder']) return true
     return false
 })
 
@@ -78,7 +77,10 @@ watch(showLogin, () => {
 </script>
 
 <template>
-    <div class="grid h-full">
+    <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
+        <Unauthorized />
+    </div>
+    <div v-else class="grid h-full">
         <div class="col-2 flex flex-column gap-2">
             <div class="h-full">
                 <DataTable v-model:selection="selectedDash" :value="dashList" selectionMode="single"
@@ -99,9 +101,9 @@ watch(showLogin, () => {
             </div>
             <EZDash v-if="selectedDash && selectedDash.id" v-model="selectedDash.id" @timeout401="showLogin = true"></EZDash>
         </div>
+        <ConfirmDelete v-model="deleteDashDialog" :match="selectedDash.title" @delete="deleteDash"></ConfirmDelete>
+        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
-    <ConfirmDelete v-model="deleteDashDialog" :match="selectedDash.title" @delete="deleteDash"></ConfirmDelete>
-    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>
