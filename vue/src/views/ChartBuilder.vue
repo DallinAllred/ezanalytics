@@ -11,14 +11,14 @@ import DataUpload from '@/components/dialogs/DataUpload.vue'
 const route = useRoute()
 const toast = useToast()
 
-const currentUser = JSON.parse(localStorage.getItem('eza-user'))
+const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
 const documentStyle = getComputedStyle(document.documentElement)
-
 const showLogin = ref(false)
+const loginTitle = ref('Session Timed Out')
 const showUploadModal = ref(false)
 
 const chartId = ref(null)
-const chartOwner = ref(currentUser['user_id'])
+const chartOwner = ref(currentUser.value['user_id'])
 const chartTitle = ref()
 const columns = ref([])
 const columnList = ref()
@@ -73,6 +73,16 @@ const chartOptions = reactive({
 let saving = false
 
 async function loadPage() {
+    if (!currentUser.value.username) {
+        currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+        if (!currentUser.value?.username) {
+            loginTitle.value = null
+            showLogin.value = true
+            return
+        }
+        chartOwner.value = currentUser.value['user_id']
+    }
+    loginTitle.value = 'Session Timed Out'
     await getSources()
     if ('chart' in route.query) {
         await loadChart(route.query.chart)
@@ -174,7 +184,7 @@ async function loadChart(chartId) {
 
     selectedDataSource.value = chart.sourceId
     await getData()
-    chartOwner.value = chart.owner ?? currentUser['user_id']
+    chartOwner.value = chart.owner ?? currentUser.value['user_id']
     chartTitle.value = chart.title
     chartType.value = chart.type
     xAxis.value = chart.data.xAxis
@@ -330,7 +340,7 @@ watch(yAxisR, () => {
         <div class="col-12 grid">
             <div class="flex flex-column gap-3 col-10 col-offset-1">
                 <div class="grid chart-builder-main">
-                    <div class="col-10 justify-content-center border-round border-solid border-200 border-1">
+                    <div class="col-10 col-offset-1 justify-content-center border-round border-solid border-200 border-1">
                         <div class="grid py-4">
                             <div class="col-3 flex justify-content-start gap-2">
                                 <div>
@@ -377,9 +387,9 @@ watch(yAxisR, () => {
                         </div>
 
                     </div>
-                    <div class="col-2 border-round border-solid border-200 border-1">
+                    <!-- <div class="col-2 border-round border-solid border-200 border-1">
                         Stats display
-                    </div>
+                    </div> -->
                 </div>
                 <div class="grid chart-builder-table">
                     <div class="col-12 border-round border-solid border-200 border-1">
@@ -391,8 +401,8 @@ watch(yAxisR, () => {
             </div>
         </div>
         <DataUpload v-model="showUploadModal" @timeout401="showLogin = true"></DataUpload>
-        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
+    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false"></Login>
 </template>
 
 <style>

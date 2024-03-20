@@ -49,8 +49,8 @@ function newConnection() {
                 <div><Button label="New Connection" @click="newConnection" /></div>
             </div>
         </div>
-        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
+    <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
 </template>
 
 <style>

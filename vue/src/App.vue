@@ -1,20 +1,31 @@
 <script setup>
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import Toast from 'primevue/toast'
 
 const location = useRoute()
 const router = useRouter()
 
 const activePage = ref()
-const pages = ref([
-  { label: 'Home', icon: 'pi pi-home', route: '/' },
-  { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome' },
-  { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards' },
-  { label: 'Connections', icon: 'pi pi-database', route: '/connections' },
-  { label: 'User Admin', icon: 'pi pi-users', route: '/users' },
-  { label: 'Settings', icon: 'pi pi-cog', route: '/settings' }
-]);
+
+const pageList = [
+  { label: 'Home', icon: 'pi pi-home', route: '/', permissions: 'viewer' },
+  { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome', permissions: 'viewer' },
+  { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards', permissions: 'viewer' },
+  { label: 'Connections', icon: 'pi pi-database', route: '/connections', permissions: 'connections' },
+  { label: 'User Admin', icon: 'pi pi-users', route: '/users', permissions: 'admin' },
+  { label: 'Settings', icon: 'pi pi-cog', route: '/settings', permissions: 'viewer' }
+]
+
+const pages = ref(pageList)
+// const pages = ref([
+//   { label: 'Home', icon: 'pi pi-home', route: '/', permissions: 'viewer' },
+//   { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome', permissions: 'viewer' },
+//   { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards', permissions: 'viewer' },
+//   { label: 'Connections', icon: 'pi pi-database', route: '/connections', permissions: 'connections' },
+//   { label: 'User Admin', icon: 'pi pi-users', route: '/users', permissions: 'admin' },
+//   { label: 'Settings', icon: 'pi pi-cog', route: '/settings', permissions: 'viewer' }
+// ]);
 
 const pageWatcher = computed(() => {
   return pages.value.findIndex(page => page.route === location.path)
@@ -22,11 +33,22 @@ const pageWatcher = computed(() => {
 watch(pageWatcher, () => {
   let index = pages.value.findIndex(page => page.route === location.path)
   activePage.value = index
+  let currentUser = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+  pages.value = pageList.filter(page => {
+    return (currentUser.admin || currentUser[page.permissions])
+  })
 })
 
 const loginPage = computed(() => location.path == '/login' )
 
 function signout() { router.push('/login') }
+
+onMounted(() => {
+  let currentUser = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+  pages.value = pageList.filter(page => {
+    return (currentUser.admin || currentUser[page.permissions])
+  })
+})
 </script>
 
 <template>

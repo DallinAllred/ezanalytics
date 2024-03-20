@@ -1,31 +1,37 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import axios from '@/axiosConfig'
 import EZChart from '@/components/EZChart.vue'
-// import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue'
-// import Login from '@/components/dialogs/Login.vue'
-// import Unauthorized from '@/components/Unauthorized.vue'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 
-const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
-
+const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
 const deleteChartDialog = ref(false)
 const showLogin = ref(false)
+const loginTitle = ref('Session Timed Out')
 
 const chartList = ref([])
 const selectedChart = ref({title: null, id: null})
 
 const editor = computed(() => {
-    if (currentUser.admin || currentUser['chart_builder']) return true
+    if (currentUser.value.admin || currentUser.value['chart_builder']) return true
     return false
 })
 
 async function loadPage() {
+    if (!currentUser.value.username) {
+        currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+        if (!currentUser.value?.username) {
+            loginTitle.value = null
+            showLogin.value = true
+            return
+        }
+    }
+    loginTitle.value = 'Session Timed Out'
     await loadCharts()
     if ('chart' in route.query){
         let queryChart = chartList.value.filter(chart => chart.id == route.query.chart)
@@ -99,8 +105,8 @@ onMounted(async () => {
             <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%" @timeout401="showLogin = true"></EZChart>
         </div>
         <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
-        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false; loadPage()"></Login>
     </div>
+    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadPage()"></Login>
 </template>
 
 <style>

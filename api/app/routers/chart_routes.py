@@ -14,6 +14,7 @@ router = APIRouter(
 
 class ChartIn(BaseModel):
     # chartId: str | None = None
+    owner: int
     sourceId: dict
     title: str
     type: dict
@@ -22,8 +23,8 @@ class ChartIn(BaseModel):
     options: dict
 
 @router.get("/", status_code=200)
-async def read_charts():
-    data = Chart.get_charts()
+async def read_charts(user: int = None):
+    data = Chart.get_charts(user)
     return data
 
 @router.get("/{chart_id}", status_code=200)

@@ -2,40 +2,55 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
-import Login from '@/components/dialogs/Login.vue'
 
 const router = useRouter()
 
-const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
+const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
 const showLogin = ref(false)
+const loginTitle = ref('Session Timed Out')
 
-const userId = 1
 const ownedCharts = ref([])
 const ownedDashboards = ref([])
 
 async function loadItems() {
+    if (!currentUser.value.username) {
+        currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+        if (!currentUser.value?.username) {
+            loginTitle.value = null
+            showLogin.value = true
+            return
+        }
+    }
+    loginTitle.value = 'Session Timed Out'
+    console.log('Loading charts and dashboards')
     try {
-        let response = await axios.get(`/api/charts?user=${userId}`)
+        let response = await axios.get(`/api/charts?user=${currentUser.value['user_id']}`)
         console.log('Response: ', response.status)
         ownedCharts.value = response.data
-        response = await axios.get(`/api/dashboards?user=${userId}`)
+        response = await axios.get(`/api/dashboards?user=${currentUser.value['user_id']}`)
         ownedDashboards.value = response.data
+        console.log(ownedCharts.value, ownedDashboards.value)
     } catch (err) {
-        if (err.response?.status === 401) { showLogin.value = true }
+        if (err.response?.status === 401) { showLogin.value = true}
+        console.log(err)
     }
 }
 
 function viewCharts() {
     console.log('View Charts')
+    router.push('/chartsHome')
 }
 function buildChart() {
     console.log('Build Chart')
+    router.push('/chartBuilder')
 }
 function viewDashboards() {
     console.log('View Dashboards')
+    router.push('/dashboards')
 }
 function buildDash() {
     console.log('Build Dashboard')
+    router.push('/dbBuilder')
 }
 
 onMounted(async () => {
@@ -57,8 +72,8 @@ onMounted(async () => {
             <Button class="home-nav" label="View Dashboards" @click="viewDashboards" />
             <Button class="home-nav" label="Build a Dashboard" @click="buildDash" />
         </div>
-        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
+    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadItems()"></Login>
 </template>
 
 <style>

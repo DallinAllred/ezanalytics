@@ -10,11 +10,15 @@ chart_coll = db.charts
 
 class Chart():
     @staticmethod
-    def get_charts():
+    def get_charts(user=None):
         data = []
-        for chart in chart_coll.find():
-            print(chart)
-            data.append({'id': str(chart['_id']), 'title': chart['title']})
+        if user:
+            for chart in chart_coll.find({'owner': user}):
+                data.append({'id': str(chart['_id']), 'title': chart['title']})
+        else:
+            for chart in chart_coll.find():
+                print(chart)
+                data.append({'id': str(chart['_id']), 'title': chart['title']})
         return data
 
     @staticmethod

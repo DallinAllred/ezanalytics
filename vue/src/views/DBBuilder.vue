@@ -4,21 +4,19 @@ import { useRoute } from 'vue-router'
 import { useToast } from  'primevue/usetoast'
 import axios from '@/axiosConfig'
 import EZChart from '@/components/EZChart.vue'
-// import Login from '@/components/dialogs/Login.vue'
-// import Unauthorized from '@/components/Unauthorized.vue'
 
 const route = useRoute()
 const toast = useToast()
 
-const currentUser = JSON.parse(localStorage.getItem('eza-user'))
-
+const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
 const showLogin = ref(false)
+const loginTitle = ref('Session Timed Out')
+const submitted = ref(false)
 
 const chartList = ref([])
 const dashId = ref(null)
-const dashOwner = ref(currentUser['user_id'])
+const dashOwner = ref(currentUser.value['user_id'])
 const dashTitle = ref('')
-
 const layout = ref([])
 const enableAddRow = computed(() => {
     let numRows = layout.value.length
@@ -28,12 +26,19 @@ const enableAddRow = computed(() => {
     return false
 })
 
-
-const submitted = ref(false)
-
 let saving = false
 
 async function loadPage() {
+    if (!currentUser.value.username) {
+        currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+        if (!currentUser.value?.username) {
+            loginTitle.value = null
+            showLogin.value = true
+            return
+        }
+        dashOwner.value = currentUser.value['user_id']
+    }
+    loginTitle.value = 'Session Timed Out'
     await getCharts()
     if ('dash' in route.query) {
         await loadDashboard(route.query.dash)
@@ -101,7 +106,7 @@ async function loadDashboard(dashId) {
         toast.add({severity: 'error', summary: 'Dashboard Not Found', detail: `Unable to find dashboard ${dashId}`, life: 3000})
         return
     }
-    dashOwner.value = dash.owner ?? currentUser['user_id']
+    dashOwner.value = dash.owner ?? currentUser.value['user_id']
     dashTitle.value = dash.title
     layout.value = dash.layout
 }
@@ -131,7 +136,7 @@ onMounted(() => {
 
 watch(showLogin, () => {
     if (showLogin.value || saving) return
-    getCharts()
+    loadPage()
 })
 </script>
 
@@ -184,8 +189,8 @@ watch(showLogin, () => {
         <div class="flex justify-content-center w-full">
             <Button v-if="enableAddRow" icon="pi pi-plus" outlined rounded label="Add Row" class="mr-2" @click="addRow()" />
         </div>
-        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
+    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false"></Login>
 </template>
 
 <style>

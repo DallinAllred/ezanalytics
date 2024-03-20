@@ -2,16 +2,14 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
-import Login from '@/components/dialogs/Login.vue'
 
 const router = useRouter()
-
 const showLogin = ref(true)
+localStorage.removeItem('eza-user')
 
 onMounted(async () =>{
     let response = await axios.put('/api/auth/logout')
 })
-
 </script>
 
 <template>
@@ -19,5 +17,4 @@ onMounted(async () =>{
 </template>
 
 <style>
-
 </style>

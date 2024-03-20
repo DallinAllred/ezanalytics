@@ -1,28 +1,35 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch} from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '@/axiosConfig'
 import { useToast } from  'primevue/usetoast';
+import axios from '@/axiosConfig'
 import EZDash from '@/components/EZDash.vue'
-// import ConfirmDelete from '@/components/dialogs/ConfirmDelete.vue';
-// import Login from '@/components/dialogs/Login.vue'
-// import Unauthorized from '@/components/Unauthorized.vue';
 
 const router = useRouter()
 const toast = useToast()
 
-const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
+const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
+const showLogin = ref(false)
+const loginTitle = ref('Session Timed Out')
 const editor = computed(() => {
-    if (currentUser.admin || currentUser['dash_builder']) return true
+    if (currentUser.value.admin || currentUser.value['dash_builder']) return true
     return false
 })
 
-const showLogin = ref(false)
 const deleteDashDialog = ref(false)
 const dashList = ref([])
 const selectedDash = ref({title: null, id: null})
 
 async function loadPage() {
+    if (!currentUser.value.username) {
+        currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+        if (!currentUser.value?.username) {
+            loginTitle.value = null
+            showLogin.value = true
+            return
+        }
+    }
+    loginTitle.value = 'Session Timed Out'
     await loadDashboards()
     if (router.query && 'dash' in router.query) {
         let queryDash = dashList.value.filter(dash => dash.id == router.query.dash)
@@ -69,10 +76,10 @@ onMounted(async () => {
     loadPage()
 })
 
-watch(showLogin, () => {
-    if (showLogin.value) return
-    loadPage()
-})
+// watch(showLogin, () => {
+//     if (showLogin.value) return
+//     loadPage()
+// })
 
 </script>
 
@@ -102,8 +109,8 @@ watch(showLogin, () => {
             <EZDash v-if="selectedDash && selectedDash.id" v-model="selectedDash.id" @timeout401="showLogin = true"></EZDash>
         </div>
         <ConfirmDelete v-model="deleteDashDialog" :match="selectedDash.title" @delete="deleteDash"></ConfirmDelete>
-        <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false"></Login>
     </div>
+    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadPage()"></Login>
 </template>
 
 <style>

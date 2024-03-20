@@ -24,8 +24,8 @@ class DashIn(BaseModel):
     layout: list[list]
 
 @router.get("/")
-async def read_dashs():
-    data = Dashboard.get_dashboards()
+async def read_dashs(user: int = None):
+    data = Dashboard.get_dashboards(user)
     return data
 
 @router.get("/{dash_id}")

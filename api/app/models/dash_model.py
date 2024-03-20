@@ -11,10 +11,14 @@ dash_coll = db.dashboards
 
 class Dashboard():
     @staticmethod
-    def get_dashboards():
+    def get_dashboards(user=None):
         data = []
-        for dash in dash_coll.find():
-            data.append({'id': str(dash['_id']), 'title': dash['title']})
+        if user:
+            for dash in dash_coll.find({'owner': user}):
+                data.append({'id': str(dash['_id']), 'title': dash['title']})
+        else:
+            for dash in dash_coll.find():
+                data.append({'id': str(dash['_id']), 'title': dash['title']})
         return data
     
     @staticmethod
