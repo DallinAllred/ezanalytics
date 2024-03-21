@@ -5,9 +5,8 @@ import { useToast } from 'primevue/usetoast'
 import FloatLabel from 'primevue/floatlabel'
 import axios from '@/axiosConfig'
 import DataUpload from '@/components/dialogs/DataUpload.vue'
-// import Login from '@/components/dialogs/Login.vue'
-// import Unauthorized from "@/components/Unauthorized.vue"
 
+const emit = defineEmits('updateApp')
 const route = useRoute()
 const toast = useToast()
 
@@ -326,83 +325,85 @@ watch(yAxisR, () => {
 </script>
 
 <template>
-    <div v-if="!(currentUser.admin || currentUser['chart_builder'])" class="flex p-3">
-        <Unauthorized />
-    </div>
-    <div v-else class="grid h-full chart-builder">
-        <div class="col-12 grid chart-builder-header">
-            <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
-            <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" class="mr-2" @click="showUploadModal = true" /></div>
-            <div class="col-1 col-offset-7">
-                <Button label="Save" icon="pi pi-save" class="mr-2" @click="saveChart" />
-            </div>
+    <div>
+        <div v-if="!(currentUser.admin || currentUser['chart_builder'])" class="flex p-3">
+            <Unauthorized />
         </div>
-        <div class="col-12 grid">
-            <div class="flex flex-column gap-3 col-10 col-offset-1">
-                <div class="grid chart-builder-main">
-                    <div class="col-10 col-offset-1 justify-content-center border-round border-solid border-200 border-1">
-                        <div class="grid py-4">
-                            <div class="col-3 flex justify-content-start gap-2">
-                                <div>
+        <div v-else class="grid h-full chart-builder">
+            <div class="col-12 grid chart-builder-header">
+                <div class="col-2"><Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-full md:w-14rem" @change="getData()" /></div>
+                <div class="col-2"><Button label="Upload CSV" icon="pi pi-upload" class="mr-2" @click="showUploadModal = true" /></div>
+                <div class="col-1 col-offset-7">
+                    <Button label="Save" icon="pi pi-save" class="mr-2" @click="saveChart" />
+                </div>
+            </div>
+            <div class="col-12 grid">
+                <div class="flex flex-column gap-3 col-10 col-offset-1">
+                    <div class="grid chart-builder-main">
+                        <div class="col-10 col-offset-1 justify-content-center border-round border-solid border-200 border-1">
+                            <div class="grid py-4">
+                                <div class="col-3 flex justify-content-start gap-2">
+                                    <div>
+                                        <FloatLabel class="w-full">
+                                            <Dropdown v-model="chartType" inputId="chart" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" />
+                                            <label for="chart">Chart Type</label>
+                                        </FloatLabel>
+                                    </div>
+                                    <div class="flex align-items-center gap-1" v-if="chartType.tag == 'bar' ? true : false">
+                                        <Checkbox v-model="stackedBox" inputId="stackCheck" :binary="true" @change="toggleStack"/>
+                                        <label for="stackCheck">Stacked</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 flex justify-content-center">
+                                    <InputText type="text" v-model="chartTitle" placeholder="Title" class="justify-self-center"/>
+                                </div>
+                                <div class="col-2 col-offset-1">
                                     <FloatLabel class="w-full">
-                                        <Dropdown v-model="chartType" inputId="chart" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" />
-                                        <label for="chart">Chart Type</label>
+                                        <Dropdown v-model="groupBy" inputId="group" showClear :options="columnList" placeholder="Group By..." :disabled="columnList && chartType ? false : true"/>
+                                        <label for="group">Group By</label>
                                     </FloatLabel>
                                 </div>
-                                <div class="flex align-items-center gap-1" v-if="chartType.tag == 'bar' ? true : false">
-                                    <Checkbox v-model="stackedBox" inputId="stackCheck" :binary="true" @change="toggleStack"/>
-                                    <label for="stackCheck">Stacked</label>
+                            </div>
+                            <div class="flex flex-row gap-2">
+                                <div class="flex flex-row align-items-center gap-1">
+                                    <div class="rot-90">
+                                        <MultiSelect v-model="yAxisL" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
+                                            <template #dropdownicon>{{  }}</template>
+                                        </MultiSelect>
+                                        <label v-if="yAxisL">{{ yAxisL.col }}</label>
+                                    </div>
+                                </div>
+                                <div class="flex flex-column align-content-center w-full chart-container">
+                                    <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="align-self-center" />
+                                    <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" :disabled="columnList && chartType ? false : true"/>
+                                </div>
+                                <div class="flex flex-row align-items-center gap-1">
+                                    <div class="rot-p90">
+                                        <MultiSelect v-model="yAxisR" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
+                                            <template #dropdownicon>{{  }}</template>
+                                        </MultiSelect>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-6 flex justify-content-center">
-                                <InputText type="text" v-model="chartTitle" placeholder="Title" class="justify-self-center"/>
-                            </div>
-                            <div class="col-2 col-offset-1">
-                                <FloatLabel class="w-full">
-                                    <Dropdown v-model="groupBy" inputId="group" showClear :options="columnList" placeholder="Group By..." :disabled="columnList && chartType ? false : true"/>
-                                    <label for="group">Group By</label>
-                                </FloatLabel>
-                            </div>
+    
                         </div>
-                        <div class="flex flex-row gap-2">
-                            <div class="flex flex-row align-items-center gap-1">
-                                <div class="rot-90">
-                                    <MultiSelect v-model="yAxisL" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
-                                        <template #dropdownicon>{{  }}</template>
-                                    </MultiSelect>
-                                    <label v-if="yAxisL">{{ yAxisL.col }}</label>
-                                </div>
-                            </div>
-                            <div class="flex flex-column align-content-center w-full chart-container">
-                                <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="align-self-center" />
-                                <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" :disabled="columnList && chartType ? false : true"/>
-                            </div>
-                            <div class="flex flex-row align-items-center gap-1">
-                                <div class="rot-p90">
-                                    <MultiSelect v-model="yAxisR" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
-                                        <template #dropdownicon>{{  }}</template>
-                                    </MultiSelect>
-                                </div>
-                            </div>
-                        </div>
-
+                        <!-- <div class="col-2 border-round border-solid border-200 border-1">
+                            Stats display
+                        </div> -->
                     </div>
-                    <!-- <div class="col-2 border-round border-solid border-200 border-1">
-                        Stats display
-                    </div> -->
-                </div>
-                <div class="grid chart-builder-table">
-                    <div class="col-12 border-round border-solid border-200 border-1">
-                        <DataTable :value="rawData" scrollable scrollHeight="15rem">
-                            <Column v-for="col in columnList" :field="col" :header="col"></Column>
-                        </DataTable>
+                    <div class="grid chart-builder-table">
+                        <div class="col-12 border-round border-solid border-200 border-1">
+                            <DataTable :value="rawData" scrollable scrollHeight="15rem">
+                                <Column v-for="col in columnList" :field="col" :header="col"></Column>
+                            </DataTable>
+                        </div>
                     </div>
                 </div>
             </div>
+            <DataUpload v-model="showUploadModal" @timeout401="showLogin = true"></DataUpload>
         </div>
-        <DataUpload v-model="showUploadModal" @timeout401="showLogin = true"></DataUpload>
+        <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; emit('updateApp')"></Login>
     </div>
-    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false"></Login>
 </template>
 
 <style>

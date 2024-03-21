@@ -45,7 +45,7 @@ watch(model, () => {
     <div class="grid ezdash">
         <div v-for="(row, index) of layout" key class="col-12 grid">
             <div class="col-12 grid flex justify-content-between">
-                <div v-for="(chart, col) of row" :class="`col-${12 / row.length}`" class="dash-row">
+                <div v-for="(chart, col) of row" :class="`col-${12 / row.length}`" class="dash-row flex justify-content-center">
                     <div v-if="chart.id">
                         <EZChart v-model="chart.id" height="100%"></EZChart>
                     </div>
@@ -57,9 +57,11 @@ watch(model, () => {
 
 <style>
 .dash-row {
-    min-height: 40vh;
+    min-height: 30vh;
 }
 .ezdash {
+    height: 100%;
     overflow-x: hidden;
+    /* overflow-y: scroll; */
 }
 </style>

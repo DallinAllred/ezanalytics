@@ -20,7 +20,7 @@ class DashIn(BaseModel):
     )
     # dash_id: str | None = None
     title: str
-    owner: str
+    owner: int
     layout: list[list]
 
 @router.get("/")
@@ -38,10 +38,8 @@ async def read_dashs(dash_id):
 @router.post("/")
 async def create_dash(dash: DashIn):
     dash = dash.model_dump()
-    print(dash)
-    del dash['dash_id']
     data = Dashboard.create_dash(dash)
-    return [{"action": "Adding dash"}]
+    return data
 
 @router.put("/{dash_id}")
 async def update_dash(dash_id, dash: DashIn):

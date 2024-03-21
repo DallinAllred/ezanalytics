@@ -8,43 +8,38 @@ const router = createRouter({
       path: '/',
       name: 'Home',
       component: HomeView,
-      // nav: true
     },{
       path: '/chartsHome',
       name: 'Charts',
       component: () => import('../views/ChartsHome.vue'),
-      // nav: true
     },{
       path: '/chartBuilder',
       name: 'Chart Builder',
-      component: () => import('../views/ChartBuilder.vue')
+      component: () => import('../views/ChartBuilder.vue'),
     },{
       path: '/dashboards',
       name: 'Dashboards',
       component: () => import('../views/Dashboards.vue'),
-      // nav: true
     },{
       path: '/dbBuilder',
       name: 'DB Builder',
-      component: () => import('../views/DBBuilder.vue')
+      component: () => import('../views/DBBuilder.vue'),
     },{
       path: '/connections',
       name: 'Connections',
       component: () => import('../views/Connections.vue'),
-      // nav: true
     },{
       path: '/users',
       name: 'User Admin',
       component: () => import('../views/Users.vue'),
-      // nav: true
     },{
       path: '/settings',
       name: 'Settings',
-      component: () => import('../views/Settings.vue')
+      component: () => import('../views/Settings.vue'),
     },{
       path: '/login',
       name: 'Login',
-      component: () => import('../views/Login.vue')
+      component: () => import('../views/Login.vue'),
     }
   ]
 })
