@@ -1,8 +1,9 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/axiosConfig'
 
+const emit = defineEmits('updateApp')
 const router = useRouter()
 
 const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
@@ -11,6 +12,8 @@ const loginTitle = ref('Session Timed Out')
 
 const ownedCharts = ref([])
 const ownedDashboards = ref([])
+const selectedChart = ref({title: null, id: null})
+const selectedDash = ref({title: null, id: null})
 
 async function loadItems() {
     if (!currentUser.value.username) {
@@ -22,14 +25,12 @@ async function loadItems() {
         }
     }
     loginTitle.value = 'Session Timed Out'
-    console.log('Loading charts and dashboards')
     try {
         let response = await axios.get(`/api/charts?user=${currentUser.value['user_id']}`)
-        console.log('Response: ', response.status)
         ownedCharts.value = response.data
+        console.log(response.data)
         response = await axios.get(`/api/dashboards?user=${currentUser.value['user_id']}`)
         ownedDashboards.value = response.data
-        console.log(ownedCharts.value, ownedDashboards.value)
     } catch (err) {
         if (err.response?.status === 401) { showLogin.value = true}
         console.log(err)
@@ -53,32 +54,63 @@ function buildDash() {
     router.push('/dbBuilder')
 }
 
+watch(selectedChart, () => {
+    router.push(`/chartsHome?chart=${selectedChart.value.id}`)
+})
+
+watch(selectedDash, () => {
+    router.push(`/dashboards?dash=${selectedDash.value.id}`)
+})
+
 onMounted(async () => {
     loadItems()
 })
-
 </script>
 
 <template>
-    <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
-        <Unauthorized />
-    </div>
-    <div v-else class="grid h-full flex flex-column">
-        <div class="col-6 col-offset-3 flex gap-8 justify-contents-center">
-            <Button class="home-nav" label="View Charts" @click="viewCharts" />
-            <Button class="home-nav" label="Build a Chart" @click="buildChart" />
+    <div>
+        <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
+            <Unauthorized />
         </div>
-        <div class="col-6 col-offset-3 flex gap-8">
-            <Button class="home-nav" label="View Dashboards" @click="viewDashboards" />
-            <Button class="home-nav" label="Build a Dashboard" @click="buildDash" />
+        <div v-else class="flex justify-content-around">
+            <div class="flex gap-8">
+                <DataTable v-model:selection="selectedChart" :value="ownedCharts" selectionMode="single"
+                scrollable class="h-full" dataKey="id" tableStyle="min-width: 20rem; max-height: calc(100vh - 6.5rem)">
+                <Column header="My Charts">
+                    <template #body="slotProps">
+                        <div>{{ slotProps.data.title }}</div>
+                        <small>{{ slotProps.data.id }}</small>
+                    </template>
+                </Column>
+                </DataTable>
+                <div class="flex flex-column gap-5">
+                    <Button class="home-nav-btn" label="View All Charts" @click="viewCharts" />
+                    <Button class="home-nav-btn" icon="pi pi-plus" label="Build a Chart" @click="buildChart" :disabled="!(currentUser.admin || currentUser['chart_builder'])" />
+                </div>
+            </div>
+            <div class="flex gap-8">
+                <DataTable v-model:selection="selectedDash" :value="ownedDashboards" selectionMode="single"
+                scrollable class="h-full" dataKey="id">
+                    <Column header="My Dashboards">
+                        <template #body="slotProps">
+                            <div>{{ slotProps.data.title }}</div>
+                            <small>{{ slotProps.data.id }}</small>
+                        </template>
+                    </Column>
+                </DataTable>
+                <div class="flex flex-column gap-5">
+                    <Button class="home-nav-btn" label="View All Dashboards" @click="viewDashboards" />
+                    <Button class="home-nav-btn" icon="pi pi-plus" label="Build a Dashboard" @click="buildDash" :disabled="!(currentUser.admin || currentUser['dash_builder'])" />
+                </div>
+            </div>
         </div>
+        <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadItems(); emit('updateApp')"></Login>
     </div>
-    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadItems()"></Login>
 </template>
 
 <style>
-.home-nav {
-    width: 150px;
-    height: 150px;
+.home-nav-btn {
+    /* width: 150px;
+    height: 150px; */
 }
 </style>

@@ -1,12 +1,13 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import axios from '@/axiosConfig'
 import EZChart from '@/components/EZChart.vue'
 
-const router = useRouter()
+const emit = defineEmits('updateApp')
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 
 const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
@@ -76,44 +77,69 @@ async function deleteChart() {
     }
 }
 
+watch(selectedChart, () => {
+    if (selectedChart.value.id) {
+        let query = {'chart': selectedChart.value.id}
+        router.replace({ path: route.path, query: query})
+    }
+})
+
 onMounted(async () => {
     await loadPage()
 })
-
 </script>
 
 <template>
-    <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
-        <Unauthorized />
-    </div>
-    <div v-else class="grid h-full">
-        <div class="col-2 flex flex-column gap-2">
-            <div class="h-full">
-                <DataTable v-model:selection="selectedChart" :value="chartList" selectionMode="single"
-                scrollable class="h-full" dataKey="id">
-                    <Column field="title" header="Chart"></Column>
-                    <Column field="id" header="ID"></Column>
-                </DataTable>
-            </div>
-            <Button :disabled="!editor" label="New Chart" @click="newChart" />
+    <div>
+        <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
+            <Unauthorized />
         </div>
-        <div class="col-10 flex flex-column gap-5" id="chart-container">
-            <div class="flex justify-content-between">
-                <Button :disabled="!editor" severity="danger" label="Delete Chart" @click="deleteChartDialog = true" v-if="selectedChart && selectedChart.id" />
-                <Button :disabled="!editor" label="Edit Chart" @click="editChart" v-if="selectedChart && selectedChart.id" />
+        <div v-else>
+            <Toolbar class="mb-2">
+                <template #start>
+                    <Button :disabled="!editor" label="New Chart" @click="newChart" />
+                </template>
+                <template #center>
+                    <Dropdown v-model="selectedChart" :options="chartList" placeholder="Select a Chart">
+                        <template #value="slotProps">
+                            <div v-if="slotProps.value.title" class="flex">
+                                <div>{{ slotProps.value.title }} ({{ slotProps.value.id }})</div>
+                            </div>
+                            <div v-else>
+                                {{ slotProps.placeholder }}
+                            </div>
+                        </template>
+                        <template #option="slotProps">
+                            <div class="flex flex-column">
+                                <div>{{ slotProps.option.title }}</div>
+                                <small>{{ slotProps.option.id }}</small>
+                            </div>
+                        </template>
+                    </Dropdown>
+                </template>
+                <template #end>
+                    <div class="flex gap-2">
+                        <Button :disabled="!editor" label="Edit Chart" @click="editChart" v-if="selectedChart && selectedChart.id" />
+                        <Button :disabled="!editor" severity="danger" label="Delete Chart" @click="deleteChartDialog = true" v-if="selectedChart && selectedChart.id" />
+                    </div>
+                </template>
+            </Toolbar>
+            <div id="chart-container">
+                <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%" @timeout401="showLogin = true"></EZChart>
             </div>
-            <EZChart v-if="selectedChart && selectedChart.id" v-model="selectedChart.id" height="100%" @timeout401="showLogin = true"></EZChart>
+            <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
         </div>
-        <ConfirmDelete v-model="deleteChartDialog" :match="selectedChart.title" @delete="deleteChart"></ConfirmDelete>
+        <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadPage(); emit('updateApp')"></Login>
     </div>
-    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadPage()"></Login>
 </template>
 
 <style>
 #chart-container {
-    height: calc(100vh - 4.5rem)
+    /* height: calc(100vh - 4.5rem); */
+    height: calc(100vh - 10rem);
 }
 canvas {
-    max-height: calc(100vh - 4.5rem - 6rem) !important;
+    /* max-height: calc(100vh - 4.5rem - 6rem) !important; */
+    max-height: calc(100vh - 10rem) !important;
 }
 </style>

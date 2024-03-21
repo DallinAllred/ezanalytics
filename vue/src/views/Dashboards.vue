@@ -1,10 +1,12 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch} from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch} from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useToast } from  'primevue/usetoast';
 import axios from '@/axiosConfig'
 import EZDash from '@/components/EZDash.vue'
 
+const emit = defineEmits('updateApp')
+const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
@@ -31,8 +33,8 @@ async function loadPage() {
     }
     loginTitle.value = 'Session Timed Out'
     await loadDashboards()
-    if (router.query && 'dash' in router.query) {
-        let queryDash = dashList.value.filter(dash => dash.id == router.query.dash)
+    if ('dash' in route.query) {
+        let queryDash = dashList.value.filter(dash => dash.id == route.query.dash)
         selectedDash.value = queryDash[0]
     }
 }
@@ -72,50 +74,68 @@ async function deleteDash() {
     }
 }
 
+watch(selectedDash, () => {
+    if (selectedDash.value.id) {
+        let query = {'dash': selectedDash.value.id}
+        router.replace({ path: route.path, query: query})
+    }
+})
+
 onMounted(async () => {
     loadPage()
 })
-
-// watch(showLogin, () => {
-//     if (showLogin.value) return
-//     loadPage()
-// })
-
 </script>
 
 <template>
-    <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
-        <Unauthorized />
-    </div>
-    <div v-else class="grid h-full">
-        <div class="col-2 flex flex-column gap-2">
-            <div class="h-full">
-                <DataTable v-model:selection="selectedDash" :value="dashList" selectionMode="single"
-                scrollable class="h-full" dataKey="id">
-                    <Column field="title" header="Dashboard"></Column>
-                    <Column field="id" header="ID"></Column>
-                </DataTable>
-            </div>
-            <Button :disabled="!editor" label="New Dashboard" @click="newDashboard" />
+    <div>
+        <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
+            <Unauthorized />
         </div>
-        <div class="col-10 flex flex-column gap-2" id="dash-container">
-            <div class="flex justify-content-between">
-                <Button :disabled="!editor" severity="danger" label="Delete Dashboard" @click="deleteDashDialog = true" v-if="selectedDash && selectedDash.id" />
-                <Button :disabled="!editor" label="Edit Dashboard" @click="editDashboard" v-if="selectedDash && selectedDash.id" />
+        <div v-else>
+            <Toolbar class="mb-2">
+                <template #start>
+                    <Button :disabled="!editor" label="New Dashboard" @click="newDashboard" />
+                </template>
+                <template #center>
+                    <Dropdown v-model="selectedDash" :options="dashList" placeholder="Select a Chart">
+                        <template #value="slotProps">
+                            <div v-if="slotProps.value.title" class="flex">
+                                <div>{{ slotProps.value.title }} ({{ slotProps.value.id }})</div>
+                            </div>
+                            <div v-else>
+                                {{ slotProps.placeholder }}
+                            </div>
+                        </template>
+                        <template #option="slotProps">
+                            <div class="flex flex-column">
+                                <div>{{ slotProps.option.title }}</div>
+                                <small>{{ slotProps.option.id }}</small>
+                            </div>
+                        </template>
+                    </Dropdown>
+                </template>
+                <template #end>
+                    <div class="flex gap-2">
+                        <Button :disabled="!editor" label="Edit Dashboard" @click="editDashboard" v-if="selectedDash && selectedDash.id" />
+                        <Button :disabled="!editor" severity="danger" label="Delete Dashboard" @click="deleteDashDialog = true" v-if="selectedDash && selectedDash.id" />
+                    </div>
+                </template>
+            </Toolbar>
+            <div class="flex flex-column gap-2" id="dash-container">
+                <div class="flex justify-content-center">
+                    <h2>{{ selectedDash.title }}</h2>
+                </div>
+                <EZDash v-if="selectedDash && selectedDash.id" v-model="selectedDash.id" @timeout401="showLogin = true"></EZDash>
             </div>
-            <div class="flex justify-content-center">
-                <h2>{{ selectedDash.title }}</h2>
-            </div>
-            <EZDash v-if="selectedDash && selectedDash.id" v-model="selectedDash.id" @timeout401="showLogin = true"></EZDash>
+            <ConfirmDelete v-model="deleteDashDialog" :match="selectedDash.title" @delete="deleteDash"></ConfirmDelete>
         </div>
-        <ConfirmDelete v-model="deleteDashDialog" :match="selectedDash.title" @delete="deleteDash"></ConfirmDelete>
+        <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadPage(); emit('updateApp')"></Login>
     </div>
-    <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadPage()"></Login>
 </template>
 
 <style>
 #dash-container {
-    height: calc(100vh - 4.5rem);
-    overflow: scroll;
+    height: calc(100vh - 10rem);
+    /* overflow: scroll; */
 }
 </style>
