@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { FilterMatchMode } from 'primevue/api' 
 import axios from '@/axiosConfig'
 
 const emit = defineEmits('updateApp')
@@ -9,6 +10,13 @@ const router = useRouter()
 const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
 const showLogin = ref(false)
 const loginTitle = ref('Session Timed Out')
+
+const chartFilters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+})
+const dashFilters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+})
 
 const ownedCharts = ref([])
 const ownedDashboards = ref([])
@@ -28,7 +36,6 @@ async function loadItems() {
     try {
         let response = await axios.get(`/api/charts?user=${currentUser.value['user_id']}`)
         ownedCharts.value = response.data
-        console.log(response.data)
         response = await axios.get(`/api/dashboards?user=${currentUser.value['user_id']}`)
         ownedDashboards.value = response.data
     } catch (err) {
@@ -38,19 +45,15 @@ async function loadItems() {
 }
 
 function viewCharts() {
-    console.log('View Charts')
     router.push('/chartsHome')
 }
 function buildChart() {
-    console.log('Build Chart')
     router.push('/chartBuilder')
 }
 function viewDashboards() {
-    console.log('View Dashboards')
     router.push('/dashboards')
 }
 function buildDash() {
-    console.log('Build Dashboard')
     router.push('/dbBuilder')
 }
 
@@ -68,29 +71,110 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div class="h-full">
         <div v-if="!(currentUser.admin || currentUser.viewer)" class="flex p-3">
             <Unauthorized />
         </div>
-        <div v-else class="flex justify-content-around">
-            <div class="flex gap-8">
-                <DataTable v-model:selection="selectedChart" :value="ownedCharts" selectionMode="single"
-                scrollable class="h-full" dataKey="id" tableStyle="min-width: 20rem; max-height: calc(100vh - 6.5rem)">
-                <Column header="My Charts">
-                    <template #body="slotProps">
-                        <div>{{ slotProps.data.title }}</div>
-                        <small>{{ slotProps.data.id }}</small>
+        <div v-else class="grid flex h-full p-2 justify-content-around">
+            <Splitter class="h-full" style="width: 45vw">
+                <SplitterPanel class="flex pl-2" :size="65" :minSize="65">
+                    <DataTable class="h-full w-full" v-model:selection="selectedChart" v-model:filters="chartFilters"
+                    :value="ownedCharts" selectionMode="single" scrollable scrollHeight="100%" dataKey="id">
+                    <!-- <template #header>
+                        <div class="flex justify-content-start">
+                            <span class="p-input-icon-left">
+                                <i class="pi pi-search" />
+                                <InputText v-model="chartFilters['global'].value" placeholder="Search Charts" />
+                            </span>
+                        </div>
+                    </template> -->
+                    <Column field="title" header="My Charts">
+                        <template #body="slotProps">
+                            <div>{{ slotProps.data.title }}</div>
+                            <small>{{ slotProps.data.id }}</small>
+                        </template>
+                    </Column>
+                    </DataTable>
+                </SplitterPanel>
+                <SplitterPanel class="flex align-items-center justify-content-center px-2" :size="35" :minSize="35">
+                    <div class="flex flex-column gap-5">
+                        <Button class="home-nav-btn" label="View All Charts" @click="viewCharts" />
+                        <Button class="home-nav-btn" icon="pi pi-plus" label="Build a Chart" @click="buildChart" :disabled="!(currentUser.admin || currentUser['chart_builder'])" />
+                    </div>
+                </SplitterPanel>
+            </Splitter>
+
+            <Splitter class="h-full" style="width: 45vw">
+                <SplitterPanel class="flex pl-2" :size="65" :minSize="65">
+                    <DataTable class="h-full w-full" v-model:selection="selectedDash" v-model:filters="dashFilters"
+                    :value="ownedDashboards" selectionMode="single" scrollable scrollheight="100%" dataKey="id">
+                        <template #header>
+                            <div class="flex justify-content-start">
+                                <span class="p-input-icon-left">
+                                    <i class="pi pi-search" />
+                                    <InputText v-model="dashFilters['global'].value" placeholder="Search Dashboards" />
+                                </span>
+                            </div>
+                        </template>
+                        <Column header="My Dashboards">
+                            <template #body="slotProps">
+                                <div>{{ slotProps.data.title }}</div>
+                                <small>{{ slotProps.data.id }}</small>
+                            </template>
+                        </Column>
+                    </DataTable>
+                </SplitterPanel>
+                <SplitterPanel class="flex align-items-center justify-content-center px-2" :size="35" :minSize="35">
+                    <div class="flex flex-column gap-5">
+                        <Button class="home-nav-btn" label="View All Dashboards" @click="viewDashboards" />
+                        <Button class="home-nav-btn" icon="pi pi-plus" label="Build a Dashboard" @click="buildDash" :disabled="!(currentUser.admin || currentUser['dash_builder'])" />
+                    </div>
+                </SplitterPanel>
+            </Splitter>
+        </div>
+        <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadItems(); emit('updateApp')"></Login>
+    </div>
+</template>
+
+<style>
+</style>
+
+<!-- <div class="col-6 grid flex h-full">
+                <DataTable class="col-7 col-offset-1 h-full" v-model:selection="selectedChart" v-model:filters="chartFilters"
+                :value="ownedCharts" selectionMode="single" scrollable scrollHeight="90%" dataKey="id">
+                    <template #header>
+                        <div class="flex justify-content-start">
+                            <span class="p-input-icon-left">
+                                <i class="pi pi-search" />
+                                <InputText v-model="chartFilters['global'].value" placeholder="Search Charts" />
+                            </span>
+                        </div>
                     </template>
-                </Column>
+                    <Column field="title" header="My Charts">
+                        <template #body="slotProps">
+                            <div>{{ slotProps.data.title }}</div>
+                            <small>{{ slotProps.data.id }}</small>
+                        </template>
+                    </Column>
                 </DataTable>
-                <div class="flex flex-column gap-5">
+
+                <div class="col-3 flex flex-column align-items-center justify-content-center gap-5 h-full">
                     <Button class="home-nav-btn" label="View All Charts" @click="viewCharts" />
                     <Button class="home-nav-btn" icon="pi pi-plus" label="Build a Chart" @click="buildChart" :disabled="!(currentUser.admin || currentUser['chart_builder'])" />
                 </div>
             </div>
-            <div class="flex gap-8">
-                <DataTable v-model:selection="selectedDash" :value="ownedDashboards" selectionMode="single"
-                scrollable class="h-full" dataKey="id">
+
+            <div class="col-6 grid flex h-full">
+                <DataTable class="col-7 col-offset-1 h-full" v-model:selection="selectedDash" v-model:filters="dashFilters"
+                :value="ownedDashboards" selectionMode="single" scrollable scrollheight="100%" dataKey="id">
+                    <template #header>
+                        <div class="flex justify-content-start">
+                            <span class="p-input-icon-left">
+                                <i class="pi pi-search" />
+                                <InputText v-model="dashFilters['global'].value" placeholder="Search Dashboards" />
+                            </span>
+                        </div>
+                    </template>
                     <Column header="My Dashboards">
                         <template #body="slotProps">
                             <div>{{ slotProps.data.title }}</div>
@@ -98,19 +182,9 @@ onMounted(async () => {
                         </template>
                     </Column>
                 </DataTable>
-                <div class="flex flex-column gap-5">
+
+                <div class="col-3 flex flex-column align-items-center justify-content-center gap-5 h-full">
                     <Button class="home-nav-btn" label="View All Dashboards" @click="viewDashboards" />
                     <Button class="home-nav-btn" icon="pi pi-plus" label="Build a Dashboard" @click="buildDash" :disabled="!(currentUser.admin || currentUser['dash_builder'])" />
                 </div>
-            </div>
-        </div>
-        <Login v-model="showLogin" :title="loginTitle" @login="showLogin = false; loadItems(); emit('updateApp')"></Login>
-    </div>
-</template>
-
-<style>
-.home-nav-btn {
-    /* width: 150px;
-    height: 150px; */
-}
-</style>
+            </div> -->

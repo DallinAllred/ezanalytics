@@ -97,10 +97,10 @@ onMounted(async () => {
         <div v-else>
             <Toolbar class="mb-2">
                 <template #start>
-                    <Button :disabled="!editor" label="New Chart" @click="newChart" />
+                    <Button :disabled="!editor" icon="pi pi-plus" label="New Chart" @click="newChart" />
                 </template>
                 <template #center>
-                    <Dropdown v-model="selectedChart" :options="chartList" placeholder="Select a Chart">
+                    <Dropdown v-model="selectedChart" :options="chartList" filter optionLabel="title" placeholder="Select a Chart">
                         <template #value="slotProps">
                             <div v-if="slotProps.value.title" class="flex">
                                 <div>{{ slotProps.value.title }} ({{ slotProps.value.id }})</div>
@@ -119,8 +119,8 @@ onMounted(async () => {
                 </template>
                 <template #end>
                     <div class="flex gap-2">
-                        <Button :disabled="!editor" label="Edit Chart" @click="editChart" v-if="selectedChart && selectedChart.id" />
-                        <Button :disabled="!editor" severity="danger" label="Delete Chart" @click="deleteChartDialog = true" v-if="selectedChart && selectedChart.id" />
+                        <Button :disabled="!editor || !(selectedChart && selectedChart.id)" icon="pi pi-pencil" label="Edit Chart" @click="editChart" />
+                        <Button :disabled="!editor || !(selectedChart && selectedChart.id)" severity="danger" icon="pi pi-times" label="Delete Chart" @click="deleteChartDialog = true" />
                     </div>
                 </template>
             </Toolbar>

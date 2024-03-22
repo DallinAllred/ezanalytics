@@ -94,10 +94,10 @@ onMounted(async () => {
         <div v-else>
             <Toolbar class="mb-2">
                 <template #start>
-                    <Button :disabled="!editor" label="New Dashboard" @click="newDashboard" />
+                    <Button :disabled="!editor" icon="pi pi-plus" label="New Dashboard" @click="newDashboard" />
                 </template>
                 <template #center>
-                    <Dropdown v-model="selectedDash" :options="dashList" placeholder="Select a Chart">
+                    <Dropdown v-model="selectedDash" :options="dashList" filter optionLabel="title" placeholder="Select a Chart">
                         <template #value="slotProps">
                             <div v-if="slotProps.value.title" class="flex">
                                 <div>{{ slotProps.value.title }} ({{ slotProps.value.id }})</div>
@@ -116,8 +116,8 @@ onMounted(async () => {
                 </template>
                 <template #end>
                     <div class="flex gap-2">
-                        <Button :disabled="!editor" label="Edit Dashboard" @click="editDashboard" v-if="selectedDash && selectedDash.id" />
-                        <Button :disabled="!editor" severity="danger" label="Delete Dashboard" @click="deleteDashDialog = true" v-if="selectedDash && selectedDash.id" />
+                        <Button :disabled="!editor || !(selectedDash && selectedDash.id)" icon="pi pi-pencil" label="Edit Dashboard" @click="editDashboard" />
+                        <Button :disabled="!editor || !(selectedDash && selectedDash.id)" severity="danger" icon="pi pi-times" label="Delete Dashboard" @click="deleteDashDialog = true" />
                     </div>
                 </template>
             </Toolbar>
