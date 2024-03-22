@@ -78,7 +78,7 @@ onMounted(async () => {
         <div v-else class="grid flex h-full p-2 justify-content-around">
             <Splitter class="h-full" style="width: 45vw">
                 <SplitterPanel class="flex pl-2" :size="65" :minSize="65">
-                    <DataTable class="h-full w-full" v-model:selection="selectedChart" v-model:filters="chartFilters"
+                    <DataTable class="h-full w-full" v-model:selection="selectedChart" v-model:filters="chartFilters" stripedRows
                     :value="ownedCharts" selectionMode="single" scrollable scrollHeight="100%" dataKey="id">
                     <!-- <template #header>
                         <div class="flex justify-content-start">
@@ -106,16 +106,16 @@ onMounted(async () => {
 
             <Splitter class="h-full" style="width: 45vw">
                 <SplitterPanel class="flex pl-2" :size="65" :minSize="65">
-                    <DataTable class="h-full w-full" v-model:selection="selectedDash" v-model:filters="dashFilters"
+                    <DataTable class="h-full w-full" v-model:selection="selectedDash" v-model:filters="dashFilters" stripedRows
                     :value="ownedDashboards" selectionMode="single" scrollable scrollheight="100%" dataKey="id">
-                        <template #header>
+                        <!-- <template #header>
                             <div class="flex justify-content-start">
                                 <span class="p-input-icon-left">
                                     <i class="pi pi-search" />
                                     <InputText v-model="dashFilters['global'].value" placeholder="Search Dashboards" />
                                 </span>
                             </div>
-                        </template>
+                        </template> -->
                         <Column header="My Dashboards">
                             <template #body="slotProps">
                                 <div>{{ slotProps.data.title }}</div>
