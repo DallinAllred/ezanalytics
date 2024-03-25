@@ -23,7 +23,7 @@ CREATE TABLE users (
 
 -- DUMMY DATA
 -- DUMMY USERS
-INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('admin', 'admin', 'admin', 'admin', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14');
+INSERT INTO users (first_name, last_name, username, user_email, password, admin) VALUES ('admin', 'admin', 'admin', 'admin', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14', TRUE);
 INSERT INTO users (first_name, middle_name, last_name, username, user_email, password) VALUES ('John', 'Adams', 'Doe', 'johndoe', 'john@email.com', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14');
 INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jane', 'Doe', 'jadoe', 'jane@email.com', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14');
 INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14');
