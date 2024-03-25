@@ -8,6 +8,21 @@ const location = useRoute()
 const router = useRouter()
 
 const activePage = ref()
+const currentUser = ref({})
+const userMenu = ref()
+const userMenuItems = ref([{
+  items: [
+    {
+      label: 'Settings',
+      icon: 'pi pi-cog',
+      command: () => router.push('/settings')
+    },{
+      label: 'Sign Out',
+      icon: 'pi pi-sign-out',
+      command: () => router.push('/login')
+    }
+  ]
+}])
 
 const pageList = [
   { label: 'Home', icon: 'pi pi-home', route: '/', permissions: 'viewer' },
@@ -15,7 +30,7 @@ const pageList = [
   { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards', permissions: 'viewer' },
   { label: 'Connections', icon: 'pi pi-database', route: '/connections', permissions: 'connections' },
   { label: 'User Admin', icon: 'pi pi-users', route: '/users', permissions: 'admin' },
-  { label: 'Settings', icon: 'pi pi-cog', route: '/settings', permissions: 'viewer' }
+  // { label: 'Settings', icon: 'pi pi-cog', route: '/settings', permissions: 'viewer' }
 ]
 
 const pages = ref(pageList)
@@ -34,20 +49,25 @@ watch(() => location.path, () => {
 
 const loginPage = computed(() => location.path == '/login' )
 
-function signout() { router.push('/login') }
+const toggle = (event) => {
+  userMenu.value.toggle(event)
+}
+
+// function signout() { router.push('/login') }
 
 function updateNav() {
-  let currentUser = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+  currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
   pages.value = pageList.filter(page => {
-    return (currentUser.admin || currentUser[page.permissions])
+    return (currentUser.value.admin || currentUser.value[page.permissions])
   })
 }
 
 onMounted(() => {
-  let currentUser = JSON.parse(localStorage.getItem('eza-user')) ?? {}
-  pages.value = pageList.filter(page => {
-    return (currentUser.admin || currentUser[page.permissions])
-  })
+  updateNav()
+  // let currentUser = JSON.parse(localStorage.getItem('eza-user')) ?? {}
+  // pages.value = pageList.filter(page => {
+  //   return (currentUser.admin || currentUser[page.permissions])
+  // })
 })
 </script>
 
@@ -72,7 +92,8 @@ onMounted(() => {
           </TabMenu>
         </div>
         <div class="justify-content-end">
-        <Button v-if="!loginPage" label="Sign Out" text @click="signout()" />
+          <Button v-if="!loginPage" :label="currentUser.username ? currentUser.username : 'Sign In'" icon="pi pi-user" text @click="toggle" />
+          <Menu ref="userMenu" id="overlay_menu" :model="userMenuItems" :popup="true" />
         </div>
       </div>
     </header>
