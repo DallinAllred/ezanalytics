@@ -58,6 +58,16 @@ async def validate_permissions(request: Request, call_next):
         return await call_next(request)
     if '/api/connections' in path and user['connections']:
         return await call_next(request)
+    if '/api/users' in path:
+        '''Use a profile path instead for user updates, users path only for admin'''
+        # print('Call to /api/users')
+        # session_user = user['user_id']
+        # print(f'Session User: {session_user}')
+        # await set_body(request, await request.body())
+        # body = await get_body(request)
+        # print(f'Request Body User: {body}')
+        # # print(request.body().userId)
+        return await call_next(request)
     if request.method == 'GET':
         if ('/api/chart' in path or '/api/dash' in path or '/api/sources' in path) \
             and user['viewer']:
@@ -72,3 +82,13 @@ async def validate_permissions(request: Request, call_next):
     return JSONResponse(status_code=403,
                         content={'error': 'Unauthorized'},
                         headers=ERROR_HEADERS)
+
+# async def set_body(request: Request, body: bytes):
+#     async def receive():
+#         return {'type': 'http.request', 'body': body}
+#     request._receive = receive
+
+# async def get_body(request: Request):
+#     body = await request.body()
+#     await set_body(request, body)
+#     return body

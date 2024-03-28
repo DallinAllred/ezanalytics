@@ -41,11 +41,11 @@ class UserIn(BaseModel):
     middle_name: str | None = None
     username: str | None = None
     password: str | None = None
-    admin: bool | None = False
-    viewer: bool | None = False
-    chart_builder: bool | None = False
-    dash_builder: bool | None = False
-    connections: bool | None = False
+    admin: bool | None = None
+    viewer: bool | None = None
+    chart_builder: bool | None = None
+    dash_builder: bool | None = None
+    connections: bool | None = None
 
 class UserOut(BaseModel):
     model_config = ConfigDict(
@@ -91,11 +91,12 @@ async def create_user(user: UserIn, response: Response):
 
 @router.put('/{user_id}')
 async def update_user(user: UserIn, response: Response):
-    data = User.update_user(user.model_dump())
+    # data = User.update_user(user.model_dump(exclude_none=True))
+    print(user.model_dump(exclude_none=True))
+    data = User.update_user(user.model_dump(exclude_none=True))
     return [{'action': f'Updating user {user.user_id}'}]
 
 @router.delete('/{user_id}')
 async def delete_user(user_id):
-    print(user_id)
     data = User.delete_user(user_id)
     return [{'user_id': user_id, 'action': 'Delete'}]

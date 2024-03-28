@@ -13,7 +13,7 @@ const userMenu = ref()
 const userMenuItems = ref([{
   items: [
     {
-      label: 'Settings',
+      label: 'Account Settings',
       icon: 'pi pi-cog',
       command: () => router.push('/settings')
     },{
@@ -29,19 +29,11 @@ const pageList = [
   { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome', permissions: 'viewer' },
   { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards', permissions: 'viewer' },
   { label: 'Connections', icon: 'pi pi-database', route: '/connections', permissions: 'connections' },
-  { label: 'User Admin', icon: 'pi pi-users', route: '/users', permissions: 'admin' },
-  // { label: 'Settings', icon: 'pi pi-cog', route: '/settings', permissions: 'viewer' }
+  { label: 'User Admin', icon: 'pi pi-users', route: '/users', permissions: 'admin' }
 ]
 
 const pages = ref(pageList)
 
-// const pageWatcher = computed(() => {
-//   return pages.value.findIndex(page => page.route === location.path)
-// })
-// watch(pageWatcher, () => {
-//   let index = pages.value.findIndex(page => page.route === location.path)
-//   activePage.value = index
-// })
 watch(() => location.path, () => {
   let index = pages.value.findIndex(page => page.route === location.path)
   activePage.value = index
@@ -53,8 +45,6 @@ const toggle = (event) => {
   userMenu.value.toggle(event)
 }
 
-// function signout() { router.push('/login') }
-
 function updateNav() {
   currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
   pages.value = pageList.filter(page => {
@@ -64,10 +54,6 @@ function updateNav() {
 
 onMounted(() => {
   updateNav()
-  // let currentUser = JSON.parse(localStorage.getItem('eza-user')) ?? {}
-  // pages.value = pageList.filter(page => {
-  //   return (currentUser.admin || currentUser[page.permissions])
-  // })
 })
 </script>
 

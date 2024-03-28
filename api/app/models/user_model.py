@@ -46,6 +46,7 @@ class User():
 
     @staticmethod
     def update_user(data):
+        print(f'Update user: {data}')
         user_id = data['user_id']
         del data['user_id']
         try:
