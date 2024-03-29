@@ -199,7 +199,7 @@ async function deleteUser() {
                 </div>
                 <div class="field">
                     <label for="password">Password</label>
-                    <InputText id="password" v-model.trim="activeUser.password" />
+                    <Password id="password" v-model.trim="activeUser.password" toggleMask />
                 </div>
                 <div class="field">
                     <label class="mb-3">Permissions</label>

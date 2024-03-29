@@ -74,7 +74,7 @@ async def update_password(user_id,
         response.status_code = status.HTTP_400_BAD_REQUEST
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    pass
+    return
 
 @router.put('/{user_id}')
 async def update_user(user_id,

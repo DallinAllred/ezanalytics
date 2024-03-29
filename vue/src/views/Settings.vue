@@ -86,19 +86,20 @@ async function updatePassword() {
   submittedPassword.value = true
   if (!(oldPassword.value
     && newPassword1.value == newPassword2.value
-    && passwordComplexity)) { return }
+    && passwordComplexity.value)) { return }
   let data = {
     oldPassword: oldPassword.value,
     newPassword: newPassword1.value
   }
   try {
-    axios.put(`/api/profile/password/${currentUser.value['user_id']}`, data)
+    let response = await axios.put(`/api/profile/password/${currentUser.value['user_id']}`, data)
     oldPassword.value = ''
     newPassword1.value = ''
     newPassword2.value = ''
     submittedPassword.value = false
     toast.add({severity: 'success', summary: 'Successful', detail: 'Password Updated', life: 3000})
   } catch (err) {
+    console.log('Error updating password')
     if (err.response?.status === 401) {
       showLogin.value = true
     } else {
@@ -140,11 +141,11 @@ onMounted(() => {
   <div class="flex justify-content-center w-full">
     <div class="flex flex-column w-8">
       <div class="flex justify-content-start w-full">
-        <h2>User Settings for {{ currentUser.username }}</h2>
+        <h2>User Settings For: <span style="color: var(--primary-color)">{{ currentUser.username }}</span></h2>
       </div>
       <div class="flex gap-8">
         <div class="p-fluid w-5">
-          <div>
+          <div class="flex">
             <h3>User Info</h3>
           </div>
           <div class="field">
@@ -181,17 +182,17 @@ onMounted(() => {
           </div>
           <div class="field">
             <label for="oldPassword">Old Password</label>
-            <InputText id="oldPassword" type="password" v-model.trim="oldPassword" :class="{'p-invalid': submittedPassword && !oldPassword}" />
+            <Password toggleMask id="oldPassword" v-model.trim="oldPassword" :class="{'p-invalid': submittedPassword && !oldPassword}" />
           </div>
           <div class="field">
             <label for="newPassword1">New Password</label>
-            <InputText id="newPassword1" type="password" v-model.trim="newPassword1" :class="{'p-invalid': submittedPassword && !newPassword1}" />
+            <Password toggleMask id="newPassword1" v-model.trim="newPassword1" :class="{'p-invalid': submittedPassword && !newPassword1}" />
             <small class="p-error" v-if="newPassword1 != newPassword2">Passwords must match</small>
             <small class="p-error" v-if="submittedPassword && !passwordComplexity">Password must be at least 8 characters</small>
           </div>
           <div class="field">
             <label for="newPassword2">Confirm New Password</label>
-            <InputText id="newPassword2" type="password" v-model.trim="newPassword2" :class="{'p-invalid': submittedPassword && !newPassword2}" />
+            <Password toggleMask id="newPassword2" v-model.trim="newPassword2" :class="{'p-invalid': submittedPassword && !newPassword2}" />
             <small class="p-error" v-if="newPassword1 != newPassword2">Passwords must match</small>
             <small class="p-error" v-if="submittedPassword && !passwordComplexity">Password must be at least 8 characters</small>
 

@@ -1,5 +1,4 @@
 import redis
-
 from psycopg_pool import ConnectionPool
 
 pg_host = 'postgres_eza_container'
