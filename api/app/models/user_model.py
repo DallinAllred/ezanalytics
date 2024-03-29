@@ -1,5 +1,3 @@
-from argon2 import PasswordHasher
-
 from .db import eza_pool
 
 class User():
@@ -46,13 +44,8 @@ class User():
 
     @staticmethod
     def update_user(data):
-        print(f'Update user: {data}')
         user_id = data['user_id']
         del data['user_id']
-        try:
-            del data['password']
-        except:
-            pass
         value_string = ', '.join([f'{key}=%s' for key in data.keys()])
         query = f'''UPDATE users SET {value_string} WHERE user_id=%s;'''
         with eza_pool.connection() as conn:

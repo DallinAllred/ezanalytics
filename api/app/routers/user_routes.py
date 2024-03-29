@@ -1,8 +1,9 @@
-from argon2 import PasswordHasher
+# from argon2 import PasswordHasher
 from fastapi import APIRouter, Response
 from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_snake, to_camel
 
+from ..auth.auth import Auth
 from ..models.user_model import User
 
 router = APIRouter(
@@ -84,14 +85,17 @@ async def read_user(user_id):
 @router.post('/', status_code=201)
 async def create_user(user: UserIn, response: Response):
     if not user.password:
-        ph = PasswordHasher()
-        user.password = ph.hash(f'{user.first_name}.{user.last_name}')
-    data = User.create_user(user.model_dump())
+        user.password = f'{user.first_name}.{user.last_name}'
+    user.password = Auth.generate_password(user.password)
+    data = User.create_user(user.model_dump(exclude_none=True))
     return user.model_dump()
 
 @router.put('/{user_id}')
 async def update_user(user: UserIn, response: Response):
     # data = User.update_user(user.model_dump(exclude_none=True))
+    print(user.model_dump(exclude_none=True))
+    if user.password:
+        user.password = Auth.generate_password(user.password)
     print(user.model_dump(exclude_none=True))
     data = User.update_user(user.model_dump(exclude_none=True))
     return [{'action': f'Updating user {user.user_id}'}]

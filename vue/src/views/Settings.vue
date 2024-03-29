@@ -1,8 +1,10 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
+import { useToast } from 'primevue/usetoast'
 import axios from '@/axiosConfig'
 
 const emit = defineEmits('updateApp')
+const toast = useToast()
 
 const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
 const showLogin = ref(false)
@@ -43,6 +45,11 @@ const changesMade = computed(() => {
   return changes
 })
 
+const passwordComplexity = computed(() => {
+  if (newPassword1.value.length < 8) return false
+  return true
+})
+
 async function loadUserInfo() {
   if (!currentUser.value.username) {
         currentUser.value = JSON.parse(localStorage.getItem('eza-user')) ?? {}
@@ -54,7 +61,7 @@ async function loadUserInfo() {
     }
     loginTitle.value = 'Session Timed Out'
     try {
-      let response = await axios.get(`/api/users/${currentUser.value['user_id']}`)
+      let response = await axios.get(`/api/profile/${currentUser.value['user_id']}`)
       let userData = response.data
       accountInfo.value = {
         username: userData.username,
@@ -76,25 +83,50 @@ function undoPendingChanges() {
 }
 
 async function updatePassword() {
-
+  submittedPassword.value = true
+  if (!(oldPassword.value
+    && newPassword1.value == newPassword2.value
+    && passwordComplexity)) { return }
+  let data = {
+    oldPassword: oldPassword.value,
+    newPassword: newPassword1.value
+  }
+  try {
+    axios.put(`/api/profile/password/${currentUser.value['user_id']}`, data)
+    oldPassword.value = ''
+    newPassword1.value = ''
+    newPassword2.value = ''
+    submittedPassword.value = false
+    toast.add({severity: 'success', summary: 'Successful', detail: 'Password Updated', life: 3000})
+  } catch (err) {
+    if (err.response?.status === 401) {
+      showLogin.value = true
+    } else {
+      toast.add({severity: 'error', summary: 'Error', detail: 'Unable to update password', life: 3000})
+    }
+  }
 }
 
 async function updateUserInfo() {
   if (!changesMade) return
   delete proposedInfo.value.username
-  console.log(proposedInfo.value)
   submitted.value = true
   if (!(proposedInfo.value.firstName
         && proposedInfo.value.lastName
         && proposedInfo.value.userEmail)) { return }
   try {
     let response = await axios.put(
-      `/api/users/${currentUser.value['user_id']}`,
+      `/api/profile/${currentUser.value['user_id']}`,
       {userId: currentUser.value['user_id'], ...proposedInfo.value}
     )
+    Object.assign(accountInfo.value, proposedInfo.value)
+    submitted.value = false
+    toast.add({severity: 'success', summary: 'Successful', detail: 'Profile Updated', life: 3000})
   } catch (err) {
     if (err.response?.status === 401) {
       showLogin.value = true
+    } else {
+      toast.add({severity: 'error', summary: 'Successful', detail: 'Unable to update profile', life: 3000})
     }
   }
 }
@@ -155,14 +187,17 @@ onMounted(() => {
             <label for="newPassword1">New Password</label>
             <InputText id="newPassword1" type="password" v-model.trim="newPassword1" :class="{'p-invalid': submittedPassword && !newPassword1}" />
             <small class="p-error" v-if="newPassword1 != newPassword2">Passwords must match</small>
+            <small class="p-error" v-if="submittedPassword && !passwordComplexity">Password must be at least 8 characters</small>
           </div>
           <div class="field">
             <label for="newPassword2">Confirm New Password</label>
             <InputText id="newPassword2" type="password" v-model.trim="newPassword2" :class="{'p-invalid': submittedPassword && !newPassword2}" />
             <small class="p-error" v-if="newPassword1 != newPassword2">Passwords must match</small>
+            <small class="p-error" v-if="submittedPassword && !passwordComplexity">Password must be at least 8 characters</small>
+
           </div>
           <div class="field">
-            <Button label="Update Password" :disabled="!oldPassword || !newPassword1 || (newPassword1 != newPassword2) "/>
+            <Button label="Update Password" :disabled="!oldPassword || !newPassword1 || (newPassword1 != newPassword2)" @click="updatePassword" />
           </div>
         </div>
       </div>

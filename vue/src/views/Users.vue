@@ -198,6 +198,10 @@ async function deleteUser() {
                     <small class="p-error" v-if="submitted && !activeUser.userEmail">Email is required</small>
                 </div>
                 <div class="field">
+                    <label for="password">Password</label>
+                    <InputText id="password" v-model.trim="activeUser.password" />
+                </div>
+                <div class="field">
                     <label class="mb-3">Permissions</label>
                     <div class="formgrid grid">
                         <div class="field-checkbox col-6">
