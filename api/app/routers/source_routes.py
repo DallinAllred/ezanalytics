@@ -61,8 +61,9 @@ async def read_sources(source_id, limit: int | None = None):
         data = Source.get_data_table(loc_data['source_access_id'], limit)
         return data
     else: # External DB connection
-# TODO: Connections phase
-# CONNECTIONS PAGE
+        # TODO: Connections phase
+        # CONNECTIONS PAGE
+        # loc_data['source_type'] == 'connection'
         pass
     return [{"source_id": source_id}]
 
