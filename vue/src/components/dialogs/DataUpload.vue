@@ -9,7 +9,7 @@ const model = defineModel()
 const toast = useToast()
 
 const currentUser = JSON.parse(localStorage.getItem('eza-user'))
-const currentUserId = currentUser['user_id']
+if (!currentUser) emit('timeout401')
 
 const submitted = ref(false)
 const uploading = ref(false)
@@ -88,7 +88,7 @@ async function uploadData() {
     let tableData = {
         columns,
         name: tableTitle.value,
-        user: currentUserId.value
+        user: currentUser['user_id']
     }
     let createdTableName = ''
     try {
@@ -129,7 +129,6 @@ watch(delimitedData, () => {
         types.push(colType)
     }
     colTypes.value = types
-    console.log(delimitedData.value)
 })
 </script>
 

@@ -171,7 +171,6 @@ async function deleteUser() {
                 </Column>
             </DataTable>
     
-    
             <Dialog v-model:visible="userDialog" :style="{width: '450px'}" header="User Details" :modal="true" class="p-fluid">
                 <div class="field">
                     <label for="firstName">First Name*</label>
@@ -227,8 +226,8 @@ async function deleteUser() {
                     </div>
                 </div>
                 <template #footer>
-                    <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-                    <Button label="Save" icon="pi pi-check" text @click="saveUser" />
+                    <Button label="Cancel" icon="pi pi-times" @click="hideDialog" />
+                    <Button label="Save" icon="pi pi-check" @click="saveUser" />
                 </template>
             </Dialog>
     

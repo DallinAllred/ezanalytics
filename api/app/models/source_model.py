@@ -15,6 +15,16 @@ class Source():
         return json_data
     
     @staticmethod
+    def get_connection_details(access_id):
+        query = 'SELECT * FROM connections WHERE connection_access_id=%s'
+        with eza_pool.connection() as conn:
+            result = conn.execute(query, [access_id])
+            data = result.fetchall()
+        columns = [desc[0] for desc in result.description]
+        json_data = dict(zip(columns, data[0]))
+        return json_data
+
+    @staticmethod
     def get_source(source_id):
         headers = ['source_type', 'source_access_id']
         query = '''SELECT source_type, source_access_id FROM data_sources WHERE source_id=%s;'''
@@ -37,15 +47,24 @@ class Source():
     def create_connection_source(user_id, source_name, access_name):
         print('Creating connection source')
         return
-    
+
+    @staticmethod
+    def delete_source(source_id):
+        query = 'DELETE FROM data_sources WHERE source_id=%s;'
+        with eza_pool.connection() as conn:
+            conn.execute(query, [source_id])
+            conn.commit()
+        return source_id
+
     @staticmethod
     def get_data_table(table_name, limit):
         params = []
-        query = f'''SELECT * FROM {table_name}'''
+        query = 'SELECT * FROM {table}'
         if limit:
             params.append(limit)
             query += ''' LIMIT %s'''
         query += ';'
+        query = sql.SQL(query).format(table = sql.Identifier(table_name))
         with upload_pool.connection() as conn:
             result = conn.execute(query, params)
             data = result.fetchall()
@@ -84,11 +103,12 @@ class Source():
 
     @staticmethod
     def delete_datatable(table_name):
-        query = "DROP TABLE IF EXISTS {table};"
+        query = 'DROP TABLE IF EXISTS {table};'
         query = sql.SQL(query).format(table = sql.Identifier(table_name))
         with upload_pool.connection() as conn:
             conn.execute(query)
             conn.commit()
+        return table_name
 
     @staticmethod
     def upload_data(table_name, data):
@@ -117,3 +137,7 @@ class Source():
                     fail_count += 1
         
         return success_count, fail_count
+
+    @staticmethod
+    def get_connection_data(access_id):
+        pass

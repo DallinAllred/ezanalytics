@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Response, status
-from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
+from pydantic import AliasGenerator, BaseModel, ConfigDict
 from pydantic.alias_generators import to_snake, to_camel
-from typing import Annotated, Any, List
+from typing import Annotated
 from enum import Enum
 
 from ..models.source_model import Source
@@ -24,7 +24,7 @@ class SourceIn(BaseModel):
         )
     )
     source_id: int | None = None
-    source_type: str | None = None # 'upload' or 'db'(?)
+    source_type: str | None = None # 'upload' or 'external'(?)
     source_label: str # Human readable label
     source_access_id: str # Table name in Postgres
 
@@ -54,18 +54,32 @@ async def read_sources():
     data = [SourceOut(**source).model_dump() for source in data]
     return data
 
+@router.get("/conndetails/{source_id}")
+async def read_connection_details(source_id):
+    src_data = Source.get_source(source_id)
+    data = Source.get_connection_details(src_data['source_access_id'])
+    return data
+
 @router.get("/{source_id}")
-async def read_sources(source_id, limit: int | None = None):
+async def read_sources(source_id, response: Response, limit: int | None = None):
     loc_data = Source.get_source(source_id)
     if loc_data['source_type'] == 'upload':
-        data = Source.get_data_table(loc_data['source_access_id'], limit)
-        return data
+        try:
+            data = Source.get_data_table(loc_data['source_access_id'], limit)
+            return data
+        except Exception as e:
+            print(e)
+            response.status = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return
     else: # External DB connection
         # TODO: Connections phase
-        # CONNECTIONS PAGE
-        # loc_data['source_type'] == 'connection'
-        pass
-    return [{"source_id": source_id}]
+        try:
+            data = Source.get_connection_data(loc_data['source_access_id'])
+            return data
+        except Exception as e:
+            print(e)
+            response.status = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return
 
 @router.post("/upload", status_code=201)
 async def create_source(data: UploadMetadata, response: Response):
@@ -106,12 +120,28 @@ async def update_source(table_name, data: Annotated[list, Body()], response: Res
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {'error': 'Error uploading data'}
-    # return [{"action": f'Updating conn {table_name}'}]
 
 @router.delete("/{source_id}")
-async def delete_source(source_id):
-# CONNECTIONS PAGE
-    # Get table
-    # Drop table
-    # Remove row from data_sources table
-    return [{"source_id": source_id, "action": "Delete"}]
+async def delete_source(source_id, response: Response):
+    print(f'Deleting source {source_id}')
+    source_data = Source.get_source(source_id)
+    print(source_data)
+    if source_data['source_type'] == 'upload':
+        try:
+            name = Source.delete_datatable(source_data['source_access_id'])
+            id = Source.delete_source(source_id)
+            return {'id': id, 'name': name}
+        except Exception as e:
+            print(e)
+            print(f'Unable to delete {source_data['source_access_id']}')
+            response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return
+    else:
+        try:
+            id = Source.delete_source(source_id)
+            return {'id': id, 'external': source_data['source_access_id']}
+        except Exception as e:
+            print(e)
+            print(f'Unable to delete {source_data['source_access_id']}')
+            response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return

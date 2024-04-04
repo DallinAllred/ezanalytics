@@ -32,8 +32,8 @@ watch(model, () => {
             </div>
         </div>
         <template #footer>
-            <Button label="No" icon="pi pi-times" text @click="model = false" />
-            <Button label="Yes" icon="pi pi-check" text @click="emit('delete')" 
+            <Button label="No" icon="pi pi-times" @click="model = false" />
+            <Button label="Yes" icon="pi pi-check" @click="emit('delete')" 
             :disabled="disableDelete"/>
         </template>
     </Dialog>

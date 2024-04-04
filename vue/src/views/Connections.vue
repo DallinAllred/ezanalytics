@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useToast } from  'primevue/usetoast'
 import axios from '@/axiosConfig'
 import DataUpload from '@/components/dialogs/DataUpload.vue'
@@ -8,50 +8,138 @@ import DataUpload from '@/components/dialogs/DataUpload.vue'
 const emit = defineEmits('updateApp')
 const toast = useToast()
 
+const DISALLOWED = ['ALTER', 'INSERT', 'DELETE', 'DROP', 'TABLE', 'UPDATE']
+
 const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
 
+// Modals
 const showLogin = ref(false)
 const showUploadModal = ref(false)
-const connectionDialog = ref(false)
+const showConnectionModal = ref(false)
 const deleteSourceDialog = ref(false)
+const submitted = ref(false)
 
+// Source Info
 const activeSource = ref({})
 const uploadSources = ref([])
 const connectionSources = ref()
+const noSelect = ref(false)
+const unsafeQuery = ref(false)
+const confirmUnsafe = ref(false)
+
+const databaseEngines = ref([
+    {name: 'MariaDB', value: 'mariadb'},
+    {name: 'MySQL', value: 'mysql'},
+    {name: 'PostgreSQL', value: 'postgres'}
+])
 
 async function loadSources() {
     try{
         let response = await axios.get('/api/sources')
         let sources = response.data
         uploadSources.value = sources.filter(src => src.sourceType === 'upload')
-        connectionSources.value = sources.filter(src => src.sourceType === 'connection')
-        console.log(response.data)
+        connectionSources.value = sources.filter(src => src.sourceType === 'external')
     } catch (err) {
+        if (err.response?.status === 401) { showLogin.value = true }
         console.log(err)
     }
 }
 
 function confirmDeleteSource(source) {
-    console.log(source)
+    activeSource.value = source
     deleteSourceDialog.value = true
     activeSource.value = source
 }
 
-function deleteSource() {
-    toast.add({severity: 'warn', summary: 'Warning', detail: 'Delete Data Source clicked', life: 3000})
+async function deleteSource() {
+    try {
+        let response = await axios.delete(`/api/sources/${activeSource.value.sourceId}`)
+        let sourceName = response.data.name
+        toast.add({severity: 'success', summary: 'Success', detail: `${sourceName} has been deleted`, life: 3000})
+        loadSources()
+    } catch (err) {
+        if (err.response?.status === 401) { showLogin.value = true }
+        console.log('Other error', err)
+    }
     deleteSourceDialog.value = false
 }
 
-function deleteConnection() {
-    toast.add({severity: 'warn', summary: 'Warning', detail: 'Delete Connection clicked', life: 3000})
+async function editConnection(source) {
+    if (source == null) {
+        activeSource.value = {
+            engine: null,
+            host: '',
+            port: null,
+            user: '',
+            password: '',
+            query: ''
+        }
+    } else {
+        let response = await axios.get(`/api/sources/conndetails/${source.sourceId}`)
+        let connData = response.data
+        let engine = connData['db_type']
+        engine = databaseEngines.value.filter(eng => eng.value == engine)
+        engine = engine.length > 0 ? engine[0] : null
+        activeSource.value = {
+            engine: engine,
+            host: connData['connection_host'] ?? '',
+            port: connData['connection_port'] ?? null,
+            user: connData['connection_user'] ?? '',
+            password: connData['connection_pw'] ?? '',
+            query: connData['query'] ?? ''
+        }
+    }
+    showConnectionModal.value = true
 }
 
-function newConnection() {
-    toast.add({severity: 'info', summary: 'Successful', detail: 'New Connection clicked', life: 3000})
+async function saveConnection() {
+    submitted.value = true
+    noSelect.value = false
+    unsafeQuery.value = false
+    if (!(activeSource.value.engine
+        && activeSource.value.host
+        && activeSource.value.port
+        && activeSource.value.user
+        && activeSource.value.password
+        && activeSource.value.query)) { return }
+    let query = activeSource.value.query.toUpperCase()
+    let temp = query.split(' ')
+    if (temp[0] != 'SELECT') {
+        noSelect.value = true
+        return
+    }
+    query = query.replace(/(\r\n|\n\r|\n)/gm, ' ')
+    for (let word of DISALLOWED) {
+        if (confirmUnsafe.value) break
+        if (query.includes(word)) {
+            unsafeQuery.value = true
+            return
+        }
+    }
+    activeSource.value.query = activeSource.value.query.replace(/(\r\n|\n\r|\n)/gm, ' ')
+
+    console.log('Saving connection')
+}
+
+function hideConnectionDialog() {
+    activeSource.value = {}
+    showConnectionModal.value = false
 }
 
 onMounted(() => {
     loadSources()
+})
+
+watch(showUploadModal, () => {
+    if (!showUploadModal.value) loadSources()
+})
+
+watch(showConnectionModal, () => {
+    if (showConnectionModal) return
+    activeSource.value =  {}
+    unsafeQuery.value = false
+    confirmUnsafe.value = true
+    submitted.value = false
 })
 </script>
 
@@ -64,7 +152,6 @@ onMounted(() => {
             <div class="col-6 flex flex-column gap-2">
                 <h2>Uploaded Data</h2>
                 <div class="flex flex-row justify-content-start">
-                    <!-- <div><Button label="Delete Data Source" @click="deleteSource" /></div> -->
                     <div><Button label="Upload Data" icon="pi pi-plus" @click="showUploadModal = true" /></div>
                 </div>
                 <DataTable :value="uploadSources">
@@ -81,15 +168,14 @@ onMounted(() => {
             <div class="col-6 flex flex-column gap-2">
                 <h2>Database Connections</h2>
                 <div class="flex flex-row justify-content-start">
-                    <div><Button label="New DB Connection" icon="pi pi-plus" @click="newConnection" /></div>
+                    <div><Button label="New DB Connection" icon="pi pi-plus" @click="editConnection(null)" /></div>
                 </div>
-                <Skeleton height="100%"></Skeleton>
                 <DataTable :value="connectionSources">
                     <Column field="sourceLabel"></Column>
                     <Column style="width: 8rem">
                     <template #body="slotProps">
                         <div class="flex justify-content-center">
-                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editSource(slotProps.data)" />
+                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editConnection(slotProps.data)" />
                             <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteSource(slotProps.data)" />
                         </div>
                     </template>
@@ -98,6 +184,68 @@ onMounted(() => {
             </div>
             <ConfirmDelete v-model="deleteSourceDialog" :match="activeSource.sourceLabel" @delete="deleteSource"></ConfirmDelete>
             <DataUpload v-model="showUploadModal" @timeout401="showLogin = true"></DataUpload>
+
+            <Dialog v-model:visible="showConnectionModal" :style="{width: '600px'}" header="Connection Editor" :modal="true" class="p-fluid">
+                <div class="field">
+                    <label for="engine">Database</label>
+                    <Dropdown v-model="activeSource.engine" :options="databaseEngines" optionLabel="name" placeholder="Select a database engine" />
+                    <small class="p-error" v-if="submitted && !activeSource.engine">An engine is required</small>
+                </div>
+                <div class="flex gap-5">
+                    <div class="flex flex-column w-full">
+                        <div class="field">
+                            <label for="hostname">Host</label>
+                            <InputText id="hostname" v-model.trim="activeSource.host" />
+                            <small class="p-error" v-if="submitted && !activeSource.host">Hostname is required</small>
+                        </div>
+                        <div class="field">
+                            <label for="port">Port</label>
+                            <InputNumber id="port" v-model.trim="activeSource.port" :useGrouping="false" />
+                            <small class="p-error" v-if="submitted && !activeSource.port">Port is required</small>
+                        </div>
+                    </div>
+                    <div class="flex flex-column w-full">
+                        <div class="field">
+                            <label for="user">User</label>
+                            <InputText id="user" v-model.trim="activeSource.user" />
+                            <small class="p-error" v-if="submitted && !activeSource.user">Database user is required</small>
+                        </div>
+                        <div class="field">
+                            <label for="password">Password</label>
+                            <InputText id="password" v-model.trim="activeSource.password" />
+                            <small class="p-error" v-if="submitted && !activeSource.password">Database password is required</small>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <Button label="Test Connection" />
+                </div>
+                <Divider />
+                <div class="field">
+                    <label for="query">Query</label>
+                    <Textarea v-model="activeSource.query" rows="10" cols="100"/>
+                    <small class="p-error" v-if="submitted && (!activeSource.query || noSelect)">A SELECT query is required</small>
+                    <div class="flex gap-5" v-if="unsafeQuery">
+                        <div class="flex align-items-center w-full">
+                            <Message severity="warn">
+                                This query appears to contain potentially dangerous keywords.
+                                Confirm the query contents before continueing.
+                            </Message>
+                        </div>
+                        <div class="flex align-items-center justify-content-center w-full">
+                            <ToggleButton v-model="confirmUnsafe" severity='danger' 
+                                offLabel="Yes, the query is okay" onLabel="Potentially unsafe query approved."
+                                onIcon="pi pi-check"/>
+                        </div>
+                    </div>
+                </div>
+                <template #footer>
+                    <Button label="Cancel" icon="pi pi-times" @click="hideConnectionDialog" />
+                    <Button label="Save" icon="pi pi-check" @click="saveConnection" :disabled="!confirmUnsafe && unsafeQuery" />
+                </template>
+
+            </Dialog>
+
         </div>
         <Login v-model="showLogin" title="Session Timed Out" @login="showLogin = false; emit('updateApp')"></Login>
     </div>
