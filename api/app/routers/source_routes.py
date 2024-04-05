@@ -16,6 +16,11 @@ class ColEnum(str, Enum):
     varchar = 'VARCHAR'
     timestamp = 'TIMESTAMP'
 
+class EngineEnum(str, Enum):
+    mariadb = 'mariadb'
+    mysql = 'mysql'
+    postgres = 'postgres'
+
 class SourceIn(BaseModel):
     model_config = ConfigDict(
         alias_generator=AliasGenerator(
@@ -48,6 +53,16 @@ class UploadMetadata(BaseModel):
     name: str
     user: int
 
+class ConnectionData(BaseModel):
+    name: str
+    engine: str
+    host: str
+    port: int
+    user: str
+    password: str
+    query: str
+
+
 @router.get("/")
 async def read_sources():
     data = Source.get_sources()
@@ -61,7 +76,7 @@ async def read_connection_details(source_id):
     return data
 
 @router.get("/{source_id}")
-async def read_sources(source_id, response: Response, limit: int | None = None):
+async def read_source(source_id, response: Response, limit: int | None = None):
     loc_data = Source.get_source(source_id)
     if loc_data['source_type'] == 'upload':
         try:
@@ -72,7 +87,6 @@ async def read_sources(source_id, response: Response, limit: int | None = None):
             response.status = status.HTTP_500_INTERNAL_SERVER_ERROR
             return
     else: # External DB connection
-        # TODO: Connections phase
         try:
             data = Source.get_connection_data(loc_data['source_access_id'])
             return data
@@ -104,13 +118,26 @@ async def create_source(data: UploadMetadata, response: Response):
     try:
         if version > 0:
             data.name = f'{data.name}_{version}'
-        Source.create_upload_source(data.user, data.name, table_name)
+        Source.create_source(data.user, 'upload', data.name, table_name)
     except Exception as e:
         print('Error adding entry to sources')
         Source.delete_datatable(table_name)
         response.status_code = status.HTTP_502_BAD_GATEWAY
         return {'error': 'Unable to create resource'}
     return {'created': table_name}
+
+@router.post("/connection", status_code=201)
+async def create_connection(data: ConnectionData, response: Response):
+    try:
+        eng = EngineEnum(data.engine)
+    except ValueError as e:
+        print('Unsupported database engine')
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {'error': 'Unsupported database engine'}
+    existing_sources = Source.get_sources()
+    version = 0
+    for row in existing_sources:
+        print(row)
 
 @router.put("/upload/{table_name}", status_code=201)
 async def update_source(table_name, data: Annotated[list, Body()], response: Response):

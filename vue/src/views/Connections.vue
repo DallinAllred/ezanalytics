@@ -10,7 +10,7 @@ const toast = useToast()
 
 const DISALLOWED = ['ALTER', 'INSERT', 'DELETE', 'DROP', 'TABLE', 'UPDATE']
 
-const currentUser = reactive(JSON.parse(localStorage.getItem('eza-user')))
+const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')))
 
 // Modals
 const showLogin = ref(false)
@@ -65,8 +65,10 @@ async function deleteSource() {
 }
 
 async function editConnection(source) {
+    console.log(currentUser.value)
     if (source == null) {
         activeSource.value = {
+            name: '',
             engine: null,
             host: '',
             port: null,
@@ -81,6 +83,7 @@ async function editConnection(source) {
         engine = databaseEngines.value.filter(eng => eng.value == engine)
         engine = engine.length > 0 ? engine[0] : null
         activeSource.value = {
+            name: source.sourceLabel,
             engine: engine,
             host: connData['connection_host'] ?? '',
             port: connData['connection_port'] ?? null,
@@ -96,7 +99,8 @@ async function saveConnection() {
     submitted.value = true
     noSelect.value = false
     unsafeQuery.value = false
-    if (!(activeSource.value.engine
+    if (!(activeSource.value.name
+        && activeSource.value.engine
         && activeSource.value.host
         && activeSource.value.port
         && activeSource.value.user
@@ -117,6 +121,11 @@ async function saveConnection() {
         }
     }
     activeSource.value.query = activeSource.value.query.replace(/(\r\n|\n\r|\n)/gm, ' ')
+
+    let data = {
+        user: currentUser.value['user_id'],
+        ...activeSource.value
+    }
 
     console.log('Saving connection')
 }
@@ -187,6 +196,11 @@ watch(showConnectionModal, () => {
 
             <Dialog v-model:visible="showConnectionModal" :style="{width: '600px'}" header="Connection Editor" :modal="true" class="p-fluid">
                 <div class="field">
+                    <label for="name">Connection Name</label>
+                    <InputText id="name" v-model.trim="activeSource.name" />
+                </div>
+                <Divider />
+                <div class="field">
                     <label for="engine">Database</label>
                     <Dropdown v-model="activeSource.engine" :options="databaseEngines" optionLabel="name" placeholder="Select a database engine" />
                     <small class="p-error" v-if="submitted && !activeSource.engine">An engine is required</small>
@@ -217,9 +231,9 @@ watch(showConnectionModal, () => {
                         </div>
                     </div>
                 </div>
-                <div>
+                <!-- <div>
                     <Button label="Test Connection" />
-                </div>
+                </div> -->
                 <Divider />
                 <div class="field">
                     <label for="query">Query</label>
