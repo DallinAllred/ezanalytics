@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Vue.js application
+  # vue:
+  #   container_name: vue_eza_container
+  #   image: node:21
+  #   working_dir: /app
+  #   volumes:
+  #     - ./vue:/app
+  #   command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - analytics_network
+
+  # Nginx as a reverse proxy for Vue.js and FastAPI
+  nginx:
+    container_name: nginx_eza_container
+    build:
+      context: ./nginx
+    # image: nginx:latest
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - vue
+      - fastapi
+      - mongo
+      - postgres
+      - redis
+    networks:
+      - analytics_network
+
+  # FastAPI
+  fastapi:
+    container_name: fastapi_eza_container
+    build:
+      context: ./api
+    working_dir: /app
+    ports:
+      - 5050:5050
+    volumes:
+      - ./api:/app
+    depends_on:
+      - postgres
+      - redis
+      - mongo
+    networks:
+      - analytics_network
+
+  # PostgreSQL
+  postgres:
+    container_name: postgres_eza_container
+    build:
+      context: ./postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+    expose:
+      - "5432"
+    volumes:
+      - postgres-data:/data
+    networks:
+      - analytics_network
+
+  # Redis
+  redis:
+    container_name: redis_eza_container
+    image: redis:latest
+    command: redis-server && redis-cli FLUSHALL
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+      - redis-conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - analytics_network
+
+  # MongoDB
+  mongo:
+    container_name: mongo_eza_container
+    # image: mongo:latest
+    build:
+      context: ./mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    expose:
+      - "27017"
+    volumes:
+      - mongo-data:/data
+    networks:
+      - analytics_network
+
+networks:
+  analytics_network:
+
+volumes:
+  ezanalytics-vue:
+  fastapi:
+  mongo-data:
+  postgres-data:
+  redis-data:
+  redis-conf:
