@@ -182,13 +182,21 @@ class Source():
             f'PWD={passw};'
             'charset=utf8mb4;'
         )
-        print('Query:', data_query)
         conn = pyodbc.connect(conn_string, autocommit=False)
         result = conn.execute(data_query)
-        print(result)
-
         columns = [desc[0] for desc in result.description]
         json_data = []
         for row in result:
             json_data.append(dict(zip(columns, row)))
         return json_data
+
+    # def update_connection(connection_id, data):
+    #     cols = 
+    #     query = 'UPDATE connections SET '
+    #     params = []
+    #     identifiers = []
+    #     for field, val in data.items():
+    #         query += 
+    #     query += ' WHERE connection_id=%s'
+
+    #     query = sql.SQL(query).format(table = sql.Identifier(table_name))

@@ -60,6 +60,7 @@ class ConnectionData(BaseModel):
             validation_alias=to_camel
         )
     )
+    source_id: int | None = None
     user: int
     name: str
     engine: str
@@ -69,7 +70,6 @@ class ConnectionData(BaseModel):
     db_user: str
     db_password: str
     query: str
-
 
 @router.get("/")
 async def read_sources():
@@ -138,42 +138,10 @@ async def create_source(data: UploadMetadata, response: Response):
 
 @router.post("/connection", status_code=201)
 async def create_connection(data: ConnectionData, response: Response):
-    print(data)
-    try:
-        eng = EngineEnum(data.engine)
-    except ValueError as e:
-        print('Unsupported database engine')
+    result = create_new_connection(data)
+    if result == 500:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return {'error': 'Unsupported database engine'}
-    
-    # Check for duplicate names. Add incremental number if any exist
-    existing_sources = Source.get_sources()
-    dup_count = 0
-    access_id = data.name.lower()
-    proposed_id = '_'.join(data.name.lower().split())
-    source_ids = [src['source_access_id'] for src in existing_sources]
-    while proposed_id in source_ids:
-        dup_count += 1
-        proposed_id = f'{access_id}_{dup_count}'
-    if dup_count > 0:
-        data.name = f'{data.name}_{dup_count}'
-    print(data)
-    # Create the data source entry
-    try:
-        Source.create_source(data.user, 'external', data.name, proposed_id)
-    except Exception as e:
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return
-    
-    # Create the connection entry
-    try:
-        Source.create_connection(data.model_dump(exclude_none=True), proposed_id)
-    except Exception as e:
-        print(e)
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return
-
-    
+    return
 
 @router.put("/upload/{table_name}", status_code=201)
 async def update_source(table_name, data: Annotated[list, Body()], response: Response):
@@ -184,11 +152,17 @@ async def update_source(table_name, data: Annotated[list, Body()], response: Res
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {'error': 'Error uploading data'}
 
+@router.put("/connection/{source_id}", status_code=201)
+async def create_connection(source_id, data: ConnectionData, response: Response):
+    Source.delete_source(source_id)
+    result = create_new_connection(data)
+    if result == 500:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    return
+
 @router.delete("/{source_id}")
 async def delete_source(source_id, response: Response):
-    print(f'Deleting source {source_id}')
     source_data = Source.get_source(source_id)
-    print(source_data)
     if source_data['source_type'] == 'upload':
         try:
             name = Source.delete_datatable(source_data['source_access_id'])
@@ -208,3 +182,36 @@ async def delete_source(source_id, response: Response):
             print(f'Unable to delete {source_data['source_access_id']}')
             response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return
+
+def create_new_connection(data):
+    try:
+        eng = EngineEnum(data.engine)
+    except ValueError as e:
+        print('Unsupported database engine')
+        return 500
+    
+    # Check for duplicate names. Add incremental number if any exist
+    existing_sources = Source.get_sources()
+    dup_count = 0
+    access_id = data.name.lower()
+    proposed_id = '_'.join(data.name.lower().split())
+    source_ids = [src['source_access_id'] for src in existing_sources]
+    while proposed_id in source_ids:
+        dup_count += 1
+        proposed_id = f'{access_id}_{dup_count}'
+    if dup_count > 0:
+        data.name = f'{data.name}_{dup_count}'
+
+    # Create the data source entry
+    try:
+        Source.create_source(data.user, 'external', data.name, proposed_id)
+    except Exception as e:
+        print(e)
+        return 500
+    
+    # Create the connection entry
+    try:
+        Source.create_connection(data.model_dump(exclude_none=True), proposed_id)
+    except Exception as e:
+        print(e)
+        return 500

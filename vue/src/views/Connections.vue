@@ -92,6 +92,7 @@ async function editConnection(source) {
         engine = databaseEngines.value.filter(eng => eng.value == engine)
         engine = engine.length > 0 ? engine[0] : null
         activeSource.value = {
+            id: source.sourceId,
             name: source.sourceLabel,
             engine: engine,
             dbHost: connData['connection_host'] ?? '',
@@ -140,19 +141,34 @@ async function saveConnection() {
     data.engine = activeSource.value.engine.value
     console.log('Saving connection')
     console.log('Connection data:', data)
-    
-    try {
-        let response = await axios.post('/api/sources/connection', data)
-        toast.add({severity: 'success', summary: 'Success', detail: `Connection saved`, life: 3000})
-        loadSources()
-        showConnectionModal.value = false
-    } catch (err) {
-        if (err.response?.status === 401) {
-            showLogin.value = true
-            return
+    if (activeSource.value.id) {
+        try {
+            let response = await axios.put(`/api/sources/connection/${activeSource.value.id}`, data)
+            toast.add({severity: 'success', summary: 'Success', detail: `Connection saved`, life: 3000})
+            loadSources()
+            showConnectionModal.value = false
+        } catch (err) {
+            if (err.response?.status === 401) {
+                showLogin.value = true
+                return
+            }
+            toast.add({severity: 'error', summary: 'Error', detail: `Unable to save connection`, life: 3000})
+            console.log('Other error', err)
         }
-        toast.add({severity: 'error', summary: 'Error', detail: `Unable to save connection`, life: 3000})
-        console.log('Other error', err)
+    } else {
+        try {
+            let response = await axios.post('/api/sources/connection', data)
+            toast.add({severity: 'success', summary: 'Success', detail: `Connection saved`, life: 3000})
+            loadSources()
+            showConnectionModal.value = false
+        } catch (err) {
+            if (err.response?.status === 401) {
+                showLogin.value = true
+                return
+            }
+            toast.add({severity: 'error', summary: 'Error', detail: `Unable to save connection`, life: 3000})
+            console.log('Other error', err)
+        }
     }
 
 }
