@@ -1,4 +1,5 @@
 from psycopg import sql
+import pyodbc
 from .db import eza_pool, upload_pool
 
 class Source():
@@ -34,18 +35,28 @@ class Source():
         return dict(zip(headers, data[0]))
     
     @staticmethod
-    def create_upload_source(user_id, source_name, access_name):
+    def create_source(user_id, src_type, source_name, access_name):
         print('Creating source entry')
         query = '''INSERT INTO data_sources(user_id, source_type, source_label, source_access_id)
-        VALUES (%s, 'upload', %s, %s)'''
-        params = [user_id, source_name, access_name]
+        VALUES (%s, %s, %s, %s)'''
+        params = [user_id, src_type, source_name, access_name]
         with eza_pool.connection() as conn:
             conn.execute(query, params)
             conn.commit()
 
     @staticmethod
-    def create_connection_source(user_id, source_name, access_name):
+    def create_connection(data, access_id):
         print('Creating connection source')
+        query = '''INSERT INTO connections (
+            connection_access_id, connection_host, connection_port, db_name,
+            connection_user, connection_pw, db_type, query) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s);
+            '''
+        params = [access_id, data['db_host'], data['db_port'], data['database'],
+                  data['db_user'], data['db_password'], data['engine'], data['query']]
+        with eza_pool.connection() as conn:
+            conn.execute(query, params)
+            conn.commit()
         return
 
     @staticmethod
@@ -140,4 +151,44 @@ class Source():
 
     @staticmethod
     def get_connection_data(access_id):
-        pass
+        print('Getting data from external db:', access_id)
+        query = 'SELECT * FROM connections WHERE connection_access_id=%s'
+        with eza_pool.connection() as conn:
+            result = conn.execute(query, [access_id])
+            temp = result.fetchall()
+        columns = [desc[0] for desc in result.description]
+        data = dict(zip(columns, temp[0]))
+
+        engine = data['db_type']
+        host = data['connection_host']
+        port = data['connection_port']
+        database = data['db_name']
+        user = data['connection_user']
+        passw = data['connection_pw']
+        data_query = data['query']
+
+        if engine == 'mysql' or engine == 'mariadb':
+            driver = '{MariaDB Unicode}'
+
+        elif engine == 'postgres':
+            driver = '{PostgreSQL Unicode}'
+
+        conn_string = (
+            f'DRIVER={driver};'
+            f'SERVER={host};'
+            f'PORT={port};'
+            f'DATABASE={database};'
+            f'UID={user};'
+            f'PWD={passw};'
+            'charset=utf8mb4;'
+        )
+        print('Query:', data_query)
+        conn = pyodbc.connect(conn_string, autocommit=False)
+        result = conn.execute(data_query)
+        print(result)
+
+        columns = [desc[0] for desc in result.description]
+        json_data = []
+        for row in result:
+            json_data.append(dict(zip(columns, row)))
+        return json_data

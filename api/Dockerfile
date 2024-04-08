@@ -12,7 +12,22 @@ ENV PYTHONUNBUFFERED=1
 
 # Install pip requirements
 COPY ./requirements.txt /code/requirements.txt
-# RUN python -m pip install -r /code/requirements.txt
+
+RUN apt-get update \
+    && apt-get install -y unixodbc \
+    && apt-get install -y odbc-postgresql \
+    && apt-get install -y odbc-mariadb
+    # && apt-get install -y msodbcsql18 
+    # && apt-get install -y libsqliteodbc
+    # && apt-get install unixodbc-dev -y \
+    # && apt-get install freetds-dev -y \
+    # && apt-get install freetds-bin -y \
+    # && apt-get install tdsodbc -y \
+    # && apt-get install --reinstall build-essential -y
+# RUN echo "[FreeTDS]\n\
+#     Description = FreeTDS unixODBC Driver\n\
+#     Driver = /usr/lib/arm-linux-gnueabi/odbc/libtdsodbc.so\n\
+#     Setup = /usr/lib/arm-linux-gnueabi/odbc/libtdsS.so" >> /etc/odbcinst.ini
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app

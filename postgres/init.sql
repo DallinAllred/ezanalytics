@@ -44,6 +44,7 @@ CREATE TABLE connections (
     connection_id SERIAL PRIMARY KEY,
     connection_access_id VARCHAR(100) REFERENCES data_sources(source_access_id) ON DELETE CASCADE,
     db_type db_source_enum NOT NULL,
+    db_name VARCHAR(100) NOT NULL,
     connection_host VARCHAR(100) NOT NULL,
     connection_port INT NOT NULL,
     connection_user VARCHAR(100) NOT NULL,
@@ -56,7 +57,7 @@ CREATE TABLE connections (
 INSERT INTO data_sources(user_id, source_type, source_label, source_access_id) VALUES (1, 'upload', 'Mill Data', 'mill_data');
 INSERT INTO data_sources(user_id, source_type, source_label, source_access_id) VALUES (1, 'external', 'Dummy Connection', 'dummy_conn');
 
-INSERT INTO connections(connection_access_id, db_type, connection_host, connection_port, connection_user, connection_pw, query) VALUES ('dummy_conn', 'mysql', 'fakehost', 1234, 'fakeuser', 'fakepassword', 'SELECT * FROM fake_table;');
+INSERT INTO connections(connection_access_id, db_type, db_name, connection_host, connection_port, connection_user, connection_pw, query) VALUES ('dummy_conn', 'mysql', 'fake_db', 'fakehost', 1234, 'fakeuser', 'fakepassword', 'SELECT * FROM fake_table;');
 -- END DUMMY DATA
 
 CREATE DATABASE upload_data;

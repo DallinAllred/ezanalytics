@@ -51,6 +51,10 @@ async def validate_permissions(request: Request, call_next):
                             content={'error': 'Invalid credentials'},
                             headers=ERROR_HEADERS)
     user = redis_client.hgetall(session_id)
+    if user == {}:
+        return JSONResponse(status_code=401,
+                            content={'error': 'Unknown user'},
+                            headers=ERROR_HEADERS)
     user = {key: bool(int(val)) if val == '0' or val == '1'
             else val for key, val in user.items()}
 

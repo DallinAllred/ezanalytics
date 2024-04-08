@@ -6,5 +6,6 @@ gunicorn==20.1.0
 psycopg
 psycopg_pool
 pymongo
+pyodbc
 redis
 argon2-cffi

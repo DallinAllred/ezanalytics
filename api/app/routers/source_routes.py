@@ -54,12 +54,20 @@ class UploadMetadata(BaseModel):
     user: int
 
 class ConnectionData(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=AliasGenerator(
+            serialization_alias=to_snake,
+            validation_alias=to_camel
+        )
+    )
+    user: int
     name: str
     engine: str
-    host: str
-    port: int
-    user: str
-    password: str
+    db_host: str
+    db_port: int
+    database: str
+    db_user: str
+    db_password: str
     query: str
 
 
@@ -88,10 +96,12 @@ async def read_source(source_id, response: Response, limit: int | None = None):
             return
     else: # External DB connection
         try:
+            print('Loading external db')
             data = Source.get_connection_data(loc_data['source_access_id'])
             return data
         except Exception as e:
             print(e)
+            print('Error in loading external data')
             response.status = status.HTTP_500_INTERNAL_SERVER_ERROR
             return
 
@@ -120,7 +130,7 @@ async def create_source(data: UploadMetadata, response: Response):
             data.name = f'{data.name}_{version}'
         Source.create_source(data.user, 'upload', data.name, table_name)
     except Exception as e:
-        print('Error adding entry to sources')
+        print('Error adding entry to sources', e)
         Source.delete_datatable(table_name)
         response.status_code = status.HTTP_502_BAD_GATEWAY
         return {'error': 'Unable to create resource'}
@@ -128,16 +138,42 @@ async def create_source(data: UploadMetadata, response: Response):
 
 @router.post("/connection", status_code=201)
 async def create_connection(data: ConnectionData, response: Response):
+    print(data)
     try:
         eng = EngineEnum(data.engine)
     except ValueError as e:
         print('Unsupported database engine')
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {'error': 'Unsupported database engine'}
+    
+    # Check for duplicate names. Add incremental number if any exist
     existing_sources = Source.get_sources()
-    version = 0
-    for row in existing_sources:
-        print(row)
+    dup_count = 0
+    access_id = data.name.lower()
+    proposed_id = '_'.join(data.name.lower().split())
+    source_ids = [src['source_access_id'] for src in existing_sources]
+    while proposed_id in source_ids:
+        dup_count += 1
+        proposed_id = f'{access_id}_{dup_count}'
+    if dup_count > 0:
+        data.name = f'{data.name}_{dup_count}'
+    print(data)
+    # Create the data source entry
+    try:
+        Source.create_source(data.user, 'external', data.name, proposed_id)
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return
+    
+    # Create the connection entry
+    try:
+        Source.create_connection(data.model_dump(exclude_none=True), proposed_id)
+    except Exception as e:
+        print(e)
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return
+
+    
 
 @router.put("/upload/{table_name}", status_code=201)
 async def update_source(table_name, data: Annotated[list, Body()], response: Response):

@@ -20,7 +20,16 @@ const deleteSourceDialog = ref(false)
 const submitted = ref(false)
 
 // Source Info
-const activeSource = ref({})
+const activeSource = ref({
+    name: 'TestConn',
+    engine: {name: 'MySQL', value: 'mysql'},
+    dbHost: '192.168.100.116',
+    dbPort: 3306,
+    database: 'external_data',
+    dbUser: 'root',
+    dbPassword: 'password1',
+    query: 'SELECT * FROM sample_data;'
+})
 const uploadSources = ref([])
 const connectionSources = ref()
 const noSelect = ref(false)
@@ -65,15 +74,15 @@ async function deleteSource() {
 }
 
 async function editConnection(source) {
-    console.log(currentUser.value)
     if (source == null) {
         activeSource.value = {
             name: '',
             engine: null,
-            host: '',
-            port: null,
-            user: '',
-            password: '',
+            dbHost: '',
+            dbPort: null,
+            database: '',
+            dbUser: '',
+            dbPassword: '',
             query: ''
         }
     } else {
@@ -85,10 +94,11 @@ async function editConnection(source) {
         activeSource.value = {
             name: source.sourceLabel,
             engine: engine,
-            host: connData['connection_host'] ?? '',
-            port: connData['connection_port'] ?? null,
-            user: connData['connection_user'] ?? '',
-            password: connData['connection_pw'] ?? '',
+            dbHost: connData['connection_host'] ?? '',
+            dbPort: connData['connection_port'] ?? null,
+            database: connData['db_name'] ?? '',
+            dbUser: connData['connection_user'] ?? '',
+            dbPassword: connData['connection_pw'] ?? '',
             query: connData['query'] ?? ''
         }
     }
@@ -101,10 +111,11 @@ async function saveConnection() {
     unsafeQuery.value = false
     if (!(activeSource.value.name
         && activeSource.value.engine
-        && activeSource.value.host
-        && activeSource.value.port
-        && activeSource.value.user
-        && activeSource.value.password
+        && activeSource.value.dbHost
+        && activeSource.value.dbPort
+        && activeSource.value.database
+        && activeSource.value.dbUser
+        && activeSource.value.dbPassword
         && activeSource.value.query)) { return }
     let query = activeSource.value.query.toUpperCase()
     let temp = query.split(' ')
@@ -126,8 +137,24 @@ async function saveConnection() {
         user: currentUser.value['user_id'],
         ...activeSource.value
     }
-
+    data.engine = activeSource.value.engine.value
     console.log('Saving connection')
+    console.log('Connection data:', data)
+    
+    try {
+        let response = await axios.post('/api/sources/connection', data)
+        toast.add({severity: 'success', summary: 'Success', detail: `Connection saved`, life: 3000})
+        loadSources()
+        showConnectionModal.value = false
+    } catch (err) {
+        if (err.response?.status === 401) {
+            showLogin.value = true
+            return
+        }
+        toast.add({severity: 'error', summary: 'Error', detail: `Unable to save connection`, life: 3000})
+        console.log('Other error', err)
+    }
+
 }
 
 function hideConnectionDialog() {
@@ -178,6 +205,7 @@ watch(showConnectionModal, () => {
                 <h2>Database Connections</h2>
                 <div class="flex flex-row justify-content-start">
                     <div><Button label="New DB Connection" icon="pi pi-plus" @click="editConnection(null)" /></div>
+                    <div class="px-2"><Button label="Create sample connection" icon="pi pi-plus" @click="saveConnection()" /></div>
                 </div>
                 <DataTable :value="connectionSources">
                     <Column field="sourceLabel"></Column>
@@ -200,34 +228,39 @@ watch(showConnectionModal, () => {
                     <InputText id="name" v-model.trim="activeSource.name" />
                 </div>
                 <Divider />
-                <div class="field">
-                    <label for="engine">Database</label>
-                    <Dropdown v-model="activeSource.engine" :options="databaseEngines" optionLabel="name" placeholder="Select a database engine" />
-                    <small class="p-error" v-if="submitted && !activeSource.engine">An engine is required</small>
-                </div>
                 <div class="flex gap-5">
                     <div class="flex flex-column w-full">
                         <div class="field">
+                            <label for="engine">Database Engine</label>
+                            <Dropdown v-model="activeSource.engine" :options="databaseEngines" optionLabel="name" placeholder="Select a database engine" />
+                            <small class="p-error" v-if="submitted && !activeSource.engine">An engine is required</small>
+                        </div>
+                        <div class="field">
                             <label for="hostname">Host</label>
-                            <InputText id="hostname" v-model.trim="activeSource.host" />
-                            <small class="p-error" v-if="submitted && !activeSource.host">Hostname is required</small>
+                            <InputText id="hostname" v-model.trim="activeSource.dbHost" />
+                            <small class="p-error" v-if="submitted && !activeSource.dbHost">Hostname is required</small>
                         </div>
                         <div class="field">
                             <label for="port">Port</label>
-                            <InputNumber id="port" v-model.trim="activeSource.port" :useGrouping="false" />
-                            <small class="p-error" v-if="submitted && !activeSource.port">Port is required</small>
+                            <InputNumber id="port" v-model.trim="activeSource.dbPort" :useGrouping="false" />
+                            <small class="p-error" v-if="submitted && !activeSource.dbPort">Port is required</small>
                         </div>
                     </div>
                     <div class="flex flex-column w-full">
                         <div class="field">
+                            <label for="database">Database Name</label>
+                            <InputText id="port" v-model.trim="activeSource.database" />
+                            <small class="p-error" v-if="submitted && !activeSource.database">Port is required</small>
+                        </div>
+                        <div class="field">
                             <label for="user">User</label>
-                            <InputText id="user" v-model.trim="activeSource.user" />
-                            <small class="p-error" v-if="submitted && !activeSource.user">Database user is required</small>
+                            <InputText id="user" v-model.trim="activeSource.dbUser" />
+                            <small class="p-error" v-if="submitted && !activeSource.dbUser">Database user is required</small>
                         </div>
                         <div class="field">
                             <label for="password">Password</label>
-                            <InputText id="password" v-model.trim="activeSource.password" />
-                            <small class="p-error" v-if="submitted && !activeSource.password">Database password is required</small>
+                            <InputText id="password" v-model.trim="activeSource.dbPassword" />
+                            <small class="p-error" v-if="submitted && !activeSource.dbPassword">Database password is required</small>
                         </div>
                     </div>
                 </div>
