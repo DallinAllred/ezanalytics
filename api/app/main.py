@@ -13,10 +13,11 @@ from .routers import user_routes
 app = FastAPI()
 
 origins = [
-    'http://localhost:8080',
-    'http://localhost',
-    'http://vue:5050',
-    'http://lvh.me', 'http://lvh.me:8080', 'http://lvh.me:5050'
+    # 'http://localhost:8080',
+    # 'http://localhost',
+    # 'http://vue:5050',
+    # 'http://lvh.me', 'http://lvh.me:8080', 'http://lvh.me:5050'
+    'https://www.ezanalytics.dbaprojects.com', 'http://www.ezanalytics.dbaprojects.com'
 ]
 
 app.add_middleware(

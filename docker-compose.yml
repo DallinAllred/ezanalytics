@@ -1,32 +1,18 @@
 version: '3.8'
 
 services:
-  # Vue.js application
-  # vue:
-  #   container_name: vue_eza_container
-  #   image: node:21
-  #   working_dir: /app
-  #   volumes:
-  #     - ./vue:/app
-  #   command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
-  #   ports:
-  #     - "8080:8080"
-  #   networks:
-  #     - analytics_network
-
   # Nginx as a reverse proxy for Vue.js and FastAPI
   nginx:
     container_name: nginx_eza_container
     build:
       context: ./nginx
     # image: nginx:latest
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    # volumes:
+    #   - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "4430:443"
     depends_on:
-      - vue
       - fastapi
       - mongo
       - postgres

@@ -2,9 +2,9 @@ FROM node:21 AS build-stage
 
 WORKDIR /app
 
-COPY ../vue/package*.json ./
+# COPY ../vue/package*.json ./
+COPY ./vue ./
 RUN npm install
-COPY ../vue .
 RUN npm run build
 
 FROM nginx
