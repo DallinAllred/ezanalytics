@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_SERVER = 'https://www.ezanalytics.dbaprojects.com'
+const API_SERVER = import.meta.env.VITE_API_SERVER
 
 const axiosInstance = axios.create({
     withCredentials: true,
