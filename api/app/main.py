@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -12,12 +13,7 @@ from .routers import user_routes
 
 app = FastAPI()
 
-origins = [
-    'http://localhost:8080',
-    'http://localhost',
-    'http://vue:5050',
-    'http://lvh.me', 'http://lvh.me:8080', 'http://lvh.me:5050'
-]
+origins = os.getenv('ORIGINS').split(',')
 
 app.add_middleware(
     CORSMiddleware,

@@ -139,8 +139,6 @@ async function saveConnection() {
         ...activeSource.value
     }
     data.engine = activeSource.value.engine.value
-    console.log('Saving connection')
-    console.log('Connection data:', data)
     if (activeSource.value.id) {
         try {
             let response = await axios.put(`/api/sources/connection/${activeSource.value.id}`, data)

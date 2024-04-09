@@ -1,32 +1,20 @@
 version: '3.8'
 
 services:
-  # Vue.js application
-  # vue:
-  #   container_name: vue_eza_container
-  #   image: node:21
-  #   working_dir: /app
-  #   volumes:
-  #     - ./vue:/app
-  #   command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
-  #   ports:
-  #     - "8080:8080"
-  #   networks:
-  #     - analytics_network
-
   # Nginx as a reverse proxy for Vue.js and FastAPI
   nginx:
-    container_name: nginx_eza_container
+    container_name: eza_frontend_prod
     build:
       context: ./nginx
+    environment:
+      VITE_API_SERVER: https://www.ezanalytics.dbaprojects.com
     # image: nginx:latest
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    # volumes:
+    #   - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "4430:443"
     depends_on:
-      - vue
       - fastapi
       - mongo
       - postgres
@@ -36,10 +24,17 @@ services:
 
   # FastAPI
   fastapi:
-    container_name: fastapi_eza_container
+    container_name: eza_api_prod
     build:
       context: ./api
     working_dir: /app
+    environment:
+      ORIGINS: https://www.ezanalytics.dbaprojects.com
+      MONGO_USER: root
+      MONGO_PASSWORD: ezaMongoPass
+      PG_HOST: postgres_eza_container
+      PG_USER: postgres
+      PG_PASSWORD: mypassword
     ports:
       - 5050:5050
     volumes:
@@ -53,7 +48,7 @@ services:
 
   # PostgreSQL
   postgres:
-    container_name: postgres_eza_container
+    container_name: eza_postgres_prod
     build:
       context: ./postgres
     environment:
@@ -69,7 +64,7 @@ services:
 
   # Redis
   redis:
-    container_name: redis_eza_container
+    container_name: eza_redis_prod
     image: redis:latest
     command: redis-server && redis-cli FLUSHALL
     expose:
@@ -82,7 +77,7 @@ services:
 
   # MongoDB
   mongo:
-    container_name: mongo_eza_container
+    container_name: eza_mongo_prod
     # image: mongo:latest
     build:
       context: ./mongodb

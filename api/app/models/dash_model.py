@@ -1,10 +1,11 @@
+import os
 import pymongo
 
 client = pymongo.MongoClient(
-        host='mongo',
+        host=os.getenv('MONGO_HOST'),
         port=27017,
-        username='root',
-        password='example')
+        username=os.getenv('MONGO_USER'),
+        password=os.getenv('MONGO_PASSWORD'))
 
 db = client.ezanalytics
 dash_coll = db.dashboards

@@ -33,7 +33,10 @@ class User():
     
     @staticmethod
     def create_user(data):
-        del data['user_id']
+        try:
+            del data['user_id']
+        except KeyError as e:
+            pass
         columns = ','.join(data.keys())
         value_string = ', '.join([f'%s' for val in data.values()])
         query = f'''INSERT INTO users ({columns}) VALUES ({value_string});'''

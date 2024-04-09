@@ -3,38 +3,34 @@ version: '3.8'
 services:
   # Vue.js application
   vue:
-    container_name: vue_eza_container
+    container_name: eza_vue
     image: node:21
     working_dir: /app
+    environment:
+      VITE_API_SERVER: http://lvh.me:5050
     volumes:
-      - ./vue:/app
+      - ./nginx/vue:/app
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "8080:8080"
     networks:
       - analytics_network
 
-  # Nginx as a reverse proxy for Vue.js and FastAPI
-  nginx:
-    container_name: nginx_eza_container
-    image: nginx:latest
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - vue
-      - fastapi
-    networks:
-      - analytics_network
-
   # FastAPI
   fastapi:
-    container_name: fastapi_eza_container
+    container_name: eza_api
     build:
       context: ./api
     working_dir: /app
+    environment:
+      ORIGINS: http://lvh.me,http://lvh.me:8080
+      MONGO_HOST: mongo
+      MONGO_USER: root
+      MONGO_PASSWORD: ezaMongoPass
+      PG_HOST: postgres
+      PG_USER: postgres
+      PG_PASSWORD: mypassword
+      REDIS_HOST: redis
     ports:
       - 5050:5050
     volumes:
@@ -48,7 +44,7 @@ services:
 
   # PostgreSQL
   postgres:
-    container_name: postgres_eza_container
+    container_name: eza_postgres
     build:
       context: ./postgres
     environment:
@@ -64,7 +60,7 @@ services:
 
   # Redis
   redis:
-    container_name: redis_eza_container
+    container_name: eza_redis
     image: redis:latest
     command: redis-server && redis-cli FLUSHALL
     expose:
@@ -77,13 +73,12 @@ services:
 
   # MongoDB
   mongo:
-    container_name: mongo_eza_container
-    # image: mongo:latest
+    container_name: eza_mongo
     build:
       context: ./mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_PASSWORD: ezaMongoPass
     expose:
       - "27017"
     volumes:
@@ -95,7 +90,6 @@ networks:
   analytics_network:
 
 volumes:
-  ezanalytics-vue:
   fastapi:
   mongo-data:
   postgres-data:
