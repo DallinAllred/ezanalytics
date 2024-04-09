@@ -24,4 +24,4 @@ COPY ./app /code/app
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
 #CMD ["gunicorn", "--bind", "0.0.0.0:5050", "-k", "uvicorn.workers.UvicornWorker", "app.app:app"]
-CMD ["uvicorn", "app.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "5050", "--reload"]
+# CMD ["uvicorn", "app.main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "5050", "--reload"]
