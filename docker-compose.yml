@@ -30,11 +30,13 @@ services:
     working_dir: /app
     environment:
       ORIGINS: https://www.ezanalytics.dbaprojects.com
+      MONGO_HOST: mongo
       MONGO_USER: root
       MONGO_PASSWORD: ezaMongoPass
       PG_HOST: postgres_eza_container
       PG_USER: postgres
       PG_PASSWORD: mypassword
+      REDIS_HOST: redis
     ports:
       - 5050:5050
     volumes:
