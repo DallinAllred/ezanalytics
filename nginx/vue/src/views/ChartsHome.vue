@@ -42,7 +42,7 @@ async function loadPage() {
 
 async function loadCharts() {
     try {
-        let response = await axios.get(`/api/charts`)
+        let response = await axios.get(`/api/charts/`)
         chartList.value = response.data
     } catch (err) {
         if (err.response?.status === 401) {

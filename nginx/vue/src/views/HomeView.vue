@@ -34,9 +34,9 @@ async function loadItems() {
     }
     loginTitle.value = 'Session Timed Out'
     try {
-        let response = await axios.get(`/api/charts?user=${currentUser.value['user_id']}`)
+        let response = await axios.get(`/api/charts/?user=${currentUser.value['user_id']}`)
         ownedCharts.value = response.data
-        response = await axios.get(`/api/dashboards?user=${currentUser.value['user_id']}`)
+        response = await axios.get(`/api/dashboards/?user=${currentUser.value['user_id']}`)
         ownedDashboards.value = response.data
     } catch (err) {
         if (err.response?.status === 401) { showLogin.value = true}

@@ -44,7 +44,7 @@ const databaseEngines = ref([
 
 async function loadSources() {
     try{
-        let response = await axios.get('/api/sources')
+        let response = await axios.get('/api/sources/')
         let sources = response.data
         uploadSources.value = sources.filter(src => src.sourceType === 'upload')
         connectionSources.value = sources.filter(src => src.sourceType === 'external')
@@ -155,7 +155,7 @@ async function saveConnection() {
         }
     } else {
         try {
-            let response = await axios.post('/api/sources/connection', data)
+            let response = await axios.post('/api/sources/connection/', data)
             toast.add({severity: 'success', summary: 'Success', detail: `Connection saved`, life: 3000})
             loadSources()
             showConnectionModal.value = false

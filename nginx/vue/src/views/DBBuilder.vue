@@ -49,7 +49,7 @@ async function loadPage() {
 
 async function getCharts() {
     try {
-        let response = await axios.get(`/api/charts`)
+        let response = await axios.get(`/api/charts/`)
         chartList.value = response.data
     } catch (err) {
         if (err.response?.status === 401) {
@@ -82,7 +82,7 @@ function saveDashboard() {
         }
     } else {
         try {
-            let response = axios.post(`/api/dashboards`, dashboard)
+            let response = axios.post(`/api/dashboards/`, dashboard)
             toast.add({severity: 'success', summary: 'Success', detail: 'Dashboard saved', life: 3000})
         } catch (err) {
             if (err.response?.status === 401) {

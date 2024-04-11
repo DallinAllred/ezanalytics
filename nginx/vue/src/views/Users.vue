@@ -54,7 +54,7 @@ async function saveUser() {
         && activeUser.value.userEmail?.trim())) { return }
     if (newUser.value === true) {
         try {
-            let response = await axios.post('/api/users', activeUser.value)
+            let response = await axios.post('/api/users/', activeUser.value)
             toast.add({severity: 'success', summary: 'Successful', detail: 'User created', life: 3000})
         } catch (err) {
             if (err.response?.status === 401) {
@@ -86,7 +86,7 @@ async function saveUser() {
 async function loadUsers() {
     if (!currentUser.admin) return
     try {
-        let response = await axios.get('/api/users')
+        let response = await axios.get('/api/users/')
         users.value = response.data
     } catch (err) {
         if (err.response?.status === 401) { showLogin.value = true }

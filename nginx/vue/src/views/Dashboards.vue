@@ -41,7 +41,7 @@ async function loadPage() {
 
 async function loadDashboards() {
     try {
-        let response = await axios.get(`/api/dashboards`)
+        let response = await axios.get(`/api/dashboards/`)
         dashList.value = response.data
     } catch (err) {
         if (err.response?.status === 401) { showLogin.value = true }

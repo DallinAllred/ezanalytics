@@ -153,7 +153,7 @@ async function saveChart() {
         }
     } else {
         try {
-            let response = await axios.post(`/api/charts`, chart)
+            let response = await axios.post(`/api/charts/`, chart)
             toast.add({severity: 'success', summary: 'Successful', detail: 'Chart saved', life: 3000})
         } catch (err) {
             if (err.response?.status === 401) {

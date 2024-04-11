@@ -25,7 +25,7 @@ async function login() {
         password: password.value
     }
     try {
-        let response = await axios.put(`/api/auth/login`, data)
+        let response = await axios.put(`/api/auth/login/`, data)
         localStorage.setItem('eza-user', JSON.stringify(response.data))
         emit('login')
     } catch (error) {
