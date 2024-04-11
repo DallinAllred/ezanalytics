@@ -92,7 +92,7 @@ async function uploadData() {
     }
     let createdTableName = ''
     try {
-        let response = await axios.post(`/api/sources/upload/`, tableData)
+        let response = await axios.post(`/api/sources/upload`, tableData)
         createdTableName = response.data.created
     } catch (err) {
         if (err.response?.status === 401) {
