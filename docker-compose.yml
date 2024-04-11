@@ -29,7 +29,7 @@ services:
       context: ./api
     working_dir: /app
     environment:
-      ORIGINS: https://www.dbaprojects.com/ezanalytics
+      ORIGINS: https://www.dbaprojects.com/
       MONGO_HOST: mongo
       MONGO_USER: root
       MONGO_PASSWORD: ezaMongoPass
