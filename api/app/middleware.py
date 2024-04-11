@@ -1,10 +1,11 @@
+import os
 from datetime import datetime, timedelta
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from .models.db import redis_client
 
 ERROR_HEADERS = {
-    'Access-Control-Allow-Origin': 'http://lvh.me:8080',
+    'Access-Control-Allow-Origin': os.getenv('ORIGINS').split(',')[0],
     'Access-Control-Allow-Credentials': 'true'
     }
 
