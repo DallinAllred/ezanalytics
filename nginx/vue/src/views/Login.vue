@@ -9,7 +9,7 @@ const showLogin = ref(true)
 localStorage.removeItem('eza-user')
 
 onMounted(async () =>{
-    let response = await axios.put('/api/auth/logout/')
+    let response = await axios.put('/api/auth/logout')
 })
 </script>
 
