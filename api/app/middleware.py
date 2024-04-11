@@ -11,8 +11,8 @@ ERROR_HEADERS = {
 
 async def validate_session(request: Request, call_next):
     path = request.url.path
-    if path == '/api/auth/logout'\
-        or path == '/api/auth/login'\
+    if path == '/api/auth/logout/'\
+        or path == '/api/auth/login/'\
             or request.method == 'OPTIONS':
         response = await call_next(request)
         return response
@@ -41,8 +41,8 @@ async def validate_session(request: Request, call_next):
 
 async def validate_permissions(request: Request, call_next):
     path = request.url.path
-    if path == '/api/auth/logout'\
-        or path == '/api/auth/login'\
+    if path == '/api/auth/logout/'\
+        or path == '/api/auth/login/'\
             or request.method == 'OPTIONS':
         return await call_next(request)
     try:
