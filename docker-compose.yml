@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Nginx as a reverse proxy for Vue.js and FastAPI
   nginx:
-    container_name: nginx_eza_container
+    container_name: eza_web_prod
     build:
       context: ./nginx
     environment:
@@ -24,7 +24,7 @@ services:
 
   # FastAPI
   fastapi:
-    container_name: fastapi_eza_container
+    container_name: eza_fastapi_prod
     build:
       context: ./api
     working_dir: /app
@@ -51,7 +51,7 @@ services:
 
   # PostgreSQL
   postgres:
-    container_name: postgres_eza_container
+    container_name: eza_postgres_prod
     build:
       context: ./postgres
     environment:
@@ -67,7 +67,7 @@ services:
 
   # Redis
   redis:
-    container_name: redis_eza_container
+    container_name: eza_redis_prod
     image: redis:latest
     command: redis-server && redis-cli FLUSHALL
     expose:
@@ -80,13 +80,13 @@ services:
 
   # MongoDB
   mongo:
-    container_name: mongo_eza_container
+    container_name: eza_mongo_prod
     # image: mongo:latest
     build:
       context: ./mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_PASSWORD: ezaMongoPass
     expose:
       - "27017"
     volumes:
