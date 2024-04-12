@@ -16,6 +16,7 @@ const showLogin = ref(false)
 const loginTitle = ref('Session Timed Out')
 const showUploadModal = ref(false)
 
+const chartContainer = ref(null)
 const chartId = ref(null)
 const chartOwner = ref(currentUser.value['user_id'])
 const chartTitle = ref()
@@ -32,8 +33,11 @@ const yAxisL = ref([])
 const yAxisR = ref([])
 const groupBy = ref()
 
-const backgroundColors = ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)']
-const borderColors = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
+const backgroundColors1 = ['rgba(249, 115, 22, 0.4)', 'rgba(6, 182, 212, 0.4)', 'rgb(107, 114, 128, 0.4)', 'rgba(139, 92, 246, 0.4)']
+const backgroundColors2 = ['rgba(249, 0, 100, 0.4)', 'rgba(100, 249, 0, 0.4)', 'rgb(0, 100, 249, 0.4)', 'rgba(255, 200, 0, 0.4)']
+
+const borderColors1 = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
+const borderColors2 = ['rgb(249, 0, 100)', 'rgb(100, 249, 0)', 'rgb(0, 100, 249)', 'rgb(255, 200, 0)']
 
 const chartTypes = ref([
     {name: 'Bar', tag: 'bar'},
@@ -213,12 +217,15 @@ function updateLabels(axis) {
 }
 
 function updateChart() {
+    console.log(chartContainer.value.clientHeight, chartContainer.value.clientWidth)
+    chartOptions.aspectRatio = (chartContainer.value.clientWidth + 150) / chartContainer.value.clientHeight
+    console.log(chartOptions.aspectRatio)
     let datasets = []
     if (yAxisL.value && yAxisL.value.length > 0) {
-        for (let col of yAxisL.value) { datasets = [...datasets, ...buildChart(col, 'y')] }
+        datasets = [...datasets, ...buildChart(yAxisL.value, 'y')]
     }
     if (yAxisR.value && yAxisR.value.length > 0) {
-        for (let col of yAxisR.value) { datasets = [...datasets, ...buildChart(col, 'y1')] }
+        datasets = [...datasets, ...buildChart(yAxisR.value, 'y1')]
     }
     chartData.datasets = datasets
 }
@@ -243,10 +250,10 @@ function buildChart(colName, axis) {
 
             datasets.push({
                 type: chartType.value.tag,
-                label: group,
+                label: `${colName}-${group}`,
                 data,
-                backgroundColor: backgroundColors[index % backgroundColors.length],
-                borderColor: borderColors[index % borderColors.length],
+                backgroundColor: axis == 'y' ? backgroundColors1[index % backgroundColors1.length] : backgroundColors2[index % backgroundColors2.length],
+                borderColor: axis == 'y' ? borderColors1[index % borderColors1.length] : borderColors2[index % borderColors2.length],
                 borderWidth: 1,
                 yAxisID: axis
             })
@@ -254,16 +261,19 @@ function buildChart(colName, axis) {
     } else {
         let bgColors = []
         if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
+            chartOptions.aspectRatio = 1
             for (let i = 0; i < xAxis.value.length; i++){
-                bgColors.push(backgroundColors[i % backgroundColors.length])
+                // bg =  axis == 'y' ? backgroundColors1[index % backgroundColors1.length] : backgroundColors2[index % backgroundColors2.length]
+                // bgColors.push(bg)
+                bgColors.push(backgroundColors1[i % backgroundColors1.length])
             }
-        } else { bgColors = backgroundColors[0] }
+        } else { bgColors = axis == 'y' ? backgroundColors1[0] : backgroundColors2[0] }
         datasets.push({
             type: chartType.value.tag,
             label: colName,
             data: rawData.value,
             backgroundColor: bgColors,
-            borderColor: borderColors[0],
+            borderColor: axis == 'y' ? borderColors1[0] : borderColors2[0],
             borderWidth: 1,
             yAxisID: axis
         })
@@ -281,6 +291,7 @@ function buildChart(colName, axis) {
             set.data = set.data.reduce((acc, el) => acc + el[colName], 0)
         }
     }
+    // console.log(chartOptions)
     return datasets
 }
 
@@ -292,11 +303,9 @@ watch(showLogin, async () => {
     if (showLogin.value || saving) return
     await loadPage()
 })
-
 watch(showUploadModal, () => {
     if (!showUploadModal.value) getSources()
 })
-
 watch(chartType, () => {
     if (xAxis.value && (yAxisL.value.length > 0 || yAxisR.value.length > 0)) updateChart()
 })
@@ -325,27 +334,29 @@ watch(yAxisR, () => {
 </script>
 
 <template>
-    <div>
+    <div class="h-full">
         <div v-if="!(currentUser.admin || currentUser['chart_builder'])" class="flex p-3">
             <Unauthorized />
         </div>
-        <div v-else>
-            <Toolbar class="mb-2">
-                <template #start>
-                    <div class="flex gap-2 justify-content-between">
-                        <Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-14rem" @change="getData()" />
-                        <Button label="Upload CSV" icon="pi pi-upload" @click="showUploadModal = true" />
-                    </div>
-                </template>
-                <template #end>
-                    <Button label="Save" icon="pi pi-save" @click="saveChart" />
-                </template>
-            </Toolbar>
+        <div v-else class="relative h-full">
+            <div class="flex justify-content-center">
+                <Toolbar class="mb-2 w-11">
+                    <template #start>
+                        <div class="flex gap-2 justify-content-between">
+                            <Dropdown v-model="selectedDataSource" :options="dataSources" optionLabel="sourceLabel" placeholder="Select a Table" class="w-14rem" @change="getData()" />
+                            <Button label="Upload CSV" icon="pi pi-upload" @click="showUploadModal = true" />
+                        </div>
+                    </template>
+                    <template #end>
+                        <Button label="Save" icon="pi pi-save" @click="saveChart" />
+                    </template>
+                </Toolbar>
+            </div>
 
-            <div class="flex flex-column align-content-center align-items-center gap-3">
+            <div class="flex justify-content-center gap-3 w-full">
                 <div class="flex flex-column justify-content-center border-round border-solid border-200 border-1 w-11 py-2">
-                    <div class="flex justify-content-between py-4">
-                        <div class="flex justify-content-start gap-2">
+                    <div class="flex justify-content-between py-4 chart-header">
+                        <div class="flex justify-content-start gap-2 w-4">
                             <div class="ml-2">
                                 <FloatLabel class="w-full">
                                     <Dropdown v-model="chartType" inputId="chart" :options="chartTypes" optionLabel="name" placeholder="Select a Chart Type" class="w-full md:w-14rem" />
@@ -357,39 +368,43 @@ watch(yAxisR, () => {
                                 <label for="stackCheck">Stacked</label>
                             </div>
                         </div>
-                        <div class="flex justify-content-center">
+                        <div class="flex justify-content-center w-full">
                             <InputText type="text" v-model="chartTitle" placeholder="Title" class="justify-self-center"/>
                         </div>
-                        <div class="mr-2">
-                            <FloatLabel class="w-full">
+                        <div class="flex justify-content-end mr-2 w-4">
+                            <FloatLabel class="">
                                 <Dropdown v-model="groupBy" inputId="group" showClear :options="columnList" placeholder="Group By..." :disabled="columnList && chartType ? false : true"/>
                                 <label for="group">Group By</label>
                             </FloatLabel>
                         </div>
                     </div>
-                    <div class="flex justify-content-center gap-2">
+                    <div class="flex justify-content-center gap-2 chart-wrapper">
                         <div class="flex align-items-center gap-1">
                             <div class="rot-90">
-                                <MultiSelect v-model="yAxisL" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
+                                <Dropdown v-model="yAxisL" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
                                     <template #dropdownicon>{{  }}</template>
-                                </MultiSelect>
+                                </Dropdown>
                                 <label v-if="yAxisL">{{ yAxisL.col }}</label>
                             </div>
                         </div>
-                        <div class="flex flex-column align-content-center chart-container">
-                            <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="align-self-center" />
+                        <div class="flex flex-column align-content-center align-items-center chart-container w-full h-auto">
+                            <div ref="chartContainer" class="w-full h-full">
+                                <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="w-full h-full" />
+                            </div>
                             <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" :disabled="columnList && chartType ? false : true"/>
                         </div>
                         <div class="flex flex-row align-items-center gap-1">
                             <div class="rot-p90">
-                                <MultiSelect v-model="yAxisR" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
+                                <Dropdown v-model="yAxisR" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
                                     <template #dropdownicon>{{  }}</template>
-                                </MultiSelect>
+                                </Dropdown>
                             </div>
                         </div>
                     </div>
 
                 </div>
+            </div>
+            <div class="absolute bottom-0 flex justify-content-center w-full">
                 <div class="border-round border-solid border-200 border-1 w-11">
                     <DataTable :value="rawData" scrollable scrollHeight="15rem">
                         <Column v-for="col in columnList" :field="col" :header="col"></Column>
@@ -410,156 +425,22 @@ watch(yAxisR, () => {
 .rot-p90 {
     writing-mode: vertical-lr;
 }
-/*
-.chart-builder{
-    height: calc(100vh - 4.5rem);
-}
 
-.chart-builder-header {
-    height: 4rem;
-}*/
-
-.chart-builder-main {
+/* .chart-builder-main {
     height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem);
-}
-
-/* .chart-container {
-    height: 450px;
 } */
-canvas {
-    height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem - 145px) !important;
+
+.chart-wrapper {
+    /* height: 450px; */
+    height: calc(100vh - 32rem)
 }
 
-.chart-builder-table {
+/* canvas { */
+    /* height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem - 145px) !important; */
+    /* width: 100% !important; */
+/* } */
+
+/* .chart-builder-table {
     height: 10rem;
-}
+} */
 </style>
-
-<script>
-// const chartOptions = reactive({
-//     maintainAspectRation: false,
-//     responsive: true,
-//     plugins: {
-//         legend: {
-//             labels: { color: documentStyle.getPropertyValue('--text-color') }
-//         },
-//         title: {
-//             display: true,
-//             text: 'Custom Chart Title'
-//         }
-//     },
-//     scales: {
-//         x: {
-//             stacked: false,
-//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
-//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
-//             title: {
-//                 display: true,
-//                 text: 'My X-Axis'
-//             }
-//         },
-//         y: {
-//             beginAtZero: true,
-//             stacked: false,
-//             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
-//             grid: { color: documentStyle.getPropertyValue('--surface-border') },
-//             title: {
-//                 display: true,
-//                 text: 'Left Y-Axis'
-//             }
-//         }
-//         // ,y1: {}
-//         //     beginAtZero: true,
-//         //     stacked: true,
-//         //     position: 'right',
-//         //     ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
-//         //     grid: { color: documentStyle.getPropertyValue('--surface-border') },
-//         //     title: {
-//         //         display: true,
-//         //         text: 'Right Y-Axis'
-//         //     }
-//         // }
-//     }
-// })
-
-
-// const chartData = reactive({
-//     labels: ['Data'],
-//     datasets: [
-//         {
-//             type: 'bar',
-//             label: 'Sales',
-//             data: [540, 325, 702, 620],
-//             backgroundColor: ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-//             borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//             borderWidth: 1
-//         }
-//     ]
-// })
-
-// const chartData = ref({
-//         labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-//         datasets: [
-//             {
-//                 type: 'scatter',
-//                 label: 'Sales',
-//                 // data: [540, 325, 702, 620],
-//                 data:[
-//                     {x: 'Q1', y: 100},
-//                     {x: 'Q2', y: 500},
-//                     {x: 'Q3', y: 750},
-//                     {x: 'Q4', y: 1000},
-//                     {x: 'Q1', y: 200},
-//                     {x: 'Q2', y: 600},
-//                     {x: 'Q3', y: 150},
-//                     {x: 'Q4', y: 100},
-//                     {x: 'Q3', y: 850},
-//                     {x: 'Q4', y: 350}
-//                 ],
-//                 backgroundColor: ['rgba(249, 115, 22, 0.5)'],//, 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-//                 borderColor: ['rgb(249, 115, 22)'],//, 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//                 borderWidth: 1
-//             },{
-//                 type: 'scatter',
-//                 label: 'Global',
-//                 // data: [540, 325, 702, 620],
-//                 data:[
-//                     {x: 'Q1', y: 1000},
-//                     {x: 'Q2', y: 5000},
-//                     {x: 'Q3', y: 7500},
-//                     {x: 'Q4', y: 10000},
-//                     {x: 'Q1', y: 2000},
-//                     {x: 'Q2', y: 6000},
-//                     {x: 'Q3', y: 1500},
-//                     {x: 'Q4', y: 1500},
-//                     {x: 'Q3', y: 8500},
-//                     {x: 'Q4', y: 3500}
-//                 ],
-//                 backgroundColor: ['rgba(6, 182, 212, 0.5)'],//, 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)'],
-//                 borderColor: ['rgb(6, 182, 212)'],//, 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//                 borderWidth: 1
-//             },
-//             // {
-//             //     type: 'bar',
-//             //     label: 'Bids',
-//             //     data: [700, 650, 1400, 1200],
-//             //     backgroundColor: ['rgba(50, 135, 52, 0.2)', 'rgba(255, 50, 40, 0.2)', 'rgb(50, 114, 50, 0.2)', 'rgba(139, 0, 100, 0.2)'],
-//             //     // borderColor: ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)'],
-//             //     borderWidth: 1
-//             // },
-//             // {
-//             //     type: 'line',
-//             //     label: 'LineChart',
-//             //     borderColor: documentStyle.getPropertyValue('--orange-500'),
-//             //     borderWidth: 2,
-//             //     fill: false,
-//             //     tension: 0.5,
-//             //     data: [500, 250, 120, 480, 560, 760, 420]
-//             // }
-//         ]
-//     })
-
-// watch(selectedDataSource, async () => {
-//     getData()
-// })
-</script>
