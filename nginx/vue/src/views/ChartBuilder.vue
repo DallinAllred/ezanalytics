@@ -51,7 +51,7 @@ const chartTypes = ref([
 
 const chartData = reactive({labels: [], datasets: []})
 const chartOptions = reactive({
-    maintainAspectRation: false,
+    // maintainAspectRation: false,
     responsive: true,
     plugins: {
         legend: {
@@ -90,6 +90,9 @@ async function loadPage() {
     if ('chart' in route.query) {
         await loadChart(route.query.chart)
         chartId.value = route.query.chart
+    } else {
+        chartOptions.aspectRatio = chartContainer.value.clientWidth  / chartContainer.value.clientHeight
+        // chartOptions.aspectRatio = (chartContainer.value.clientWidth + 175) / chartContainer.value.clientHeight
     }
 }
 
@@ -217,10 +220,8 @@ function updateLabels(axis) {
 }
 
 function updateChart() {
-    console.log(chartContainer.value.clientHeight, chartContainer.value.clientWidth)
-    chartOptions.aspectRatio = (chartContainer.value.clientWidth + 150) / chartContainer.value.clientHeight
-    console.log(chartOptions.aspectRatio)
     let datasets = []
+    chartOptions.aspectRatio = chartContainer.value.clientWidth  / chartContainer.value.clientHeight
     if (yAxisL.value && yAxisL.value.length > 0) {
         datasets = [...datasets, ...buildChart(yAxisL.value, 'y')]
     }
@@ -240,6 +241,9 @@ function toggleStack() {
 }
 
 function buildChart(colName, axis) {
+    if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
+        chartOptions.aspectRatio = 1
+    }
     let datasets = []
     if (groupBy.value) {
         let groups = rawData.value.map(el => el[groupBy.value])
@@ -262,11 +266,8 @@ function buildChart(colName, axis) {
         let bgColors = []
         if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
             chartOptions.aspectRatio = 1
-            for (let i = 0; i < xAxis.value.length; i++){
-                // bg =  axis == 'y' ? backgroundColors1[index % backgroundColors1.length] : backgroundColors2[index % backgroundColors2.length]
-                // bgColors.push(bg)
-                bgColors.push(backgroundColors1[i % backgroundColors1.length])
-            }
+            bgColors = backgroundColors1
+            // bgColors =  axis == 'y' ? backgroundColors1 : backgroundColors2
         } else { bgColors = axis == 'y' ? backgroundColors1[0] : backgroundColors2[0] }
         datasets.push({
             type: chartType.value.tag,
@@ -378,22 +379,21 @@ watch(yAxisR, () => {
                             </FloatLabel>
                         </div>
                     </div>
-                    <div class="flex justify-content-center gap-2 chart-wrapper">
-                        <div class="flex align-items-center gap-1">
+                    <div class="flex justify-content-around gap-1 chart-wrapper">
+                        <div class="flex align-items-center pl-2">
                             <div class="rot-90">
                                 <Dropdown v-model="yAxisL" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
                                     <template #dropdownicon>{{  }}</template>
                                 </Dropdown>
-                                <label v-if="yAxisL">{{ yAxisL.col }}</label>
                             </div>
                         </div>
-                        <div class="flex flex-column align-content-center align-items-center chart-container w-full h-auto">
+                        <div class="flex flex-column align-content-center align-items-center chart-container w-full">
                             <div ref="chartContainer" class="w-full h-full">
                                 <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="w-full h-full" />
                             </div>
                             <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" :disabled="columnList && chartType ? false : true"/>
                         </div>
-                        <div class="flex flex-row align-items-center gap-1">
+                        <div class="flex align-items-center pr-2">
                             <div class="rot-p90">
                                 <Dropdown v-model="yAxisR" :options="columnList" placeholder="Y-Axis" :maxSelectedLabels="3" :disabled="columnList && chartType ? false : true">
                                     <template #dropdownicon>{{  }}</template>
@@ -426,21 +426,11 @@ watch(yAxisR, () => {
     writing-mode: vertical-lr;
 }
 
-/* .chart-builder-main {
-    height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem);
-} */
-
 .chart-wrapper {
-    /* height: 450px; */
-    height: calc(100vh - 32rem)
+    height: calc(100vh - 32rem);
 }
 
-/* canvas { */
-    /* height: calc(100vh - 4.5rem - 4rem - 15rem - 2rem - 145px) !important; */
-    /* width: 100% !important; */
-/* } */
-
-/* .chart-builder-table {
-    height: 10rem;
-} */
+.chart-container {
+    height: calc(100vh - 35rem);
+}
 </style>
