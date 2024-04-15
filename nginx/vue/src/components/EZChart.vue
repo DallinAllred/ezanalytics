@@ -219,7 +219,6 @@ watch(model, () => {
 
 watch(() => props.dashSize, () => {
     loadChart(model.value)
-    console.log('Reloading')
     chartComp.value.reinit()
 })
 </script>
