@@ -14,7 +14,6 @@ const currentUser = ref(JSON.parse(localStorage.getItem('eza-user')) ?? {})
 const deleteChartDialog = ref(false)
 const showLogin = ref(false)
 const loginTitle = ref('Session Timed Out')
-
 const chartList = ref([])
 const selectedChart = ref({title: null, id: null})
 
@@ -135,11 +134,6 @@ onMounted(async () => {
 
 <style>
 #chart-container {
-    /* height: calc(100vh - 4.5rem); */
     height: calc(100vh - 10rem);
-}
-canvas {
-    /* max-height: calc(100vh - 4.5rem - 6rem) !important; */
-    max-height: calc(100vh - 10rem) !important;
 }
 </style>

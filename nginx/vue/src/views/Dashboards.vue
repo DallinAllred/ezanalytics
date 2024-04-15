@@ -97,7 +97,7 @@ onMounted(async () => {
                     <Button :disabled="!editor" icon="pi pi-plus" label="New Dashboard" @click="newDashboard" />
                 </template>
                 <template #center>
-                    <Dropdown v-model="selectedDash" :options="dashList" filter optionLabel="title" placeholder="Select a Chart">
+                    <Dropdown v-model="selectedDash" :options="dashList" filter optionLabel="title" placeholder="Select a Dashboard">
                         <template #value="slotProps">
                             <div v-if="slotProps.value.title" class="flex">
                                 <div>{{ slotProps.value.title }} ({{ slotProps.value.id }})</div>

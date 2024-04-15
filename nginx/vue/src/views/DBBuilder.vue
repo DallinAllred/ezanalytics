@@ -14,6 +14,7 @@ const showLogin = ref(false)
 const loginTitle = ref('Session Timed Out')
 const submitted = ref(false)
 
+const chartRows = ref([])
 const chartList = ref([])
 const dashId = ref(null)
 const dashOwner = ref(currentUser.value['user_id'])
@@ -25,6 +26,14 @@ const enableAddRow = computed(() => {
         return (layout.value.length > 0 && layout.value[numRows - 1].length > 0)
     }
     return false
+})
+
+const dashSize = computed(() => {
+    let temp = []
+    for (let row of layout.value) {
+        temp.push(row.length)
+    }
+    return temp
 })
 
 let saving = false
@@ -68,7 +77,6 @@ function saveDashboard() {
         owner: dashOwner.value,
         layout: layout.value
     }
-    console.log(dashboard)
     if (dashId.value) {
         try {
             let response = axios.put(`/api/dashboards/${dashId.value}`, dashboard)
@@ -114,7 +122,7 @@ async function loadDashboard(dashId) {
 }
 
 function addRow() {
-    if (enableAddRow.value) layout.value.push([])
+    if (enableAddRow.value) { layout.value.push([]) }
 }
 function addChart(row) {
     if (!layout.value[0]) {
@@ -157,15 +165,17 @@ watch(showLogin, () => {
                     <Button label="Save Dashboard" @click="saveDashboard" />
                 </div>
             </div>
-            <div v-for="(row, index) of layout" key class="col-12 grid h-full align-items-stretch">
+            <div v-for="(row, index) of layout" key class="col-12 grid h-full align-items-stretch" ref="chartRows">
                 <div class="col-11 grid justify-content-around">
-                    <div v-for="(chart, col) of row" :class="`col-${12 / row.length}`" class="dash-row">
-                        <div v-if="chart.id">
+                    <div v-for="(chart, col) of row" :class="`col-${12 / row.length} ${layout.length > 1 ? 'dash-row-multi' : 'dash-row'}`">
+                        <div v-if="chart.id" class="w-full h-full">
                             <div class="flex justify-content-between">
                                 <Dropdown v-model="layout[index][col]" :options="chartList" optionLabel="title" placeholder="Select a Chart"></Dropdown>
                                 <Button icon="pi pi-times" outlined rounded severity="danger" class="mr-2" @click="removeChart(index, col)" />
                             </div>
-                            <EZChart v-model="chart.id" height="100%"></EZChart>
+                            <div style="height: 90%">
+                                <EZChart :dashSize="dashSize" v-model="chart.id"></EZChart>
+                            </div>
                         </div>
                         <div v-else>
                             <div class="flex justify-content-between">
@@ -186,7 +196,6 @@ watch(showLogin, () => {
                 </div>
                 <div class="col-1 flex align-items-center justify-content-center">
                     <Button icon="pi pi-plus" outlined rounded label="Add Chart" class="mr-2" @click="addChart(0)" />
-                    <!-- <Button icon="pi pi-plus" outlined rounded class="mr-2" @click="addChart(row)" /> -->
                 </div>
             </div>
             <div class="flex justify-content-center w-full">
@@ -199,6 +208,11 @@ watch(showLogin, () => {
 
 <style>
 .dash-row {
-    min-height: 40vh;
+    /* max-height: calc(100vh - 20rem); */
+    height: 80vh;
+}
+
+.dash-row-multi {
+    height: 60vh;
 }
 </style>

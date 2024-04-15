@@ -1,16 +1,19 @@
 <script setup>
 import axios from '@/axiosConfig'
-import { reactive, ref, onMounted, watch } from "vue"
+import { computed, onMounted, reactive, ref, watch } from "vue"
 
 import { useToast } from 'primevue/usetoast'
 
 const emit = defineEmits(['timeout401'])
 const model = defineModel()
-const props = defineProps(['height', 'width'])
+const props = defineProps(['height', 'width', 'dashSize'])
 
 const toast = useToast()
 
 const documentStyle = getComputedStyle(document.documentElement)
+
+const chartComp = ref(null)
+const chartContainer = ref(null)
 
 const validChart = ref(true)
 
@@ -23,13 +26,15 @@ const yAxisL = ref([])
 const yAxisR = ref([])
 const groupBy = ref()
 
-const backgroundColors = ['rgba(249, 115, 22, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgb(107, 114, 128, 0.5)', 'rgba(139, 92, 246, 0.5)']
-const borderColors = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
+const backgroundColors1 = ['rgba(249, 115, 22, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgb(107, 114, 128, 0.8)', 'rgba(139, 92, 246, 0.8)']
+const backgroundColors2 = ['rgba(249, 0, 100, 0.4)', 'rgba(100, 249, 0, 0.4)', 'rgb(0, 100, 249, 0.4)', 'rgba(255, 200, 0, 0.4)']
+const borderColors1 = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
+const borderColors2 = ['rgb(249, 0, 100)', 'rgb(100, 249, 0)', 'rgb(0, 100, 249)', 'rgb(255, 200, 0)']
 
 const chartData = reactive({labels: [], datasets: []})
 const chartOptions = reactive({
-    maintainAspectRation: false,
     responsive: true,
+    maintainAspectRatio: true,
     plugins: {
         legend: {
             labels: { color: documentStyle.getPropertyValue('--text-color') }
@@ -110,6 +115,7 @@ async function loadChart(chartId) {
     }
     updateLabels(xAxis.value)
     updateChart()
+    chartComp.value.reinit()
 }
 
 function updateLabels(axis) {
@@ -121,19 +127,35 @@ function updateLabels(axis) {
 function updateChart() {
     let datasets = []
     if (yAxisL.value && yAxisL.value.length > 0) {
-        for (let col of yAxisL.value) {
-            datasets = [...datasets, ...buildChart(col, 'y')]
-        }
+        datasets = [...datasets, ...buildChart(yAxisL.value, 'y')]
     }
     if (yAxisR.value && yAxisR.value.length > 0) {
-        for (let col of yAxisR.value) {
-            datasets = [...datasets, ...buildChart(col, 'y1')]
-        }
+        datasets = [...datasets, ...buildChart(yAxisR.value, 'y1')]
     }
     chartData.datasets = datasets
 }
 
 function buildChart(colName, axis) {
+    if (chartType.value.name == 'Bar') {
+        chartOptions.scales.x.display = true
+        chartOptions.scales.y.display = true
+        if (yAxisR.value) {
+            chartOptions.scales.y1.display = true
+        } else if (!yAxisR.value && chartOptions.scales.y1) {
+            chartOptions.scales.y1.display = false
+        }
+    } else {
+        chartOptions.scales.x.display = false
+        chartOptions.scales.y.display = false
+        if (chartOptions.scales.y1) {
+            chartOptions.scales.y1.display = false
+        }
+    }
+    if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
+        chartOptions.aspectRatio = 1
+    } else {
+        chartOptions.aspectRatio = chartContainer.value.clientWidth  / chartContainer.value.clientHeight
+    }
     let datasets = []
     if (groupBy.value) {
         let groups = rawData.value.map(el => el[groupBy.value])
@@ -144,10 +166,10 @@ function buildChart(colName, axis) {
 
             datasets.push({
                 type: chartType.value.tag,
-                label: group,
+                label: `${colName}-${group}`,
                 data,
-                backgroundColor: backgroundColors[index % backgroundColors.length],
-                borderColor: borderColors[index % borderColors.length],
+                backgroundColor: axis == 'y' ? backgroundColors1[index % backgroundColors1.length] : backgroundColors2[index % backgroundColors2.length],
+                borderColor: axis == 'y' ? borderColors1[index % borderColors1.length] : borderColors2[index % borderColors2.length],
                 borderWidth: 1,
                 yAxisID: axis
             })
@@ -155,16 +177,14 @@ function buildChart(colName, axis) {
     } else {
         let bgColors = []
         if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
-            for (let i = 0; i < xAxis.value.length; i++){
-                bgColors.push(backgroundColors[i % backgroundColors.length])
-            }
-        } else { bgColors = backgroundColors[0] }
+            bgColors = backgroundColors1
+        } else { bgColors = axis == 'y' ? backgroundColors1[0] : backgroundColors2[0] }
         datasets.push({
             type: chartType.value.tag,
             label: colName,
             data: rawData.value,
             backgroundColor: bgColors,
-            borderColor: borderColors[0],
+            borderColor: axis == 'y' ? borderColors1[0] : borderColors2[0],
             borderWidth: 1,
             yAxisID: axis
         })
@@ -197,13 +217,22 @@ watch(model, () => {
     loadChart(model.value)
 })
 
+watch(() => props.dashSize, () => {
+    loadChart(model.value)
+    console.log('Reloading')
+    chartComp.value.reinit()
+})
 </script>
 
 <template>
-    <div :style="`width:${props.width}; height:${props.height}`">
-        <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="align-self-center"/>
+    <div ref="chartContainer" class="w-full h-full">
+        <Chart ref="chartComp" :type="chartType.tag" :data="chartData" :options="chartOptions"
+        class="flex justify-content-center align-self-center w-full h-full pb-2"/>
     </div>
 </template>
 
 <style>
+canvas {
+    max-height: 100%;
+}
 </style>

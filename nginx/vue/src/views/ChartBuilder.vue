@@ -21,7 +21,8 @@ const chartId = ref(null)
 const chartOwner = ref(currentUser.value['user_id'])
 const chartTitle = ref()
 const columns = ref([])
-const columnList = ref()
+const columnList = ref(['-- Clear --'])
+const columnList2 = ref([])
 const dataSources = ref([])
 const rawData = ref()
 const selectedDataSource = ref()
@@ -33,7 +34,7 @@ const yAxisL = ref([])
 const yAxisR = ref([])
 const groupBy = ref()
 
-const backgroundColors1 = ['rgba(249, 115, 22, 0.4)', 'rgba(6, 182, 212, 0.4)', 'rgb(107, 114, 128, 0.4)', 'rgba(139, 92, 246, 0.4)']
+const backgroundColors1 = ['rgba(249, 115, 22, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgb(107, 114, 128, 0.8)', 'rgba(139, 92, 246, 0.8)']
 const backgroundColors2 = ['rgba(249, 0, 100, 0.4)', 'rgba(100, 249, 0, 0.4)', 'rgb(0, 100, 249, 0.4)', 'rgba(255, 200, 0, 0.4)']
 
 const borderColors1 = ['rgb(249, 115, 22)', 'rgb(6, 182, 212)', 'rgb(107, 114, 128)', 'rgb(139, 92, 246)']
@@ -42,16 +43,15 @@ const borderColors2 = ['rgb(249, 0, 100)', 'rgb(100, 249, 0)', 'rgb(0, 100, 249)
 const chartTypes = ref([
     {name: 'Bar', tag: 'bar'},
     {name: 'Doughnut', tag: 'doughnut'},
-    {name: 'Line', tag: 'line'},
+    // {name: 'Line', tag: 'line'},
     {name: 'Pie', tag: 'pie'},
     {name: 'Polar Area', tag: 'polarArea'},
     {name: 'Radar', tag: 'radar'},
-    {name: 'Scatter', tag: 'scatter'},
+    // {name: 'Scatter', tag: 'scatter'},
 ])
 
 const chartData = reactive({labels: [], datasets: []})
 const chartOptions = reactive({
-    // maintainAspectRation: false,
     responsive: true,
     plugins: {
         legend: {
@@ -92,7 +92,6 @@ async function loadPage() {
         chartId.value = route.query.chart
     } else {
         chartOptions.aspectRatio = chartContainer.value.clientWidth  / chartContainer.value.clientHeight
-        // chartOptions.aspectRatio = (chartContainer.value.clientWidth + 175) / chartContainer.value.clientHeight
     }
 }
 
@@ -114,10 +113,10 @@ async function getData() {
         let response = await axios.get(`/api/sources/${selectedDataSource.value.sourceId}`)
         let data = response.data
         columns.value = []
-        columnList.value = []
         for (let col of Object.keys(data[0])) {
             columns.value.push({colName: col, type: 'Cont.'})
             columnList.value.push(col)
+            columnList2.value.push(col)
         }
         rawData.value = data
     } catch (err) {
@@ -241,6 +240,19 @@ function toggleStack() {
 }
 
 function buildChart(colName, axis) {
+    if (chartType.value.name == 'Bar') {
+        chartOptions.scales.x.display = true
+        chartOptions.scales.y.display = true
+        if (chartOptions.scales.y1) {
+            chartOptions.scales.y1.display = true
+        }
+    } else {
+        chartOptions.scales.x.display = false
+        chartOptions.scales.y.display = false
+        if (chartOptions.scales.y1) {
+            chartOptions.scales.y1.display = false
+        }
+    }
     if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
         chartOptions.aspectRatio = 1
     }
@@ -265,9 +277,7 @@ function buildChart(colName, axis) {
     } else {
         let bgColors = []
         if (['doughnut', 'pie', 'polarArea', 'radar'].includes(chartType.value.tag)) {
-            chartOptions.aspectRatio = 1
             bgColors = backgroundColors1
-            // bgColors =  axis == 'y' ? backgroundColors1 : backgroundColors2
         } else { bgColors = axis == 'y' ? backgroundColors1[0] : backgroundColors2[0] }
         datasets.push({
             type: chartType.value.tag,
@@ -292,7 +302,6 @@ function buildChart(colName, axis) {
             set.data = set.data.reduce((acc, el) => acc + el[colName], 0)
         }
     }
-    // console.log(chartOptions)
     return datasets
 }
 
@@ -308,6 +317,25 @@ watch(showUploadModal, () => {
     if (!showUploadModal.value) getSources()
 })
 watch(chartType, () => {
+    if (chartType.value.name == 'Bar') {
+        chartOptions.scales.x.ticks = { color: documentStyle.getPropertyValue('--text-color-secondary') }
+        chartOptions.scales.x.grid = { color: documentStyle.getPropertyValue('--surface-border') }
+        chartOptions.scales.y.ticks = { color: documentStyle.getPropertyValue('--text-color-secondary') }
+        chartOptions.scales.y.grid = { color: documentStyle.getPropertyValue('--surface-border') }
+        if (chartOptions.scales.y1) {
+            chartOptions.scales.y1.ticks = { color: documentStyle.getPropertyValue('--text-color-secondary') }
+            chartOptions.scales.y1.grid = { color: documentStyle.getPropertyValue('--surface-border') }
+        }
+    } else {
+        chartOptions.scales.x.ticks = { display: false}
+        chartOptions.scales.x.grid = { display: false}
+        chartOptions.scales.y.ticks = { display: false}
+        chartOptions.scales.y.grid = { display: false}
+        if (chartOptions.scales.y1) {
+            chartOptions.scales.y1.ticks = { display: false}
+            chartOptions.scales.y1.grid = { display: false}
+        }
+    }
     if (xAxis.value && (yAxisL.value.length > 0 || yAxisR.value.length > 0)) updateChart()
 })
 watch(groupBy, () => {
@@ -318,18 +346,24 @@ watch(xAxis, () => {
     if (yAxisL.value.length > 0 || yAxisR.value.length > 0) updateChart()
 })
 watch(yAxisL, () => {
+    if (yAxisL.value == '-- Clear --') {
+        yAxisL.value = []
+    }
     if (xAxis.value) updateChart()
 })
 watch(yAxisR, () => {
+    if (yAxisR.value == '-- Clear --') {
+        yAxisR.value = []
+    }
     if (yAxisR.value && yAxisR.value != []) {
-        chartOptions.y1 = {
+        chartOptions.scales.y1 = {
             stacked: stackedBox.value,
             beginAtZero: true,
             position: 'right',
             ticks: { color: documentStyle.getPropertyValue('--text-color-secondary') },
-            grid: { color: documentStyle.getPropertyValue('--surface-border') }
+            grid:{ color: documentStyle.getPropertyValue('--surface-border') }
         }
-    } else { chartOptions.y1 = {} }
+    } else { chartOptions.scales.y1 = {} }
     if (xAxis.value) updateChart()
 })
 </script>
@@ -374,7 +408,7 @@ watch(yAxisR, () => {
                         </div>
                         <div class="flex justify-content-end mr-2 w-4">
                             <FloatLabel class="">
-                                <Dropdown v-model="groupBy" inputId="group" showClear :options="columnList" placeholder="Group By..." :disabled="columnList && chartType ? false : true"/>
+                                <Dropdown v-model="groupBy" inputId="group" showClear :options="columnList2" placeholder="Group By..." :disabled="columnList2 && chartType ? false : true"/>
                                 <label for="group">Group By</label>
                             </FloatLabel>
                         </div>
@@ -388,10 +422,10 @@ watch(yAxisR, () => {
                             </div>
                         </div>
                         <div class="flex flex-column align-content-center align-items-center chart-container w-full">
-                            <div ref="chartContainer" class="w-full h-full">
-                                <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="w-full h-full" />
+                            <div ref="chartContainer" class="flex justify-content-center w-full h-full">
+                                <Chart :type="chartType.tag" :data="chartData" :options="chartOptions" class="flex justify-content-center w-full h-full pb-2" />
                             </div>
-                            <Dropdown v-model="xAxis" :options="columnList" placeholder="X-Axis" :disabled="columnList && chartType ? false : true"/>
+                            <Dropdown v-model="xAxis" :options="columnList2" showClear placeholder="X-Axis" :disabled="columnList2 && chartType ? false : true"/>
                         </div>
                         <div class="flex align-items-center pr-2">
                             <div class="rot-p90">
@@ -407,7 +441,7 @@ watch(yAxisR, () => {
             <div class="absolute bottom-0 flex justify-content-center w-full">
                 <div class="border-round border-solid border-200 border-1 w-11">
                     <DataTable :value="rawData" scrollable scrollHeight="15rem">
-                        <Column v-for="col in columnList" :field="col" :header="col"></Column>
+                        <Column v-for="col in columnList2" :field="col" :header="col"></Column>
                     </DataTable>
                 </div>
             </div>
