@@ -1,6 +1,6 @@
 <script setup>
 import axios from '@/axiosConfig'
-import { computed, onMounted, reactive, ref, watch } from "vue"
+import { onMounted, reactive, ref, watch } from "vue"
 
 import { useToast } from 'primevue/usetoast'
 
