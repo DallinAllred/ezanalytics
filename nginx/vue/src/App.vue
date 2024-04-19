@@ -27,7 +27,9 @@ const userMenuItems = ref([{
 const pageList = [
   { label: 'Home', icon: 'pi pi-home', route: '/', permissions: 'viewer' },
   { label: 'Charts', icon: 'pi pi-chart-line', route: '/chartsHome', permissions: 'viewer' },
-  { label: 'Dashboards', icon: 'pi pi-qrcode', route: '/dashboards', permissions: 'viewer' },
+  { label: 'Chart Builder', icon: 'pi pi-wrench', route: '/chartBuilder', permissions: 'chart_builder' },
+  { label: 'Dashboards', icon: 'pi pi-table', route: '/dashboards', permissions: 'viewer' },
+  { label: 'Dash Builder', icon: 'pi pi-wrench', route: '/dbBuilder', permissions: 'dash_builder' },
   { label: 'Data Sources', icon: 'pi pi-database', route: '/connections', permissions: 'connections' },
   { label: 'User Admin', icon: 'pi pi-users', route: '/users', permissions: 'admin' }
 ]

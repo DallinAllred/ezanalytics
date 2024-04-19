@@ -301,7 +301,7 @@ watch(showConnectionModal, () => {
                     </div>
                 </div>
                 <template #footer>
-                    <Button label="Cancel" icon="pi pi-times" @click="hideConnectionDialog" />
+                    <Button label="Cancel" severity="danger" icon="pi pi-times" @click="hideConnectionDialog" />
                     <Button label="Save" icon="pi pi-check" @click="saveConnection" :disabled="!confirmUnsafe && unsafeQuery" />
                 </template>
 

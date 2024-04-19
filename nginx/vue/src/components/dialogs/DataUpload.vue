@@ -178,7 +178,7 @@ watch(delimitedData, () => {
             </DataTable>
         </div>
         <template #footer>
-            <Button label="Cancel" icon="pi pi-times" @click="model = false" />
+            <Button label="Cancel" severity="danger" icon="pi pi-times" @click="model = false" />
             <Button label="Upload" :icon="uploading ? 'pi pi-spin pi-spinner' : 'pi pi-upload'" @click="uploadData" />
         </template>
     </Dialog>

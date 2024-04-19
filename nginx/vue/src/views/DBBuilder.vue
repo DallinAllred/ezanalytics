@@ -162,7 +162,7 @@ watch(showLogin, () => {
                     <small class="p-error" v-if="submitted && !dashTitle">Title is required.</small>
                 </div>
                 <div class="col-2 col-offset-2 flex justify-content-end">
-                    <Button label="Save Dashboard" @click="saveDashboard" />
+                    <Button icon="pi pi-save" label="Save" @click="saveDashboard" />
                 </div>
             </div>
             <div v-for="(row, index) of layout" key class="col-12 grid h-full align-items-stretch" ref="chartRows">

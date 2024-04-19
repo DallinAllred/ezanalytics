@@ -182,7 +182,7 @@ onMounted(() => {
           </div>
           <div class="field">
             <label for="oldPassword">Old Password</label>
-            <Password toggleMask id="oldPassword" v-model.trim="oldPassword" :class="{'p-invalid': submittedPassword && !oldPassword}" />
+            <Password toggleMask id="oldPassword" v-model.trim="oldPassword" :class="{'p-invalid': submittedPassword && !oldPassword}" :feedback="false" />
           </div>
           <div class="field">
             <label for="newPassword1">New Password</label>
@@ -192,7 +192,7 @@ onMounted(() => {
           </div>
           <div class="field">
             <label for="newPassword2">Confirm New Password</label>
-            <Password toggleMask id="newPassword2" v-model.trim="newPassword2" :class="{'p-invalid': submittedPassword && !newPassword2}" />
+            <Password toggleMask id="newPassword2" v-model.trim="newPassword2" :class="{'p-invalid': submittedPassword && !newPassword2}" :feedback="false" />
             <small class="p-error" v-if="newPassword1 != newPassword2">Passwords must match</small>
             <small class="p-error" v-if="submittedPassword && !passwordComplexity">Password must be at least 8 characters</small>
 

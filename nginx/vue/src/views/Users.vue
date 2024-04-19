@@ -226,7 +226,7 @@ async function deleteUser() {
                     </div>
                 </div>
                 <template #footer>
-                    <Button label="Cancel" icon="pi pi-times" @click="hideDialog" />
+                    <Button label="Cancel" severity="danger" icon="pi pi-times" @click="hideDialog" />
                     <Button label="Save" icon="pi pi-check" @click="saveUser" />
                 </template>
             </Dialog>
