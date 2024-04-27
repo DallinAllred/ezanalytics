@@ -136,6 +136,5 @@ onMounted(async () => {
 <style>
 #dash-container {
     height: calc(100vh - 10rem);
-    /* overflow: scroll; */
 }
 </style>

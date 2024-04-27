@@ -189,14 +189,3 @@ class Source():
         for row in result:
             json_data.append(dict(zip(columns, row)))
         return json_data
-
-    # def update_connection(connection_id, data):
-    #     cols = 
-    #     query = 'UPDATE connections SET '
-    #     params = []
-    #     identifiers = []
-    #     for field, val in data.items():
-    #         query += 
-    #     query += ' WHERE connection_id=%s'
-
-    #     query = sql.SQL(query).format(table = sql.Identifier(table_name))

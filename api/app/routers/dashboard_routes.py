@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Response, status
-from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
+from pydantic import AliasGenerator, BaseModel, ConfigDict
 from pydantic.alias_generators import to_snake, to_camel
 
 from bson import ObjectId
@@ -18,7 +18,6 @@ class DashIn(BaseModel):
             validation_alias=to_camel
         )
     )
-    # dash_id: str | None = None
     title: str
     owner: int
     layout: list[list]
@@ -47,7 +46,6 @@ async def update_dash(dash_id, dash: DashIn):
     dash = dash.model_dump(exclude_none=True)
     result = Dashboard.update_dash(dash_id, dash)
     return result
-    # return [{"action": f'Updating dash {dash_id}'}]
 
 @router.delete("/{dash_id}")
 async def delete_dash(dash_id):

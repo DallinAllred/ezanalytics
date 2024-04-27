@@ -208,7 +208,6 @@ watch(showLogin, () => {
 
 <style>
 .dash-row {
-    /* max-height: calc(100vh - 20rem); */
     height: 80vh;
 }
 

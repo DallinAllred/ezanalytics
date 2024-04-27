@@ -278,9 +278,6 @@ watch(showConnectionModal, () => {
                         </div>
                     </div>
                 </div>
-                <!-- <div>
-                    <Button label="Test Connection" />
-                </div> -->
                 <Divider />
                 <div class="field">
                     <label for="query">Query</label>

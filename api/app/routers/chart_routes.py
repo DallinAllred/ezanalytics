@@ -13,7 +13,6 @@ router = APIRouter(
 )
 
 class ChartIn(BaseModel):
-    # chartId: str | None = None
     owner: int
     sourceId: dict
     title: str

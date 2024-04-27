@@ -43,4 +43,3 @@ class Chart():
     def delete_chart(chart_id):
         result = chart_coll.delete_one({'_id': chart_id})
         return
-        # return result

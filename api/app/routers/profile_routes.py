@@ -1,7 +1,6 @@
-from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 from fastapi import APIRouter, Body, Cookie, Response, status
-from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
+from pydantic import AliasGenerator, BaseModel, ConfigDict
 from pydantic.alias_generators import to_snake, to_camel
 from typing import Annotated, Any
 
