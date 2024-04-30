@@ -7,8 +7,8 @@ For Windows, MacOS, and Linux Desktops, the download can be found at:
     https://www.docker.com/products/docker-desktop/
 
 ## Start Containers
-* At the time of this writing, only the development mode is available.
 
+### Development Mode
 To start the application, run one of the following commands:
 ```sh
 # On the first run this builds the containers and starts them.
@@ -24,6 +24,11 @@ docker compose -f docker-compose-dev.yml up --build
 # Run destached (frees up the terminal)
 docker compose -f docker-compose-dev.yml up -d
 
+```
+
+### Production Mode
+```sh
+docker compose up --build -d
 ```
 
 
