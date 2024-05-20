@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 const emit = defineEmits(['delete'])
 const model = defineModel()
 const props = defineProps(['match'])
@@ -11,16 +11,10 @@ const disableDelete = computed(() => {
     }
     return false
 })
-
-watch(model, () => {
-    if (!model.value) {
-        matchText.value = ''
-    }
-})
 </script>
 
 <template>
-    <Dialog v-model:visible="model" :style="{width: '450px'}" header="Confirm Delete" :modal="true">
+    <Dialog v-model:visible="model" :style="{width: '450px'}" header="Confirm Delete" :modal="true" @after-hide="matchText = ''">
         <div class="flex flex-column gap-5">
             <div>
                 <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
