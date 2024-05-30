@@ -24,9 +24,6 @@ CREATE TABLE users (
 -- DUMMY DATA
 -- DUMMY USERS
 INSERT INTO users (first_name, last_name, username, user_email, password, admin) VALUES ('admin', 'admin', 'admin', 'admin', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14', TRUE);
-INSERT INTO users (first_name, middle_name, last_name, username, user_email, password) VALUES ('John', 'Adams', 'Doe', 'johndoe', 'john@email.com', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14');
-INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jane', 'Doe', 'jadoe', 'jane@email.com', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14');
-INSERT INTO users (first_name, last_name, username, user_email, password) VALUES ('Jack', 'Oneill', 'joneill', 'oneill@email.com', '$argon2id$v=19$m=65536,t=3,p=4$jrI0YFsN2srb+CbeKQZYDw$Avd7RnnmGkm7IIpnGkFNyFFpg0+gm8t8Fwk0VtIwC14');
 -- END DUMMY DATA
 
 CREATE TYPE source_type_enum AS ENUM('external', 'upload');
@@ -55,9 +52,6 @@ CREATE TABLE connections (
 -- DUMMY DATA
 -- DUMMY Table references
 INSERT INTO data_sources(user_id, source_type, source_label, source_access_id) VALUES (1, 'upload', 'Mill Data', 'mill_data');
-INSERT INTO data_sources(user_id, source_type, source_label, source_access_id) VALUES (1, 'external', 'Dummy Connection', 'dummy_conn');
-
-INSERT INTO connections(connection_access_id, db_type, db_name, connection_host, connection_port, connection_user, connection_pw, query) VALUES ('dummy_conn', 'mysql', 'fake_db', 'fakehost', 1234, 'fakeuser', 'fakepassword', 'SELECT * FROM fake_table;');
 -- END DUMMY DATA
 
 CREATE DATABASE upload_data;

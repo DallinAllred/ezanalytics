@@ -4,7 +4,6 @@ import { useToast } from  'primevue/usetoast'
 import axios from '@/axiosConfig'
 import DataUpload from '@/components/dialogs/DataUpload.vue'
 
-
 const emit = defineEmits('updateApp')
 const toast = useToast()
 
@@ -20,16 +19,7 @@ const deleteSourceDialog = ref(false)
 const submitted = ref(false)
 
 // Source Info
-const activeSource = ref({
-    name: 'TestConn',
-    engine: {name: 'MySQL', value: 'mysql'},
-    dbHost: '192.168.100.116',
-    dbPort: 3306,
-    database: 'external_data',
-    dbUser: 'root',
-    dbPassword: 'password1',
-    query: 'SELECT * FROM sample_data;'
-})
+const activeSource = ref({})
 const uploadSources = ref([])
 const connectionSources = ref()
 const noSelect = ref(false)
@@ -168,7 +158,6 @@ async function saveConnection() {
             console.log('Other error', err)
         }
     }
-
 }
 
 function hideConnectionDialog() {
@@ -219,7 +208,6 @@ watch(showConnectionModal, () => {
                 <h2>Database Connections</h2>
                 <div class="flex flex-row justify-content-start">
                     <div><Button label="New DB Connection" icon="pi pi-plus" @click="editConnection(null)" /></div>
-                    <div class="px-2"><Button label="Create sample connection" icon="pi pi-plus" @click="saveConnection()" /></div>
                 </div>
                 <DataTable :value="connectionSources">
                     <Column field="sourceLabel"></Column>

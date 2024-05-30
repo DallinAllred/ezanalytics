@@ -11,6 +11,19 @@ router = APIRouter(
 )
 
 class UserIn(BaseModel):
+    user_id: int | None = None
+    first_name: str
+    last_name: str
+    user_email: str
+    middle_name: str | None = None
+    username: str | None = None
+    password: str | None = None
+    admin: bool | None = None
+    viewer: bool | None = None
+    chart_builder: bool | None = None
+    dash_builder: bool | None = None
+    connections: bool | None = None
+    
     model_config = ConfigDict(
         alias_generator=AliasGenerator(
             serialization_alias=to_snake,
@@ -34,18 +47,6 @@ class UserIn(BaseModel):
             ]
         }
     )
-    user_id: int | None = None
-    first_name: str
-    last_name: str
-    user_email: str
-    middle_name: str | None = None
-    username: str | None = None
-    password: str | None = None
-    admin: bool | None = None
-    viewer: bool | None = None
-    chart_builder: bool | None = None
-    dash_builder: bool | None = None
-    connections: bool | None = None
 
 class UserOut(BaseModel):
     model_config = ConfigDict(
