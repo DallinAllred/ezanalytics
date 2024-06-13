@@ -1,7 +1,20 @@
 # Setup
 ## Table of Contents
-1. [Docker](#docker)
+1. [Summary](#project-summary)
+2. [Docker](#docker)
 2. [Basic Usage](#basic-usage)
+
+## Project Summary
+EZAnalytics is a prototype data analytics platform that enables ingesting data via delimited files (e.g. .csv or .tsv) or MySQL/MariaDB and Postgres databases. Charts and dashboards (collections of charts) can then be created from the data.
+
+While there are many improvements that can be made related to data analytics, this project is first and foremost an exercise in building a full stack web application, with all of the requisite components.
+
+The tech stack for the project is as follows:
+
+- Frontend: Vue 3 using the Composition API and PrimeVue component library
+- Backend: FastAPI (Python)
+- Database: Postgres, MongoDB, and Redis
+- Containerization: Docker/Docker Compose
 
 ## Docker
 ### Download and Install Docker
