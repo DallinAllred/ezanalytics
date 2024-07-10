@@ -1,5 +1,5 @@
 # Use the official MongoDB image
-FROM mongo:latest
+FROM mongo:7.0.12
 
 # Create directories to store initialization scripts
 RUN mkdir -p /docker-entrypoint-initdb.d
