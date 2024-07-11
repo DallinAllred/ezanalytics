@@ -16,7 +16,7 @@
     "primeicons": "^6.0.1",
     "primevue": "^3.52.0",
     "vue": "^3.4.27",
-    "vue-router": "^4.3.2",
+    "vue-router": "^4.3.3",
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
