@@ -2,7 +2,7 @@
 fastapi
 uvicorn[standard]
 fastapi-camelcase
-gunicorn==20.1.0
+gunicorn==21.2.0
 psycopg
 psycopg_pool
 pymongo
